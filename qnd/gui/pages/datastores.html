@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>AdminLTE 2 | Calendar</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <!-- Bootstrap 3.3.6 -->
+  <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- fullCalendar 2.2.5-->
+  <link rel="stylesheet" href="../plugins/fullcalendar/fullcalendar.min.css">
+  <link rel="stylesheet" href="../plugins/fullcalendar/fullcalendar.print.css" media="print">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="../dist/css/AdminLTE.min.css">
+  <!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+  <link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+	<header class="main-header">
+		<!-- Logo 
+		<a href="../index.html" class="logo">
+			<span class="logo-mini">QnD</span>
+			<span class="logo-lg">QnD Backup</span>
+		</a>-->
+		<!-- Header Navbar: style can be found in header.less -->
+		<nav class="navbar navbar-static-top">
+			<!-- Sidebar toggle button-->
+			<a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</a>
+
+			<div class="navbar-custom-menu">
+				<ul class="nav navbar-nav">
+				<!-- Messages: style can be found in dropdown.less-->
+				<li class="dropdown messages-menu">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-envelope-o"></i>
+						<span id="num_messages" class="label label-success">X</span>
+					</a>
+					<ul class="dropdown-menu">
+						<li class="header" id="label_messages">XXXX</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu" id="messages_total">
+							
+							</ul>
+						</li>
+						<li class="footer"><a href="#">See All Messages</a></li>
+					</ul>
+				</li>
+				<!-- Notifications: style can be found in dropdown.less -->
+				<li class="dropdown notifications-menu">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-bell-o"></i>
+						<span id="num_notifications" class="label label-warning">X</span>
+					</a>
+					<ul class="dropdown-menu">
+						<li id="label_notifications" class="header">XXXX</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu" id="notifications_total">
+                  
+							</ul>
+						</li>
+						<li class="footer"><a href="#">View all</a></li>
+					</ul>
+				</li>
+				
+				<!-- Tasks: style can be found in dropdown.less -->
+				<li class="dropdown tasks-menu">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-flag-o"></i>
+						<span id="num_tasks" class="label label-danger">X</span>
+					</a>
+					<ul class="dropdown-menu">
+						<li id="label_tasks" class="header">XXXX</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu" id="tasks_total">
+								
+							</ul>
+						</li>
+						<li class="footer">
+							<a href="#">View all tasks</a>
+						</li>
+					</ul>
+				</li>
+				<!-- User Account: style can be found in dropdown.less -->
+				<li class="dropdown user user-menu" style="width:125px">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<span id="loggedin_user" class="hidden-xs"></span>
+					</a>
+			
+					<ul class="dropdown-menu">
+						<!-- Menu Footer-->
+						<li class="user-footer">
+							<div class="pull-left">
+								<a href="#" class="btn btn-default btn-flat">Edit profile</a>
+							</div>
+							<div class="pull-right">
+								<a href="#" class="btn btn-default btn-flat">Sign out</a>
+							</div>
+						</li>
+					</ul>
+				</li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+  <!-- Left side column. contains the logo and sidebar -->
+  <aside class="main-sidebar">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+      <!-- Sidebar user panel -->
+      <div class="user-panel">		
+		  <!-- CPU load -->
+	  <span id="label_cpu" class="progress-text" style="color:#fff">CPU Load (%)</span>
+	  <div class="progress progress-xs active">
+                <div id="cpu_load" class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
+                  <span class="sr-only">&nbsp;</span>
+                </div>
+              </div>
+		<span id="label_ram" class="progress-text" style="color:#fff">RAM Usage (%)</span>
+	  <div class="progress progress-xs active">
+                <div id="ram_load" class="progress-bar progress-bar-primary progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
+                  <span class="sr-only">&nbsp;</span>
+                </div>
+              </div>
+      </div>
+	  
+      <!-- sidebar menu: : style can be found in sidebar.less -->
+      <ul class="sidebar-menu">
+        <li class="header">MAIN NAVIGATION</li>
+        <li class="treeview">
+          <a href="../index.html">
+            <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+          </a>
+        </li>
+		
+		<li>
+          <a href="backup.html">
+            <i class="fa fa-server"></i> <span>Backup</span>
+          </a>
+        </li>
+		
+		<li>
+          <a href="restore.html">
+            <i class="fa fa-life-bouy"></i> <span>Restore</span>
+          </a>
+        </li>
+		
+		<li>
+          <a href="schedules.html">
+            <i class="fa fa-tasks"></i> <span>Schedules</span>
+          </a>
+        </li>
+		
+
+		<li class="active">
+          <a href="datastores.html">
+            <i class="fa fa-database"></i> <span>Datastores</span>
+          </a>
+        </li>
+		
+		<li>
+          <a href="pools.html">
+            <i class="fa fa-server"></i> <span>Pools</span>
+          </a>
+        </li>
+		
+		<li>
+          <a href="settings.html">
+            <i class="fa fa-server"></i> <span>Settings</span>
+          </a>
+        </li>
+		
+
+        
+        <li><a href="documentation.html"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
+        
+      </ul>
+    </section>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Datastores
+        <small>Control panel</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Datastores</li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+	
+			<div id="messagebox"></div>
+	
+		<!-- Wizard-->
+		<div class="row" id="datastore_dialog"  style="display:none">
+        <div class="col-xs-12" >
+		<div class="box box-success">
+            <div class="box-header with-border">
+              <h3 class="box-title">Add Datastore</h3>
+
+              
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <form class="form-horizontal">
+              <div class="box-body">
+                <div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Name</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputName" placeholder="name">
+                  </div>
+                </div>
+				<div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Type</label>
+
+                  <div class="col-sm-10">
+						<select id="inputType"class="form-control">
+                    <option value="smb">Samba/CIFS share</option>
+                  </select>
+				  
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Username</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputUsername" placeholder="username">
+                  </div>
+                </div>
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Password</label>
+
+                  <div class="col-sm-10">
+                    <input type="password" class="form-control" id="inputPassword" placeholder="password">
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Host</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputHost" placeholder="//<ip-address>/sharename">
+                  </div>
+                </div>
+                <div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Additional arguments</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputArguments" placeholder="">
+                  </div>
+                </div>
+                
+              </div>
+              
+              <!-- /.box-footer -->
+            </form>
+            </div>
+            <!-- /.box-body -->
+			<div class="box-footer">
+                <button type="submit" class="btn btn-default">Cancel</button>
+                <button type="submit" onclick="saveit()" class="btn btn-info pull-right">Save</button>
+              </div>
+          </div>
+		  </div>
+		  </div>
+	
+	<!-- end wizard-->
+	
+	
+		<!-- -->
+		<div class="row">
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title">Available datastores</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body table-responsive no-padding">
+              <table class="table table-hover">
+                <tbody id="datastores_table">
+				
+                
+              </tbody></table>
+            </div>
+            <!-- /.box-body -->
+			<div class="box-footer">
+                <button type="submit" onclick="adddatastore()" class="btn btn-primary pull-right">Add Datastore</button>
+            </div>
+          </div>
+          <!-- /.box -->
+        </div>
+      </div>
+
+	
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <footer class="main-footer">
+    <div class="pull-right hidden-xs">
+      <b>Version</b> alpha-1
+    </div>
+    <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+    reserved.
+  </footer>
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery 2.2.3 -->
+<script src="../plugins/jQuery/jquery-2.2.3.min.js"></script>
+<!-- Bootstrap 3.3.6 -->
+<script src="../bootstrap/js/bootstrap.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+<!-- Slimscroll -->
+<script src="../plugins/slimScroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="../plugins/fastclick/fastclick.js"></script>
+<!-- AdminLTE App -->
+<script src="../dist/js/app.min.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="../dist/js/demo.js"></script>
+<!-- fullCalendar 2.2.5 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+<script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
+<!-- Page specific script -->
+<script>
+
+	function adddatastore() {
+		$("#datastore_dialog").css('display', 'block');
+		
+	}
+	
+	function saveit() {
+		var type = $("#inputType option:selected" )[0].value;
+		var name = $("#inputName" ).val();
+		var username = $("#inputUsername" ).val();
+		var password = $("#inputPassword" ).val();
+		var host = $("#inputHost" ).val();
+		
+		jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
+		$.ajax({
+			url: '/api/xen/datastore/',
+			type: "POST",
+			dataType: "json",
+			data: jsonData,
+			contentType: "application/json"
+		}).done(function() {
+		  $("#datastore_dialog").css('display', 'none');
+		  var alertmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-info alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-info"></i> $TITLE$</h4>$TEXT$</div></div></div>';
+		  $("#messagebox").html(alertmsg);
+		  load();
+		});
+	}
+
+	function update_system() {
+		$.get( '/api/xen/ui/system', function( stats ) {
+			$("#cpu_load").attr("aria-valuenow", stats.cpu_load);
+			$("#ram_load").attr("aria-valuenow", stats.ram_pct);
+			$("#cpu_load").attr("style", "width: " + stats.cpu_load + "%");
+			$("#ram_load").attr("style", "width: " + stats.ram_pct + "%");
+			$("#label_ram").html('RAM Usage (' + stats.ram_pct +'%)');
+			$("#label_cpu").html('CPU Usage (' + stats.cpu_load +'%)');
+			setTimeout(function(){ 
+
+				update_system();
+			}, 3000);
+		});
+	}
+	
+	function load() {
+		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
+		
+		$.get( '/api/xen/datastore/', function( data ) {
+			var contents = '<tr><th>Name</th><th>Type</th><th>Username</th><th>Host</th><th>Arguments</th><th></th></tr>';
+                
+			if(typeof data != "undefined" && data != null && data.length > 0){
+				for (var i = 0; i < data.length; i++) {
+					contents = contents + '<tr><td>' + data[i].name + '</td><td>' + data[i].type + '</td><td>' + data[i].username + '</td><td>' + data[i].host + '</td><td>' + '</td><td>' + button + '</td></tr>';
+				}
+			}
+			else {
+				contents = contents + '<tr><td colspan="6">No datastores available...</td></tr>';
+			}
+			
+			$("#datastores_table").html(contents);
+			//alert(data);
+		});
+	}
+
+	$(document).ready(function(){
+		load();
+		
+		$.get( '/api/xen/users/currentuser', function( user ) {
+			$("#loggedin_user").html(user.name);
+		
+		});
+		
+		$.get( '/api/xen/ui/messages', function( messages ) {
+			var msg_struct = '<li><a href="#"><h4 style="margin: 0 0 0 0">$FROM$<small><i class="fa fa-clock-o"></i>$TIME$</small></h4><p style="margin: 0 0 0 0">$TEXT$</p></a></li>';
+		
+			$("#num_messages").html(messages.messages);
+			$("#label_messages").html('You have ' + messages.messages + ' messages');
+			
+			for(var i=0; i<messages.messages_items.length; i++) {
+				var msg = messages.messages_items[i];
+				$("#messages_total").append(msg_struct.replace('$FROM$', msg.from).replace('$TIME$', msg.title).replace('$TEXT$', msg.message));
+			}
+			
+			var notifications_struct = '<li><a href="#"><i class="$ICON$"></i>$TEXT$</a></li>';
+			
+			$("#num_notifications").html(messages.notifications);
+			$("#label_notifications").html('You have ' + messages.notifications + ' notifications');
+			
+			for(var i=0; i<messages.notifications_items.length; i++) {
+				var not = messages.notifications_items[i];
+				$("#notifications_total").append(notifications_struct.replace('$ICON$', not.icon).replace('$TEXT$', not.message));
+			}
+			
+			var tasks_struct = '<li><a href="#"><h3>$TITLE$<small class="pull-right">$PCT$%</small></h3><div class="progress xs"><div class="progress-bar progress-bar-aqua" style="width: $PCT$%" role="progressbar" aria-valuenow="$PCT$" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">$PCT$% Complete</span></div></div></a></li>';
+			
+			$("#num_tasks").html(messages.tasks);
+			$("#label_tasks").html('You have ' + messages.tasks + ' tasks');
+			
+			for(var i=0; i<messages.tasks_items.length; i++) {
+				var task = messages.tasks_items[i];
+				$("#tasks_total").append(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent));
+			}
+		});
+		
+		update_system();
+	});
+</script>
+</body>
+</html>

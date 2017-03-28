@@ -1,5 +1,6 @@
 import logging
 import psutil
+from sys import platform
 
 import copy
 
@@ -24,12 +25,18 @@ class SystemItem(Resource):
         """
         Returns System stats.
         """
+        cpu_max = None
+        if 'linux' in platform:
+            cpu_max = 0
+        else:
+            cpu_max = psutil.cpu_freq().max
+
         obj = type('',(object,),{"cpu_load": psutil.cpu_percent() ,
                                  "ram_pct": psutil.virtual_memory().percent ,
                                  "ram_used": psutil.virtual_memory().used,
                                  "ram_max": psutil.virtual_memory().total,
                                  "cpu_num": psutil.cpu_count(logical=False),
-                                 "cpu_freq": psutil.cpu_freq().max,
+                                 "cpu_freq": cpu_max,
                                 })()
 
         return obj

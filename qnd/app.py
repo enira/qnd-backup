@@ -23,7 +23,7 @@ from database import db
 import database
 
 app = Flask(__name__)
-#logging.config.fileConfig('logging.conf')
+logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'))
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
@@ -102,6 +102,8 @@ def hello():
     return redirect('gui/index.html')
 
 def main():
+    print os.path.dirname(os.path.realpath(__file__))
+
     """
     Main running configuration
     """

@@ -8,7 +8,6 @@ from api.xen.serializers import user
 from api.restplus import api
 
 from database.models import User
-
 from database import db
 
 log = logging.getLogger(__name__)

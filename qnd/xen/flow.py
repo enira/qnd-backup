@@ -3,7 +3,7 @@ import threading
 import datetime
 
 import logging
-logging.config.fileConfig('logging.conf')
+import os 
 log = logging.getLogger(__name__)
 
 from database.models import Pool, Host, Task, Datastore

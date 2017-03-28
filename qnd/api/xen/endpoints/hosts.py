@@ -8,7 +8,6 @@ from api.xen.serializers import host
 from api.restplus import api
 
 from database.models import Host
-
 from database import db
 
 log = logging.getLogger(__name__)

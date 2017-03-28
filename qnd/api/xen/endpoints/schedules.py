@@ -8,7 +8,6 @@ from api.xen.serializers import schedule
 from api.restplus import api
 
 from database.models import Schedule
-
 from database import db
 
 log = logging.getLogger(__name__)

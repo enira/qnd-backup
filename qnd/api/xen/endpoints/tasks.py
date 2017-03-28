@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import request
 from flask_restplus import Resource
@@ -8,7 +9,6 @@ from api.xen.serializers import task
 from api.restplus import api
 
 from database.models import Task
-
 from database import db
 
 log = logging.getLogger(__name__)

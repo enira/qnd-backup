@@ -8,7 +8,7 @@ from database import db
 from database.models import Task
 
 import logging
-logging.config.fileConfig('logging.conf')
+import os
 log = logging.getLogger(__name__)
 
 class XenBackup:

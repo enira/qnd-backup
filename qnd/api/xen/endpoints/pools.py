@@ -8,7 +8,6 @@ from api.xen.serializers import pool
 from api.restplus import api
 
 from database.models import Pool
-
 from database import db
 
 log = logging.getLogger(__name__)

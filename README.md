@@ -2,12 +2,18 @@
 TODO
 
 # Installation
-TODO
+Installing the server can be done by running:
+```
+wget -O - https://raw.githubusercontent.com/enira/qnd-backup/master/deploy/ubuntu-xenial/provision.sh | sudo bash
+```
 
 ## Ubuntu 16.04 LTS
 
 # Usage
-TODO
+```
+sudo nohup python /opt/qndbackup/qnd/app.py &
+```
+## Ubuntu 16.04 LTS
 
 
 # Notice - Release: alpha-1

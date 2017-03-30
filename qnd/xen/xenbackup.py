@@ -66,6 +66,10 @@ class XenBackup:
     def discover(self):
         connection = self.get_active_server()
 
+        if connection == None:
+            log.info('No hosts attached.')
+            return
+
         # discover the host list 
         hosts = connection.command_array('xe host-list params=all')
 
@@ -103,21 +107,28 @@ class XenBackup:
 
         if connection == None:
             log.info('No available servers!')
-            raise
+            return None
 
         return connection
 
 
     def get_vms(self):   
+        if self.get_active_server() == None:
+            return None
         result = self.get_active_server().command_array('xe vm-list params')
         return result
 
-    def get_hosts(self):   
+    def get_hosts(self): 
+        if self.get_active_server() == None:
+            return None
         result = self.get_active_server().command_array('xe host-list params')
         return result
 
     def get_attached_disks(self, vms):
         result = {}
+        if vms == None:
+            return result
+
         for vm in vms:
             result[vm["uuid"]] = []
 

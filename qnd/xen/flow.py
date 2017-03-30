@@ -32,6 +32,13 @@ class Flow(object):
 
     def get_environment(self, pool_id):
         obj = {}
+
+        if pool_id not in self._poolcache:
+            obj["vms"] = []
+            obj["hosts"] = []
+            obj["disks"] = []
+            return obj
+
         obj["vms"] = self._poolcache[pool_id]["backup"].get_vms()
         obj["hosts"] = self._poolcache[pool_id]["backup"].get_hosts()
         obj["disks"] = self._poolcache[pool_id]["backup"].get_attached_disks(obj["vms"])

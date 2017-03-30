@@ -29,6 +29,9 @@ class VmsCollection(Resource):
         env = Flow.instance().get_environment(pool_id)
 
         wrapped = []
+        if env['vms'] == None:
+            return wrapped
+
         for vm in env['vms']:
             if vm["is-a-snapshot"] == 'false' and 'Control domain on host' not in vm["name-label"]:
                 # finding resident
@@ -43,7 +46,6 @@ class VmsCollection(Resource):
                             hostlabel = host["hostname"] + ' (' + host["address"] + ')'
 
                 disks = env['disks'][vm["uuid"]]
-
 
                 obj = type('',(object,),{"name": vm["name-label"], 
                                          "uuid": vm["uuid"],

@@ -369,7 +369,6 @@
 	$(document).ready(function(){
 	
 		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
-		
 		var backup = '{"status": "pending", "pct2": 0, "pct1": 0, "pool_id": $POOL$, "uuid": "$UUID$","ended": "","started": "","datastore_id": $DATASTORE$,"id": 0,"divisor": 0}';
 		
 		$.get( '/api/xen/pool/', function( pool ) {
@@ -377,7 +376,7 @@
 			if(typeof pool != "undefined" && pool != null && pool.length > 0){
 				for (var i = 0; i < pool.length; i++) {
 				
-					var pooltable = '<div class="row"><div class="col-xs-12"><div class="box"><div class="box-header"><h3 class="box-title">Pool: ' + pool[i].name + '</h3></div><div class="box-body table-responsive no-padding"><table class="table table-hover">';
+					var pooltable = '<div class="row"><div class="col-xs-12"><div class="box"><div class="box-header with-border"><h3 class="box-title">Pool: ' + pool[i].name + '</h3></div><div class="box-body table-responsive no-padding"><table class="table table-hover">';
 					pooltable = pooltable + '<tbody id="pool_' + pool[i].id + '">';
 
 					pooltable = pooltable + '</tbody></table></div><div class="box-footer"></div></div></div></div>';
@@ -416,11 +415,22 @@
 						}
 						else {
 							// todo
+							$("#" + poolname).append('<tr><td>No VMs available.</td></tr>');
 						}
 						
 						
 					});
 				}
+			}
+			else {
+				// if no backups to be found
+				
+				var pooltable = '<div class="row"><div class="col-xs-12"><div class="box"><div class="box-header with-border"><h3 class="box-title">Backup</h3></div><div class="box-body table-responsive"><table class="table table-hover">';
+				pooltable = pooltable + '<tbody><tr></td>Nothing to backup. Please add a server pool and associated hosts.</td></tr>';
+
+				pooltable = pooltable + '</tbody></table></div><div class="box-footer"></div></div></div></div>';
+				$("#bobby_tables").append(pooltable);
+				
 			}
 		});
 		

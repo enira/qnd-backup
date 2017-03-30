@@ -15,16 +15,24 @@ VERSION = '1'
 """
 
 def reset_database(app):
+    """
+    Resets the database
+    """
     log = logging.getLogger(__name__)
 
-    # todo Archive
     from database.models import User, Pool, Host, Datastore, Task, Schedule, Setting
     log.info('Creating database')
 
+    # drop everything
     db.drop_all(app=app)
+
+    # create again
     db.create_all(app=app)
 
 def check_version(app):
+    """
+    Reads the version from the database and checks if the database needs to be updated
+    """
     log = logging.getLogger(__name__)
 
     from database.models import Setting
@@ -34,6 +42,7 @@ def check_version(app):
     try:
         dbversion = Setting().query.filter(Setting.key == 'dbversion').one()
     except NoResultFound as e:
+        # error no results
         dbversion = None
 
     # no database version to be found, let's create one

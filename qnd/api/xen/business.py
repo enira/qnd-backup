@@ -1,9 +1,11 @@
 from database import db
 from database.models import Pool, Host, Datastore, Task
 
-
 # Pools
 def create_pool(data):
+    """
+    Create a pool. Id is ignored.
+    """
     name = data.get('name')
     pool = Pool(name=name)
 
@@ -11,6 +13,9 @@ def create_pool(data):
     db.session.commit()
 
 def update_pool(pool_id, data):
+    """
+    Update a pool
+    """
     pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
     pool.name = data.get('name')
   
@@ -18,6 +23,9 @@ def update_pool(pool_id, data):
     db.session.commit()
 
 def delete_pool(pool_id):
+    """
+    Delete a pool.
+    """
     pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
     db.session.delete(pool)
     db.session.commit()
@@ -25,6 +33,9 @@ def delete_pool(pool_id):
 
 # Hosts 
 def create_host(data):
+    """
+    Create a host.
+    """
     username = data.get('username')
     password = data.get('password')
     address = data.get('address')
@@ -40,6 +51,9 @@ def create_host(data):
     db.session.commit()
 
 def update_host(host_id, data):
+    """
+    Update a host.
+    """
     host = Host.query.filter(Host.id == host_id).one()
 
     pool_id = data.get('pool_id')
@@ -56,6 +70,9 @@ def update_host(host_id, data):
     db.session.commit()
 
 def delete_host(host_id):
+    """
+    Delete a host.
+    """
     host = db.session.query(Host).filter(Host.id == host_id).one()
 
     db.session.delete(host)
@@ -63,6 +80,9 @@ def delete_host(host_id):
 
 # Datastores 
 def create_datastore(data):
+    """
+    Create a datastore.
+    """
     username = data.get('username')
     password = data.get('password')
     name = data.get('name')
@@ -75,6 +95,9 @@ def create_datastore(data):
     db.session.commit()
 
 def update_datastore(datastore_id, data):
+    """
+    Update a datastore.
+    """
     datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
 
     datastore.name = data.get('name')
@@ -87,6 +110,9 @@ def update_datastore(datastore_id, data):
     db.session.commit()
 
 def delete_datastore(datastore_id):
+    """
+    Delete datastore.
+    """
     datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
     db.session.delete(datastore)
     db.session.commit()
@@ -94,6 +120,9 @@ def delete_datastore(datastore_id):
 
 # Tasks
 def create_task(data):
+    """
+    Create a task.
+    """
     pool_id = data.get('pool_id')
     pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
 
@@ -115,6 +144,9 @@ def create_task(data):
         print e
 
 def update_task(task_id, data):
+    """
+    Update a task.
+    """
     task = db.session.query(Task).filter(Task.id == task_id).one()
 
     pool_id = data.get('pool_id')
@@ -136,6 +168,9 @@ def update_task(task_id, data):
     db.session.commit()
 
 def delete_task(task_id):
+    """
+    Delete a task.
+    """
     task = db.session.query(Task).filter(Task.id == task_id).one()
 
     db.session.delete(task)

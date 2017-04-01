@@ -16,6 +16,9 @@ ns = api.namespace('xen/vms', description='Operations related to vms')
 class VmsCollection(Resource):
 
     def calc(self, bytes):
+        """
+        Calculate in Mb
+        """
         try:
             return str(int(bytes) / 1024 / 1024) + "Mb"
         except:
@@ -47,6 +50,7 @@ class VmsCollection(Resource):
 
                 disks = env['disks'][vm["uuid"]]
 
+                # create object
                 obj = type('',(object,),{"name": vm["name-label"], 
                                          "uuid": vm["uuid"],
                                          "status": vm["power-state"],
@@ -57,7 +61,6 @@ class VmsCollection(Resource):
                                          })()
            
                 wrapped.append(obj)
-
         return wrapped
 
     

@@ -5,7 +5,7 @@ logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 class Bridge:
     """
-    Bridge between API and Xen. Uses SSH.
+    Bridge between API and Xen. This class uses SSH to connect to the Xen server.
     """
 
     username = None
@@ -16,7 +16,7 @@ class Bridge:
     
     def __init__(self, address, username, password):
         """
-        Initialize
+        Initialize the class
         """
 
         self.address = address

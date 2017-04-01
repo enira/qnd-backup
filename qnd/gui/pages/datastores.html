@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>AdminLTE 2 | Calendar</title>
+  <title>Quick 'n Dirty  Xen Backup | Datastores</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -156,7 +156,7 @@
 		
 		<li>
           <a href="backup.html">
-            <i class="fa fa-server"></i> <span>Backup</span>
+            <i class="fa fa-shield"></i> <span>Backup</span>
           </a>
         </li>
 		
@@ -168,7 +168,7 @@
 		
 		<li>
           <a href="schedules.html">
-            <i class="fa fa-tasks"></i> <span>Schedules</span>
+            <i class="fa fa-calendar"></i> <span>Schedules</span>
           </a>
         </li>
 		
@@ -187,7 +187,7 @@
 		
 		<li>
           <a href="settings.html">
-            <i class="fa fa-server"></i> <span>Settings</span>
+            <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
         </li>
 		
@@ -219,14 +219,38 @@
 	
 			<div id="messagebox"></div>
 	
+	
+		<!-- Delete modal -->
+		
+		
+			<div id="deletemodal" class="modal-dialog modal" style="position:absolute; height: 181px;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Confirm delete</h4>
+              </div>
+              <div class="modal-body">
+                <p id="deletetxt"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmdeletebtn">Confirm Delete</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+	
+	
+	
+	
+	
 		<!-- Wizard-->
 		<div class="row" id="datastore_dialog"  style="display:none">
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
-              <h3 class="box-title">Add Datastore</h3>
-
-              
+              <h3 id="wizardtitle" class="box-title">Add Datastore</h3> <input type="hidden" id="inputId" value="(null)">
             </div>
             <!-- /.box-header -->
             <div class="box-body">
@@ -287,7 +311,7 @@
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                <button type="submit" class="btn btn-default">Cancel</button>
+                <button type="submit" onclick="canceldatastore()" class="btn btn-default">Cancel</button>
                 <button type="submit" onclick="saveit()" class="btn btn-info pull-right">Save</button>
               </div>
           </div>
@@ -332,7 +356,7 @@
     <div class="pull-right hidden-xs">
       <b>Version</b> alpha-1
     </div>
-    <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+    <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
   </footer>
 
@@ -358,32 +382,109 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
+	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
 
 	function adddatastore() {
+		$("#wizardtitle").html("Add Datastore");
+		$("#inputId").val("(null)");
 		$("#datastore_dialog").css('display', 'block');
+	}
+	
+	function editdatastore(id) {
+		$.getJSON( "/api/xen/datastore/" + id, function( data ) {
+		//alert(data);
+		   $("#wizardtitle").html("Edit Datastore")
+		  
+			$("#inputName" ).val(data.name);
+			$("#inputUsername" ).val(data.username);
+			$("#inputPassword" ).val(data.password);
+			$("#inputHost").val(data.host);
+			$("#inputArguments").val('');
+			$("#inputId").val(data.id);
+			
+			$("#datastore_dialog").css('display', 'block');
+		});
+	}
+	
+	function confirmdelete(id, title) {
+		$("#deletetxt").html("Are you sure you want to delete the datastore '" + title + "'?");
 		
+		$("#confirmdeletebtn").unbind();
+		$("#confirmdeletebtn").bind("click", function(e) { 
+			//alert('Delete ' + id);
+			$('#deletemodal').modal('toggle');
+			
+			$.ajax({
+				url: '/api/xen/datastore/' + id,
+				type: "DELETE"
+			}).done(function() {
+			  //canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + title + '\' deleted.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+			
+		});
+	}
+	
+	function canceldatastore() {
+		$("#datastore_dialog").css('display', 'none');
+		$("#inputName" ).val('');
+		$("#inputUsername" ).val('');
+		$("#inputPassword" ).val('');
+		$("#inputHost").val('');
+		$("#inputArguments").val('');
 	}
 	
 	function saveit() {
+		var call = $("#inputId" ).val();
+		
 		var type = $("#inputType option:selected" )[0].value;
 		var name = $("#inputName" ).val();
 		var username = $("#inputUsername" ).val();
 		var password = $("#inputPassword" ).val();
 		var host = $("#inputHost" ).val();
 		
-		jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
-		$.ajax({
-			url: '/api/xen/datastore/',
-			type: "POST",
-			dataType: "json",
-			data: jsonData,
-			contentType: "application/json"
-		}).done(function() {
-		  $("#datastore_dialog").css('display', 'none');
-		  var alertmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-info alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-info"></i> $TITLE$</h4>$TEXT$</div></div></div>';
-		  $("#messagebox").html(alertmsg);
-		  load();
-		});
+		
+		var jsonData = '';
+		
+		if(call == '(null)') {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
+		
+			$.ajax({
+				url: '/api/xen/datastore/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' added.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
+		else {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
+			
+			$.ajax({
+				url: '/api/xen/datastore/' + call,
+				type: "PUT",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' changed.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
+	
+		
+		
+		
+		
 	}
 
 	function update_system() {
@@ -395,21 +496,22 @@
 			$("#label_ram").html('RAM Usage (' + stats.ram_pct +'%)');
 			$("#label_cpu").html('CPU Usage (' + stats.cpu_load +'%)');
 			setTimeout(function(){ 
-
 				update_system();
 			}, 3000);
 		});
 	}
 	
 	function load() {
-		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
+		var button = '<button onclick="$EDIT$" type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button data-toggle="modal" data-target="#deletemodal" onclick="$DELETE$" style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
 		
 		$.get( '/api/xen/datastore/', function( data ) {
 			var contents = '<tr><th>Name</th><th>Type</th><th>Username</th><th>Host</th><th>Arguments</th><th></th></tr>';
                 
 			if(typeof data != "undefined" && data != null && data.length > 0){
 				for (var i = 0; i < data.length; i++) {
-					contents = contents + '<tr><td>' + data[i].name + '</td><td>' + data[i].type + '</td><td>' + data[i].username + '</td><td>' + data[i].host + '</td><td>' + '</td><td>' + button + '</td></tr>';
+					var dobtns = button.replace('$DELETE$', 'confirmdelete(' + data[i].id + ',\'' + data[i].name + '\')');
+					dobtns = dobtns.replace('$EDIT$', 'editdatastore(' + data[i].id + ')');
+					contents = contents + '<tr><td>' + data[i].name + '</td><td>' + data[i].type + '</td><td>' + data[i].username + '</td><td>' + data[i].host + '</td><td>' + '</td><td class="pull-right" style="margin-right:3px;">' + dobtns + '</td></tr>';
 				}
 			}
 			else {
@@ -417,7 +519,6 @@
 			}
 			
 			$("#datastores_table").html(contents);
-			//alert(data);
 		});
 	}
 

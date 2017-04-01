@@ -27,8 +27,6 @@ logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-
-
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 api.init_app(blueprint)
 
@@ -42,9 +40,7 @@ api.add_namespace(xen_ui_namespace)
 
 application.register_blueprint(blueprint)
 
-
 def configure_app(flask_app):
-    # flask_app.config['SERVER_NAME'] = settings.FLASK_SERVER_NAME
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
     flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = settings.SQLALCHEMY_TRACK_MODIFICATIONS
     flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = settings.RESTPLUS_SWAGGER_UI_DOC_EXPANSION
@@ -65,8 +61,6 @@ def initialize_app():
     """
 
     log.info('Initializing application...')
-
-
     
     """
     TODO
@@ -85,8 +79,6 @@ def initialize_app():
 
     configure_app(application)
 
-    # used to have blueprint
-
     db.init_app(application)
 
     # if there is no database, create one
@@ -98,7 +90,6 @@ def initialize_app():
 
     # start a background thread
     threading.Timer(1, Flow.instance().run).start()
-
 
 @application.route('/')
 def index():

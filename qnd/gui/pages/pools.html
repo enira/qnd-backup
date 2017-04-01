@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>AdminLTE 2 | Calendar</title>
+  <title>Quick 'n Dirty  Xen Backup | Pools</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -156,7 +156,7 @@
 		
 		<li>
           <a href="backup.html">
-            <i class="fa fa-server"></i> <span>Backup</span>
+            <i class="fa fa-shield"></i> <span>Backup</span>
           </a>
         </li>
 		
@@ -168,7 +168,7 @@
 		
 		<li>
           <a href="schedules.html">
-            <i class="fa fa-tasks"></i> <span>Schedules</span>
+            <i class="fa fa-calendar"></i> <span>Schedules</span>
           </a>
         </li>
 		
@@ -187,7 +187,7 @@
 		
 		<li>
           <a href="settings.html">
-            <i class="fa fa-server"></i> <span>Settings</span>
+            <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
         </li>
 
@@ -217,12 +217,57 @@
 	
 		<div id="messagebox"></div>
 	
+	
+		<!-- Delete modal pools -->
+		
+		
+			<div id="deletemodalpool" class="modal-dialog modal" style="position:absolute; height: 181px;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Confirm delete</h4>
+              </div>
+              <div class="modal-body">
+                <p id="deletetxtpool"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmdeletebtnpool">Confirm Delete</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+		  
+		  <!-- Delete modal hosts -->
+		
+		
+			<div id="deletemodalhost" class="modal-dialog modal" style="position:absolute; height: 181px;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Confirm delete</h4>
+              </div>
+              <div class="modal-body">
+                <p id="deletetxthost"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmdeletebtnhost">Confirm Delete</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+	
+	
+
 		<!-- Wizard-->
 		<div class="row" id="pool_dialog"  style="display:none">
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
-              <h3 class="box-title">Add Pool</h3>
+              <h3 class="box-title" id="wizardtitlepool">Add Pool</h3> <input type="hidden" id="inputIdpool" value="(null)">
 
             </div>
             <!-- /.box-header -->
@@ -257,9 +302,7 @@
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
-              <h3 class="box-title">Add Host</h3>
-
-              
+              <h3 class="box-title" id="wizardtitlehost">Add Host</h3> <input type="hidden" id="inputIdhost" value="(null)">
             </div>
             <!-- /.box-header -->
             <div class="box-body">
@@ -380,7 +423,7 @@
     <div class="pull-right hidden-xs">
       <b>Version</b> alpha-1
     </div>
-    <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+    <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
   </footer>
 </div>
@@ -405,12 +448,78 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
+	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
 
+	function confirmdeletepool(id, title){
+		$("#deletetxtpool").html("Are you sure you want to delete the pool '" + title + "'?");
+		
+		$("#confirmdeletebtnpool").unbind();
+		$("#confirmdeletebtnpool").bind("click", function(e) { 
+			$('#deletemodalpool').modal('toggle');
+			
+			$.ajax({
+				url: '/api/xen/pool/' + id,
+				type: "DELETE"
+			}).done(function() {
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Pool \'' + title + '\' deleted.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		});
+	}
+	
+	function confirmdeletehost(id, title, pool){
+		$("#deletetxthost").html("Are you sure you want to delete the host '" + title + "' from pool '" + pool + "'?");
+		
+		$("#confirmdeletebtnhost").unbind();
+		$("#confirmdeletebtnhost").bind("click", function(e) { 
+			$('#deletemodalhost').modal('toggle');
+			
+			$.ajax({
+				url: '/api/xen/host/' + id,
+				type: "DELETE"
+			}).done(function() {
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Host \'' + title + '\' deleted.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		});
+	}
+	
+	function editpool(id) {
+		$.getJSON( "/api/xen/pool/" + id, function( data ) {
+		    $("#wizardtitlepool").html("Edit Pool")
+		  
+			$("#poolInputName" ).val(data.name);
+			$("#inputIdpool").val(data.id);
+			
+			$("#pool_dialog").css('display', 'block');
+		});
+	}
+	
+	function edithost(id) {
+		$.getJSON( "/api/xen/host/" + id, function( data ) {
+		    $("#wizardtitlehost").html("Edit Host")
+			$("#inputIdhost").val(data.id);
+			
+			$("#hostInputHost" ).val(data.address);
+			$("#hostInputUsername" ).val(data.username);
+			$("#hostInputPassword" ).val(data.password);
+			$("#hostInputPool").val(data.pool_id);
+			
+			$("#host_dialog").css('display', 'block');
+		});
+	}
+	
 	function addpool() {
+		$("#wizardtitlepool").html("Add Pool");
+		$("#inputIdpool").val("(null)");
 		$("#pool_dialog").css('display', 'block');
 	}
 	
 	function addhost() {
+		$("#wizardtitlehost").html("Add Host");
+		$("#inputIdhost").val("(null)");
 		$("#host_dialog").css('display', 'block');
 	}
 	
@@ -423,30 +532,44 @@
 	}
 	
 	function savehost() {
+		var call = $("#inputIdhost" ).val();
+		
 		var pool = $( "#hostInputPool option:selected" )[0].value;
 		var host = $("#hostInputHost" ).val();
 		var username = $("#hostInputUsername" ).val();
 		var password = $("#hostInputPassword" ).val();
 	
-		jsonData = '{"username": "' + username + '", "pool_id": ' + pool + ', "address": "' + host + '", "password": "' + password + '", "type": "", "id": 0 }';
-		$.ajax({
-			url: '/api/xen/host/',
-			type: "POST",
-			dataType: "json",
-			data: jsonData,
-			contentType: "application/json"
-		}).done(function() {
-		  $("#host_dialog").css('display', 'none');
-		  
-		  $("#hostInputHost" ).val('');
-		$("#hostInputUsername" ).val('');
-		$("#hostInputPassword" ).val('');
-		$("#hostInputPool").val($("#hostInputPool option:first").val());
-		  
-		  var alertmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-info alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-info"></i> $TITLE$</h4>$TEXT$</div></div></div>';
-		  $("#messagebox").html(alertmsg);
-		  load();
-		});
+		if(call == '(null)') {
+			jsonData = '{"username": "' + username + '", "pool_id": ' + pool + ', "address": "' + host + '", "password": "' + password + '", "type": "", "id": 0 }';
+			$.ajax({
+				url: '/api/xen/host/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  cancelhost();
+		      var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Host \'' + host + '\' created.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		
+		}
+		else {
+			jsonData = '{"username": "' + username + '", "pool_id": ' + pool + ', "address": "' + host + '", "password": "' + password + '", "type": "", "id": ' + call + ' }';
+			$.ajax({
+				url: '/api/xen/host/' + call,
+				type: "PUT",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  cancelhost();
+		      var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Host \'' + host + '\' changed.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
 	}
 	
 	function cancelpool() {
@@ -455,21 +578,39 @@
 	}
 	
 	function savepool(){
+		var call = $("#inputIdpool" ).val();
+	
 		var name = $("#poolInputName" ).val();
-
-		jsonData = '{ "name": "' + name + '", "id": 0}';
-		$.ajax({
-			url: '/api/xen/pool/',
-			type: "POST",
-			dataType: "json",
-			data: jsonData,
-			contentType: "application/json"
-		}).done(function() {
-		  $("#pool_dialog").css('display', 'none');
-		  var alertmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-info alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-info"></i> $TITLE$</h4>$TEXT$</div></div></div>';
-		  $("#messagebox").html(alertmsg);
-		  load();
-		});
+		if(call == '(null)') {
+			jsonData = '{ "name": "' + name + '", "id": 0}';
+			$.ajax({
+				url: '/api/xen/pool/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  cancelpool();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Pool \'' + name + '\' added.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
+		else {
+			jsonData = '{ "name": "' + name + '", "id": ' + call + '}';
+			$.ajax({
+				url: '/api/xen/pool/' + call,
+				type: "PUT",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  cancelpool();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Pool \'' + name + '\' changed.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
 	}
 
 	function update_system() {
@@ -487,8 +628,8 @@
 	}
 	
 	function load() {
-		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
-
+		var button = '<button onclick="$EDIT$" type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button data-toggle="modal" data-target="#deletemodalpool" onclick="$DELETE$" style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
+		
 		$.get( '/api/xen/pool/', function( pool ) {
 			$.get( '/api/xen/host/', function( host ) {
 				var contents = '<tr><th>Name</th><th></th></tr>';
@@ -498,25 +639,34 @@
 				$("#hosts_table").html(contents);
 				
 				if(typeof pool != "undefined" && pool != null && pool.length > 0){
+					$("#hostInputPool").html('');
 					for (var i = 0; i < pool.length; i++) {
-						contents = '<tr><td>' + pool[i].name + '</td></td><td>' + button + '</td></tr>';
+						var dobtnspools = button.replace('$DELETE$', 'confirmdeletepool(' + pool[i].id + ',\'' + pool[i].name + '\')');
+						dobtnspools = dobtnspools.replace('$EDIT$', 'editpool(' + pool[i].id + ')');
+					
+						contents = '<tr><td>' + pool[i].name + '</td></td><td class="pull-right" style="margin-right:3px;">' + dobtnspools + '</td></tr>';
 						$("#pools_table").append(contents);
 						
 						// pools to the datasave table
+						
 						$("#hostInputPool").append($('<option>', {
 							value: pool[i].id,
 							text: pool[i].name
 						}));
 						
+						var therearehosts = false;
 						if(typeof host != "undefined" && host != null && host.length > 0){
 							for (var j = 0; j < host.length; j++) {
 								if(host[j].pool_id == pool[i].id) {
-									contents = '<tr><td>' + host[j].address + '</td><td>' + host[j].username + '</td><td>' + pool[i].name + '</td></td><td>' + button + '</td></tr>';
+									var dobtnshosts = button.replace('$DELETE$', 'confirmdeletehost(' + host[j].id + ',\'' + host[j].address + '\', \'' + pool[i].name + '\')');
+									dobtnshosts = dobtnshosts.replace('$EDIT$', 'edithost(' + host[j].id + ')').replace('deletemodalpool', 'deletemodalhost');
+									contents = '<tr><td>' + host[j].address + '</td><td>' + host[j].username + '</td><td>' + pool[i].name + '</td></td><td class="pull-right" style="margin-right:3px;">' + dobtnshosts + '</td></tr>';
 									$("#hosts_table").append(contents);
+									therearehosts == true;
 								}
 							}
 						}
-						else {
+						if(therearehosts == false) {
 							contents = '<tr><td colspan="2">No hosts available...</td></tr>';
 							$("#hosts_table").append(contents);
 						}

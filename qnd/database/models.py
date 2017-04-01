@@ -51,13 +51,16 @@ class Host(db.Model):
     pool = db.relationship('Pool', back_populates='hosts')
 
 class Datastore(db.Model):
+    """
+    A datastore object
+    """
     __tablename__ = 'datastores'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     username = db.Column(db.String)
     password = db.Column(db.String)
     host = db.Column(db.String)
-    type = db.Column(db.String)
+    type = db.Column(db.String)                         # only supported type at the moment: smb
     arguments = db.Column(db.String)
 
 
@@ -106,7 +109,7 @@ class Task(db.Model):
 
 class Schedule(db.Model):
     """
-    A cron like schedule. Picked up by the application flow, and spawns a Task
+    A cron like schedule. Picked up by the application flow, and spawns a Task when triggered
     """
     __tablename__ = 'schedules'
     id = db.Column(db.Integer, primary_key=True)
@@ -126,6 +129,10 @@ class Schedule(db.Model):
     copies = db.Column(db.Integer)                                          # 0 is infinite
 
 class Archive(db.Model):
+    """
+    Archives are defined by a source datastore, a target datastore and a password to encrypt the backups
+    transferred to the target datastore.
+    """
     __tablename__ = 'archives'
     id = db.Column(db.Integer, primary_key=True)
     source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))
@@ -140,6 +147,9 @@ class Archive(db.Model):
     incremental = db.Column(db.Integer) 
 
 class Backup(db.Model):
+    """
+    A database model spawned after a task has completed a backup.
+    """
     __tablename__ = 'backups'
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
@@ -149,6 +159,9 @@ class Backup(db.Model):
     comment = db.Column(db.String)
 
 class Setting(db.Model):
+    """
+    Application settings.
+    """
     __tablename__ = 'settings'
     key = db.Column(db.String, primary_key=True)
     value = db.Column(db.String)

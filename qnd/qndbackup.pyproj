@@ -5,7 +5,7 @@
     <ProjectGuid>b4b7a730-0ca8-4585-bd78-3aa4e7492b4e</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>app.py</StartupFile>
+    <StartupFile>wsgi.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -55,10 +55,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="api\xen\endpoints\__init__.py" />
-    <Compile Include="api\xen\parsers.py" />
     <Compile Include="api\xen\serializers.py" />
     <Compile Include="api\xen\__init__.py" />
     <Compile Include="api\__init__.py" />
+    <Compile Include="wsgi.py" />
     <Compile Include="xen\bridge.py">
       <SubType>Code</SubType>
     </Compile>

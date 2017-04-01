@@ -27,6 +27,22 @@ logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+
+
+blueprint = Blueprint('api', __name__, url_prefix='/api')
+api.init_app(blueprint)
+
+api.add_namespace(xen_users_namespace)
+api.add_namespace(xen_pools_namespace)
+api.add_namespace(xen_hosts_namespace)
+api.add_namespace(xen_datastores_namespace)
+api.add_namespace(xen_tasks_namespace)
+api.add_namespace(xen_vms_namespace)
+api.add_namespace(xen_ui_namespace)
+
+application.register_blueprint(blueprint)
+
+
 def configure_app(flask_app):
     # flask_app.config['SERVER_NAME'] = settings.FLASK_SERVER_NAME
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
@@ -43,11 +59,15 @@ def routes(app):
     import pprint
     pprint.pprint(list(map(lambda x: repr(x), app.url_map.iter_rules())))
 
-def initialize_app(flask_app):
-    log.error('Initializing application...')
+def initialize_app():
     """
     initialize the application
     """
+
+    log.info('Initializing application...')
+
+
+    
     """
     TODO
     if not os.path.exists('uuid'):
@@ -63,55 +83,35 @@ def initialize_app(flask_app):
         file.close()
     """
 
-    configure_app(flask_app)
+    configure_app(application)
 
-    blueprint = Blueprint('api', __name__, url_prefix='/api')
-    api.init_app(blueprint)
+    # used to have blueprint
 
-    api.add_namespace(xen_users_namespace)
-    api.add_namespace(xen_pools_namespace)
-    api.add_namespace(xen_hosts_namespace)
-    api.add_namespace(xen_datastores_namespace)
-    api.add_namespace(xen_tasks_namespace)
-    api.add_namespace(xen_vms_namespace)
-    api.add_namespace(xen_ui_namespace)
-
-    flask_app.register_blueprint(blueprint)
-
-    db.init_app(flask_app)
+    db.init_app(application)
 
     # if there is no database, create one
     if not os.path.exists('db.sqlite'):
-        database.reset_database(flask_app) 
+        database.reset_database(application) 
 
     # check database version and mirate if needed
-    database.check_version(flask_app)
+    database.check_version(application)
 
+    # start a background thread
+    threading.Timer(1, Flow.instance().run).start()
 
-@application.route('/gui/<path:path>')
-def send_js(path):
-    """
-    Hendler for GUI component
-    """
-    return send_from_directory('gui', path)
 
 @application.route('/')
-def hello():
+def index():
     """
     Default route, redirects to the gui index.html page
     """
     return redirect('gui/index.html')
 
 def main():
-    print os.path.dirname(os.path.realpath(__file__))
-
     """
     Main running configuration
     """
-    initialize_app(application)
-
-    # start a background thread
-    threading.Timer(1, Flow.instance().run).start()
+    initialize_app()
 
     log.info('>>>>> Starting server <<<<<')
     try:

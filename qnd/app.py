@@ -22,7 +22,7 @@ from api.restplus import api
 from database import db
 import database
 
-app = Flask(__name__)
+application = Flask(__name__)
 logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'))
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -44,6 +44,7 @@ def routes(app):
     pprint.pprint(list(map(lambda x: repr(x), app.url_map.iter_rules())))
 
 def initialize_app(flask_app):
+    log.error('Initializing application...')
     """
     initialize the application
     """
@@ -87,14 +88,14 @@ def initialize_app(flask_app):
     database.check_version(flask_app)
 
 
-@app.route('/gui/<path:path>')
+@application.route('/gui/<path:path>')
 def send_js(path):
     """
     Hendler for GUI component
     """
     return send_from_directory('gui', path)
 
-@app.route('/')
+@application.route('/')
 def hello():
     """
     Default route, redirects to the gui index.html page
@@ -107,15 +108,15 @@ def main():
     """
     Main running configuration
     """
-    initialize_app(app)
+    initialize_app(application)
 
     # start a background thread
     threading.Timer(1, Flow.instance().run).start()
 
-    log.info('>>>>> Starting server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
+    log.info('>>>>> Starting server <<<<<')
     try:
         # run flask
-        app.run(port=80, host='0.0.0.0', debug=settings.FLASK_DEBUG, use_reloader=False)
+        application.run(port=8080, host='0.0.0.0', debug=settings.FLASK_DEBUG, use_reloader=False)
     except:
         log.error('That \'s an uncaught error.')
 

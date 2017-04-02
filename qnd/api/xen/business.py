@@ -1,5 +1,5 @@
 from database import db
-from database.models import Pool, Host, Datastore, Task
+from database.models import Pool, Host, Datastore, Task, Archive, Schedule
 
 # Pools
 def create_pool(data):
@@ -174,4 +174,108 @@ def delete_task(task_id):
     task = db.session.query(Task).filter(Task.id == task_id).one()
 
     db.session.delete(task)
+    db.session.commit()
+
+# Archives
+def create_archive(data):
+    """
+    Create an archive. Id is ignored.
+    """
+    source_id = data.get('source_id')
+    source = db.session.query(Datastore).filter(Datastore.id == source_id).one()
+
+    target_id = data.get('target_id')
+    target = db.session.query(Datastore).filter(Datastore.id == target_id).one()
+
+    encryption_key = data.get('encryption_key')
+    retention = data.get('retention')
+    incremental = data.get('incremental')
+    name = data.get('name')
+
+    archive = Archive(source=source, target=target, encryption_key=encryption_key, retention=retention, incremental=incremental, name=name)
+
+    db.session.add(archive)
+    db.session.commit()
+
+def update_archive(archive_id, data):
+    """
+    Update an archive
+    """
+    archive = db.session.query(Archive).filter(Archive.id == archive_id).one()
+
+    source_id = data.get('source_id')
+    archive.source = db.session.query(Datastore).filter(Datastore.id == source_id).one()
+
+    target_id = data.get('target_id')
+    archive.target = db.session.query(Datastore).filter(Datastore.id == target_id).one()
+
+    archive.encryption_key = data.get('encryption_key')
+    archive.retention = data.get('retention')
+    archive.incremental = data.get('incremental')
+    archive.name = data.get('name')
+  
+    db.session.add(archive)
+    db.session.commit()
+
+def delete_archive(archive_id):
+    """
+    Delete an archive.
+    """
+    archive = db.session.query(Archive).filter(Archive.id == archive_id).one()
+    db.session.delete(archive)
+    db.session.commit()
+
+# Schedules
+def create_schedule(data):
+    """
+    Create a schedule. Id is ignored.
+    """
+    name = data.get('name')
+    minute = data.get('minute')
+    hour = data.get('hour')
+    day = data.get('day')
+    month = data.get('month')
+    week = data.get('week')
+    uuid = data.get('uuid')
+
+    pool_id = data.get('pool_id')
+    pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
+
+    datastore_id = data.get('datastore_id')
+    datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
+
+    schedule = Schedule(name=name, minute=minute, hour=hour, day=day, month=month, week=week, uuid=uuid, pool=pool, datastore=datastore)
+
+    db.session.add(schedule)
+    db.session.commit()
+
+def update_schedule(schedule_id, data):
+    """
+    Update a schedule
+    """
+    schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).one()
+
+    pool_id = data.get('pool_id')
+    schedule.pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
+
+    datastore_id = data.get('datastore_id')
+    schedule.datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
+
+    schedule.name = data.get('name')
+    schedule.minute = data.get('minute')
+    schedule.hour = data.get('hour')
+    schedule.day = data.get('day')
+    schedule.month = data.get('month')
+    schedule.week = data.get('week')
+    schedule.uuid = data.get('uuid')
+  
+    db.session.add(schedule)
+    db.session.commit()
+
+def delete_schedule(schedule_id):
+    """
+    Delete a schedule.
+    """
+    schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).one()
+    db.session.delete(schedule)
     db.session.commit()

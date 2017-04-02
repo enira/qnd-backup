@@ -12,8 +12,8 @@ from api.xen.endpoints.pools import ns as xen_pools_namespace
 from api.xen.endpoints.hosts import ns as xen_hosts_namespace
 from api.xen.endpoints.datastores import ns as xen_datastores_namespace
 from api.xen.endpoints.tasks import ns as xen_tasks_namespace
-#from api.xen.endpoints.schedules import ns as xen_schedules_namespace
-#from api.xen.endpoints.archives import ns as xen_archives_namespace
+from api.xen.endpoints.schedules import ns as xen_schedules_namespace
+from api.xen.endpoints.archives import ns as xen_archives_namespace
 from api.xen.endpoints.vms import ns as xen_vms_namespace
 from api.xen.endpoints.ui import ns as xen_ui_namespace
 
@@ -36,6 +36,8 @@ api.add_namespace(xen_hosts_namespace)
 api.add_namespace(xen_datastores_namespace)
 api.add_namespace(xen_tasks_namespace)
 api.add_namespace(xen_vms_namespace)
+api.add_namespace(xen_archives_namespace)
+api.add_namespace(xen_schedules_namespace)
 api.add_namespace(xen_ui_namespace)
 
 application.register_blueprint(blueprint)
@@ -97,6 +99,14 @@ def index():
     Default route, redirects to the gui index.html page
     """
     return redirect('gui/index.html')
+
+@application.route('/gui/<path:path>')
+def send_gui(path):
+    """
+    Handler for GUI component.
+    Only used by test, in production overridden by nginx
+    """
+    return send_from_directory('gui', path)
 
 def main():
     """

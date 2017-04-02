@@ -5,7 +5,7 @@
     <ProjectGuid>b4b7a730-0ca8-4585-bd78-3aa4e7492b4e</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>wsgi.py</StartupFile>
+    <StartupFile>app.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

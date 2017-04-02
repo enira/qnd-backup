@@ -18,22 +18,22 @@ ns = api.namespace('xen/schedule', description='Operations related to schedules'
 @ns.route('/')
 class ScheduleCollection(Resource):
 
-    @api.marshal_list_with(pool)
+    @api.marshal_list_with(schedule)
     def get(self):
         """
-        Returns list of pools.
+        Returns list of schedules.
         """
-        pools = db.session.query(Schedule).all()
-        return pools
+        schedules = db.session.query(Schedule).all()
+        return schedules
 
-    @api.response(201, 'Pool successfully created.')
-    @api.expect(pool)
+    @api.response(201, 'Schedule successfully created.')
+    @api.expect(schedule)
     def post(self):
         """
-        Creates a new pool.
+        Creates a new schedule.
         """
         data = request.json
-        create_pool(data)
+        create_schedule(data)
         return None, 201
 
     
@@ -44,15 +44,15 @@ class ScheduleItem(Resource):
     @api.marshal_with(schedule)
     def get(self, id):
         """
-        Returns a pool.
+        Returns a schedule.
         """
-        return db.session.query(Schedule).filter(Pool.id == id).one()
+        return db.session.query(Schedule).filter(Schedule.id == id).one()
     
     @api.expect(schedule)
     @api.response(204, 'Schedule successfully updated.')
     def put(self, id):
         """
-        Updates a pool.
+        Updates a schedule.
         Use this method to change the name of a pool.
         * Send a JSON object with the new name in the request body.
         ```

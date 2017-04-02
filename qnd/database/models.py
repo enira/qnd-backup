@@ -6,10 +6,9 @@ from database import db
 
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True)
-    queue = db.Column(db.String(32), index=True)
-    password_hash = db.Column(db.String(64))
+    id = db.Column(db.Integer, primary_key=True)                                    # id
+    username = db.Column(db.String(32), index=True)                                 # the username
+    password_hash = db.Column(db.String(64))                                        # hashed password
 
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
@@ -34,34 +33,40 @@ class User(db.Model):
         return user
 
 class Pool(db.Model):
+    """
+    A pool is a logical concept containing a grouping of XenServers.
+    """
     __tablename__ = 'pools'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    hosts = db.relationship('Host')
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    name = db.Column(db.String)                                                 # name of the pool
+    hosts = db.relationship('Host')                                             # associated hosts
 
 class Host(db.Model):
+    """
+    A host is associated with a pool and contains credentials of one XenServer.
+    """
     __tablename__ = 'hosts'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String)
-    password = db.Column(db.String)
-    address = db.Column(db.String)
-    type = db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    username = db.Column(db.String)                                             # username
+    password = db.Column(db.String)                                             # password
+    address = db.Column(db.String)                                              # host IP address or hostname
+    type = db.Column(db.String)                                                 # type - not used
 
-    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))
-    pool = db.relationship('Pool', back_populates='hosts')
+    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # associated pool id
+    pool = db.relationship('Pool', back_populates='hosts')                      # associated pool object
 
 class Datastore(db.Model):
     """
     A datastore object
     """
     __tablename__ = 'datastores'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    username = db.Column(db.String)
-    password = db.Column(db.String)
-    host = db.Column(db.String)
-    type = db.Column(db.String)                         # only supported type at the moment: smb
-    arguments = db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    name = db.Column(db.String)                                                 # identification name
+    username = db.Column(db.String)                                             # username
+    password = db.Column(db.String)                                             # password
+    host = db.Column(db.String)                                                 # host IP address or hostname
+    type = db.Column(db.String)                                                 # only supported type at the moment: smb
+    arguments = db.Column(db.String)                                            # unsupported
 
 
 class Task(db.Model):
@@ -69,24 +74,24 @@ class Task(db.Model):
     A task is a one time backup shot. For a scheduled backup, see Schedule
     """
     __tablename__ = 'tasks'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)                                # id
     uuid = db.Column(db.String)                                                 # uuid of VM to backup
-    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    ended = db.Column(db.DateTime)
-    snapshotname = db.Column(db.String)
+    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
+    ended = db.Column(db.DateTime)                                              # end time
+    snapshotname = db.Column(db.String)                                         # name of the snapshot
     pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
     pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
     divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
 
-    status = db.Column(db.String)
+    status = db.Column(db.String)                                               # status of the task
 
-    schedule_id = db.Column(db.Integer)
+    schedule_id = db.Column(db.Integer)                                         # if there is an associated schedule
 
-    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))
-    datastore = db.relationship('Datastore')
+    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
+    datastore = db.relationship('Datastore')                                    # datastore object  
 
-    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))
-    pool = db.relationship('Pool')
+    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
+    pool = db.relationship('Pool')                                              # pool object
 
     def pct(self):
         if self.pct1 == None:
@@ -112,21 +117,20 @@ class Schedule(db.Model):
     A cron like schedule. Picked up by the application flow, and spawns a Task when triggered
     """
     __tablename__ = 'schedules'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    name = db.Column(db.String)                                                 # schedule name
 
-    minute = db.Column(db.Integer)
-    hour = db.Column(db.Integer)
-    day = db.Column(db.Integer)
-    month = db.Column(db.Integer)
-    week = db.Column(db.Integer)
+    minute = db.Column(db.String)                                               # cron - minute of hour
+    hour = db.Column(db.String)                                                 # cron - hour of day
+    day = db.Column(db.String)                                                  # cron - day of month
+    month = db.Column(db.String)                                                # cron - month
+    week = db.Column(db.String)                                                 # cron - weekday
+    uuid = db.Column(db.String)                                                 # uuid of VM to backup
+    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
+    datastore = db.relationship('Datastore')                                    # datastore object  
+    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
+    pool = db.relationship('Pool')                                              # pool object
 
-    uuid = db.Column(db.String(32))                                         # uuid of VM to backup
-
-    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))
-    datastore = db.relationship('Datastore')
-
-    copies = db.Column(db.Integer)                                          # 0 is infinite
 
 class Archive(db.Model):
     """
@@ -134,34 +138,36 @@ class Archive(db.Model):
     transferred to the target datastore.
     """
     __tablename__ = 'archives'
-    id = db.Column(db.Integer, primary_key=True)
-    source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))
-    source = db.relationship('Datastore', foreign_keys=[source_id])
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    name = db.Column(db.String)                                                 # the display name
+
+    source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
+    source = db.relationship('Datastore', foreign_keys=[source_id])             # datastore object  
     
-    target_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))
-    target = db.relationship('Datastore', foreign_keys=[target_id])
+    target_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
+    target = db.relationship('Datastore', foreign_keys=[target_id])             # datastore object  
 
-    encryption_key = db.Column(db.String)
+    encryption_key = db.Column(db.String)                                       # encryption key 
 
-    retention = db.Column(db.Integer) 
-    incremental = db.Column(db.Integer) 
+    retention = db.Column(db.Integer)                                           # amount of backups to keep before archiving  
+    incremental = db.Column(db.Integer)                                         # not implemented
 
 class Backup(db.Model):
     """
     A database model spawned after a task has completed a backup.
     """
     __tablename__ = 'backups'
-    id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
-    task = db.relationship('Task')
-    metafile = db.Column(db.String)
-    backupfile = db.Column(db.String)
-    comment = db.Column(db.String)
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))                  # task id
+    task = db.relationship('Task')                                              # task object
+    metafile = db.Column(db.String)                                             # meta-file location
+    backupfile = db.Column(db.String)                                           # backup file location
+    comment = db.Column(db.String)                                              # comments on the backup
 
 class Setting(db.Model):
     """
-    Application settings.
+    Application settings. Key value pair store.
     """
     __tablename__ = 'settings'
-    key = db.Column(db.String, primary_key=True)
-    value = db.Column(db.String)
+    key = db.Column(db.String, primary_key=True)                                # key
+    value = db.Column(db.String)                                                # value

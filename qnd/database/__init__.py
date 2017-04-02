@@ -5,12 +5,13 @@ import logging.config
 
 db = SQLAlchemy()
 
-VERSION = '1'
+VERSION = '2'
 
 """
     DB VERSIONS:
     ------------
-    1       alpha-1
+    1       alpha-1(-fix)
+    2       alpha-2
 
 """
 
@@ -66,6 +67,14 @@ def check_version(app):
         # database is not up to date
         log.info('Database migration started.')
 
-        # No database migrations yet
+        # database migrations 
+
+        # from alpha-1 to alpha-2: unsupported due to a lot of db changes and no use of alpha-1 (alpha-1 = demo version) 
+        if int(VERSION) >= 2 and int(dbversion.value) == 1:
+            log.error('Database version 1 is deprecated, no upgrade possible!')
+            print 'Database version 1 is deprecated, no upgrade possible!'
+            exit()
+
+
     
 

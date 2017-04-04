@@ -41,9 +41,13 @@ def check_version(app):
     db.app = app
     # check version
     try:
-        dbversion = Setting().query.filter(Setting.key == 'dbversion').one()
+        dbversion = db.session.query(Setting).filter(Setting.key == 'dbversion').one()
     except NoResultFound as e:
         # error no results
+        dbversion = None
+    except:
+        # this is a call to create the database
+        reset_database(app)
         dbversion = None
 
     # no database version to be found, let's create one

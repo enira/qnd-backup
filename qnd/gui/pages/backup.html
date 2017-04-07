@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Quick 'n Dirty  Xen Backup - alpha-1 | Backup</title>
+  <title>Quick 'n Dirty  Xen Backup | Backup</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -156,7 +156,7 @@
 		
 		<li class="active">
           <a href="backup.html">
-            <i class="fa fa-server"></i> <span>Backup</span>
+            <i class="fa fa-shield"></i> <span>Backup</span>
           </a>
         </li>
 		
@@ -168,7 +168,7 @@
 		
 		<li>
           <a href="schedules.html">
-            <i class="fa fa-tasks"></i> <span>Schedules</span>
+            <i class="fa fa-calendar"></i> <span>Schedules</span>
           </a>
         </li>
 		
@@ -187,7 +187,7 @@
 		
 		<li>
           <a href="settings.html">
-            <i class="fa fa-server"></i> <span>Settings</span>
+            <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
         </li>
 		
@@ -269,7 +269,7 @@
             <!-- /.box-body -->
 			<div class="box-footer">
                 <button type="submit" class="btn btn-default">Cancel</button>
-                <button type="submit" onclick="doit()" class="btn btn-info pull-right">Backup</button>
+                <button id="backupbutton" type="submit" onclick="" class="btn btn-info pull-right">Backup</button>
               </div>
           </div>
 		  </div>
@@ -315,7 +315,7 @@
 <script src="../plugins/slimScroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
 <script src="../plugins/fastclick/fastclick.js"></script>
-<!-- AdminLTE App -->
+<!-- AdminLTE App -->'
 <script src="../dist/js/app.min.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="../dist/js/demo.js"></script>
@@ -324,6 +324,9 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
+
+	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">Ã—</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
+
     function backup(pool_id, uuid, vmname) {
 		//alert(pool_id + ' ' + uuid);
 		$("#backup_dialog").css('display', 'block');
@@ -332,11 +335,16 @@
 		$("#backup_pool").val(pool_id);	
 		$("#backup_vmname").html(vmname);	
 		$("#backup_vmnameschedule").html(vmname);
+		$("#backupbutton").unbind();
+		$("#backupbutton").bind( "click", function() {
+			doit(vmname);
+		});
+
 	}	
-	function doit() {
+	function doit(name) {
 		var ds = $( "#backup_datastore option:selected" )[0].value;
 		
-		jsonData = '{"status": "pending","pct2": 0,"pct1": 0,"pool_id": ' + $("#backup_pool").val() + ',"uuid": "' + $("#backup_uuid").val()+ '","ended": "","started": "","datastore_id": ' + ds + ',"id": 0,"divisor": 0}';
+		jsonData = '{"status": "backup_pending","pct2": 0,"pct1": 0,"pool_id": ' + $("#backup_pool").val() + ',"uuid": "' + $("#backup_uuid").val()+ '","ended": "","started": "","datastore_id": ' + ds + ',"id": 0,"divisor": 0}';
 		$.ajax({
 			url: '/api/xen/task/',
 			type: "POST",
@@ -345,7 +353,7 @@
 			contentType: "application/json"
 		}).done(function() {
 		  $("#backup_dialog").css('display', 'none');
-		  var alertmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-info alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-info"></i> $TITLE$</h4>$TEXT$</div></div></div>';
+		  var alertmsg = successmsg.replace('$TITLE$', 'Backup queued').replace('$TEXT$', 'Successfully queued virtual machine \'' +  name + '\' for backup.')
 		  $("#messagebox").html(alertmsg);
 		  
 		});

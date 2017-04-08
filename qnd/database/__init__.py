@@ -39,9 +39,11 @@ def check_version(app):
     from database.models import Setting
 
     db.app = app
+    session = db.session
+
     # check version
     try:
-        dbversion = db.session.query(Setting).filter(Setting.key == 'dbversion').one()
+        dbversion = session.query(Setting).filter(Setting.key == 'dbversion').one()
     except NoResultFound as e:
         # error no results
         dbversion = None
@@ -55,10 +57,12 @@ def check_version(app):
         log.info('No database version found, setting version to ' + VERSION)
         dbversion = Setting(key='dbversion', value=VERSION)
 
-        db.session.add(dbversion)
-        db.session.commit()
+        session.add(dbversion)
+        session.commit()
     
     log.info('Running database version: '  + dbversion.value)
+
+    session.close()
 
     # checking database version
     if dbversion.value == VERSION:

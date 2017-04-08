@@ -1,4 +1,3 @@
-
 from datetime import datetime
 import datetime
 
@@ -53,7 +52,7 @@ class Host(db.Model):
     type = db.Column(db.String)                                                 # type - not used
 
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # associated pool id
-    pool = db.relationship('Pool', back_populates='hosts')                      # associated pool object
+    pool = db.relationship('Pool', back_populates='hosts', lazy='immediate')                      # associated pool object
 
 class Datastore(db.Model):
     """
@@ -88,10 +87,10 @@ class Task(db.Model):
     schedule_id = db.Column(db.Integer)                                         # if there is an associated schedule
 
     datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
-    datastore = db.relationship('Datastore')                                    # datastore object  
+    datastore = db.relationship('Datastore', lazy='immediate')                                    # datastore object  
 
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
-    pool = db.relationship('Pool')                                              # pool object
+    pool = db.relationship('Pool', lazy='immediate')                                              # pool object
 
     def pct(self):
         if self.pct1 == None:
@@ -127,9 +126,9 @@ class Schedule(db.Model):
     week = db.Column(db.String)                                                 # cron - weekday
     uuid = db.Column(db.String)                                                 # uuid of VM to backup
     datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
-    datastore = db.relationship('Datastore')                                    # datastore object  
+    datastore = db.relationship('Datastore', lazy='immediate')                                    # datastore object  
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
-    pool = db.relationship('Pool')                                              # pool object
+    pool = db.relationship('Pool', lazy='immediate')                                              # pool object
 
 
 class Archive(db.Model):
@@ -142,15 +141,17 @@ class Archive(db.Model):
     name = db.Column(db.String)                                                 # the display name
 
     source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
-    source = db.relationship('Datastore', foreign_keys=[source_id])             # datastore object  
+    source = db.relationship('Datastore', foreign_keys=[source_id], lazy='immediate')             # datastore object  
     
     target_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
-    target = db.relationship('Datastore', foreign_keys=[target_id])             # datastore object  
+    target = db.relationship('Datastore', foreign_keys=[target_id], lazy='immediate')             # datastore object  
 
     encryption_key = db.Column(db.String)                                       # encryption key 
 
     retention = db.Column(db.Integer)                                           # amount of backups to keep before archiving  
     incremental = db.Column(db.Integer)                                         # not implemented
+
+
 
 class Backup(db.Model):
     """
@@ -159,7 +160,7 @@ class Backup(db.Model):
     __tablename__ = 'backups'
     id = db.Column(db.Integer, primary_key=True)                                # id
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))                  # task id
-    task = db.relationship('Task')                                              # task object
+    task = db.relationship('Task', lazy='immediate')                                              # task object
     metafile = db.Column(db.String)                                             # meta-file location
     backupfile = db.Column(db.String)                                           # backup file location
     comment = db.Column(db.String)                                              # comments on the backup
@@ -171,3 +172,14 @@ class Setting(db.Model):
     __tablename__ = 'settings'
     key = db.Column(db.String, primary_key=True)                                # key
     value = db.Column(db.String)                                                # value
+
+class ArchiveTask(db.Model):
+    __tablename__ = 'archivetasks'
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    status = db.Column(db.String)                                               # status of the task
+
+    archive_id = db.Column(db.Integer, db.ForeignKey('archives.id'), nullable=True)                  # task id
+    archive = db.relationship('Archive', lazy='immediate')                                              # task object
+
+    backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'), nullable=True)                  # task id
+    backup = db.relationship('Backup', lazy='immediate')                                              # task object

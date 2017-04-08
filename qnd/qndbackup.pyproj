@@ -58,6 +58,9 @@
     <Compile Include="api\xen\serializers.py" />
     <Compile Include="api\xen\__init__.py" />
     <Compile Include="api\__init__.py" />
+    <Compile Include="reset_db.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="wsgi.py" />
     <Compile Include="xen\bridge.py">
       <SubType>Code</SubType>
@@ -71,6 +74,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xen\flow.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="xen\mover.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xen\xenbackup.py">

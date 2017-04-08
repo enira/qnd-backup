@@ -5,7 +5,7 @@ import paramiko
 from bridge import Bridge
 
 from database import db
-from database.models import Task
+from database.models import Task, Backup
 
 import logging
 import os
@@ -16,14 +16,10 @@ class XenBackup:
     """
 
     servers = []
+    backuptasks = []
     hosts = None
     
     BACKUPROOT = '/media/.qnd'
-    ARCHIVEROOT1 = '/media/.qnd-1'
-    ARCHIVEROOT2 = '/media/.qnd-2'
-
-    tasks = []
-
     _commandpool = []
 
     def __init__(self, servers, pool):
@@ -142,35 +138,40 @@ class XenBackup:
                 
         return result
 
-    # run all backups
-    def run(self):
+    
+    def run_backups(self):
+        # run all backups
+
         # copy all jobs
-        jobs = list(self.tasks)
+        jobs = list(self.backuptasks)
 
         # empty tasks
-        self.tasks = []
+        self.backuptasks = []
 
         for job in jobs:
-            if job.datastore.type == 'smb':
-                self.backup_smb(job, job.datastore, job.uuid)
+            if job[1] == 'smb':
+                self.backup_smb(job[0])
 
-    def archive(self, host, smb1, smb2, password):
-        pass
 
-    def update_pct(self, task, pct1, pct2, divisor, status):
+    def update_pct(self, task, pct1, pct2, divisor, status, session):
         task.pct1 = 0
         if pct2 != None:
             task.pct2 = 0
         task.divisor = 0.20
-        task.status = 'searching'
-        db.session.add(task)
-        db.session.commit()
+        task.status = 'backup_' + status
+        session.add(task)
+        session.commit()
+        
+    def backup_smb(self, task_id):
+        session = db.session
+        task = session.query(Task).filter(Task.id == task_id).one()
+        datastore = task.datastore
+        uuid = task.uuid
 
-    def backup_smb(self, task, datastore, uuid):
         # folder 
-        bckfolder = self.BACKUPROOT + '/' + str(task.id)
+        bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
 
-        self.update_pct(task, 0, 0, 0.20, 'discovery')
+        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
 
         # search the VM
         vms = self.get_vms()
@@ -180,27 +181,28 @@ class XenBackup:
                 tobackup = vm
                 break
 
-        self.update_pct(task, 0.10, 0, 0.20, 'discovery')
+        self.update_pct(task, 0.10, 0, 0.20, 'discovery', session)
 
         # search which host we can use
         backuphost = self.get_native_host(vm["resident-on"])
 
-        self.update_pct(task, 0.20, 0, 0.20, 'discovery')
+        self.update_pct(task, 0.20, 0, 0.20, 'discovery', session)
 
         # start backing up: create a connection
         connection = Bridge(backuphost.address, backuphost.username, backuphost.password)
 
-        self.update_pct(task, 0.30, 0, 0.20, 'mount')
+        self.update_pct(task, 0.30, 0, 0.20, 'mount', session)
 
-        # create mount piont
+        # create mount point
         connection.command('mkdir -p ' + bckfolder)
 
-        self.update_pct(task, 0.40, 0, 0.20, 'mount')
+        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
 
         # mount smb
-        connection.command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder)
+        # TODO: create error 
+        result = connection.command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder)
 
-        self.update_pct(task, 0.50, 0, 0.20, 'snapshot')
+        self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session)
 
         # TODO: check if mounted, if not mounted change os filling root OS
 
@@ -210,18 +212,19 @@ class XenBackup:
         # creating names
         snapshot_label = vm["name-label"] + "." + datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
         backup_name = vm["name-label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".xva"
+        meta_name = vm["name-label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".meta"
         if backup_name.startswith("."):
             backup_name = backup_name[1:]
 
         # create a snapshot
         snapshotuuid = connection.command('xe vm-snapshot uuid=' + vm["uuid"] + ' new-name-label=' + snapshot_label)
 
-        self.update_pct(task, 0.60, None, 0.20, 'snapshot')
+        self.update_pct(task, 0.60, None, 0.20, 'snapshot', session)
 
         # change snapshot to a vm 
         connection.command('xe template-param-set is-a-template=false ha-always-run=false uuid=' + snapshotuuid[0])
 
-        self.update_pct(task, 0.70, None, 0.20, 'backup')
+        self.update_pct(task, 0.70, None, 0.20, 'backup', session)
 
         # create a task viewer
         tcmd = 'xe task-list name-label="Export of VM: ' + vm["uuid"] + '"'
@@ -230,18 +233,28 @@ class XenBackup:
         # export as a xva
         connection.command('xe vm-export vm=' + snapshotuuid[0] + ' filename=' + bckfolder + '/' + backup_name)
 
-        self.update_pct(task, 0.80, None, 0.20, 'export')
+        self.update_pct(task, 0.80, None, 0.20, 'export', session)
 
         # remove snapshot
         connection.command('xe vm-uninstall uuid=' + snapshotuuid[0] + ' force=true')
 
-        self.update_pct(task, 0.90, None, 0.20, 'unmount')
+        self.update_pct(task, 0.90, None, 0.20, 'closing', session)
 
         # unmount smb
-        connection.command('umount ' + bckfolder)
+        # connection.command('umount ' + bckfolder)
 
         # delete mount point
-        connection.command('rmdir -r ' + bckfolder)
-        
-        self.update_pct(task, 1, 1, 0.20, 'done')
+        # connection.command('rmdir -r ' + bckfolder)
 
+        # create backup object
+        backup = Backup(task_id=task.id, 
+                        metafile=meta_name, 
+                        backupfile=backup_name, 
+                        comment='Backup created at :' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+        session.add(backup)
+        session.commit()
+        
+        self.update_pct(task, 1, 1, 0.20, 'done', session)
+
+        session.close()
+        

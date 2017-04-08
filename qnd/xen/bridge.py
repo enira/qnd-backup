@@ -55,6 +55,30 @@ class Bridge:
         transport = self._ssh.get_transport() if self._ssh else None
         return transport and transport.is_active()
 
+    def sudo_command(self, cmd, pwd):
+        """
+        Run a command
+        """
+        result = []
+        try:
+            transport = self.connection().get_transport()
+            session = transport.open_session()
+            session.set_combine_stderr(True)
+            session.get_pty()
+            #for testing purposes we want to force sudo to always to ask for password. because of that we use "-k" key
+            session.exec_command("sudo -k " + cmd)
+            stdin = session.makefile('wb', -1)
+            stdout = session.makefile('rb', -1)
+            #you have to check if you really need to send password here 
+            stdin.write(pwd +'\n')
+            stdin.flush()
+
+            for line in stdout.read().splitlines():        
+                result.append(line)
+            return result
+        except Exception as e:
+            print e
+
     def command(self, cmd):
         """
         Run a command
@@ -94,7 +118,7 @@ class Bridge:
         Run a command with multiple output
         """
         try:
-            ssh_stdin, ssh_stdout, ssh_stderr = self.connection().exec_command(cmd)
+            (ssh_stdin, ssh_stdout, ssh_stderr) = self.connection().exec_command(cmd)
             exit_status = ssh_stdout.channel.recv_exit_status()  # Blocking call
 
             lst = ssh_stdout.read().splitlines()

@@ -10,6 +10,9 @@ apt-get -y upgrade
 # install all needed packages
 apt-get -y install python python-pip build-essential libssl-dev libffi-dev python-dev git nginx unzip
 
+# install postgres
+apt-get -y install postgresql postgresql-contrib
+
 # check from git the latest release
 mkdir -p /opt/qndbackup/
 echo "Downloading release: `git ls-remote --tags https://github.com/enira/qnd-backup.git | awk -F/ '{print $NF}' | tail -1`"

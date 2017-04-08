@@ -49,6 +49,8 @@ def configure_app(flask_app):
     flask_app.config['RESTPLUS_VALIDATE'] = settings.RESTPLUS_VALIDATE
     flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
     flask_app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
+    flask_app.config['SQLALCHEMY_POOL_SIZE'] = settings.SQLALCHEMY_POOL_SIZE
+    flask_app.config['SQLALCHEMY_MAX_OVERFLOW'] = settings.SQLALCHEMY_MAX_OVERFLOW
 
 def routes(app):
     """
@@ -57,41 +59,30 @@ def routes(app):
     import pprint
     pprint.pprint(list(map(lambda x: repr(x), app.url_map.iter_rules())))
 
+def reset_db():
+    configure_app(application)
+    db.init_app(application)
+    database.reset_database(application) 
+
 def initialize_app():
     """
     initialize the application
     """
 
     log.info('Initializing application...')
-    
-    """
-    TODO
-    if not os.path.exists('uuid'):
-
-        key = str(uuid.uuid4())
-
-        file = open('uuid','w')
-        file.write(key)
-        file.close()
-    else:
-        file = open('uuid','r')
-        key = file.read()
-        file.close()
-    """
 
     configure_app(application)
 
     db.init_app(application)
-
-    # if there is no database, create one
-    if not os.path.exists('db.sqlite'):
-        database.reset_database(application) 
 
     # check database version and mirate if needed
     database.check_version(application)
 
     # start a background thread
     threading.Timer(1, Flow.instance().run).start()
+
+    # initialize the scheduler
+    Flow.instance().initialize_scheduler()
 
 @application.route('/')
 def index():

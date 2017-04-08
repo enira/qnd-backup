@@ -9,15 +9,13 @@ from flask_restplus import Resource
 
 from api.xen.serializers import system, messages
 from api.restplus import api
-#from xen.flow import Flow
 
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/ui', description='Operations related to ui')
-
     
 @ns.route('/system')
-@api.response(404, 'System not found.')
+@api.response(404, 'Statistics not found.')
 class SystemItem(Resource):
 
     @api.marshal_with(system)
@@ -27,6 +25,7 @@ class SystemItem(Resource):
         """
         cpu_max = None
         if 'linux' in platform:
+            # for Linux VMs the code cannot find the maximum CPU speed :(
             cpu_max = 0
         else:
             cpu_max = psutil.cpu_freq().max
@@ -42,7 +41,7 @@ class SystemItem(Resource):
         return obj
 
 @ns.route('/messages')
-@api.response(404, 'System not found.')
+@api.response(404, 'Messages not found.')
 class MessageItem(Resource):
 
     @api.marshal_with(messages)

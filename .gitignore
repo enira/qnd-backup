@@ -269,3 +269,5 @@ qnd/env/
 # exclude database
 qnd/db.sqlite
 qnd/uuid
+
+qnd/mover.ini

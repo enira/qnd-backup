@@ -448,10 +448,14 @@
 			if(typeof datastore != "undefined" && datastore != null && datastore.length > 0){
 				for (var k = 0; k < datastore.length; k++) {
 					//alert(datastore[k].name);
-					$("#backup_datastore").append($('<option>', {
-						value: datastore[k].id,
-						text: datastore[k].name
-					}));
+					
+					if(datastore[k].type == 'smb') {
+					
+						$("#backup_datastore").append($('<option>', {
+							value: datastore[k].id,
+							text: datastore[k].name
+						}));
+					}
 				}
 			}
 		});

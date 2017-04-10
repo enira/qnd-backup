@@ -88,7 +88,7 @@ class Flow(object):
                                     id=str(schedule.id))
 
         # run
-        self._scheduler.add_job(self.archive, 'cron', minute='*', id='archive_job')
+        self._scheduler.add_job(self.archive, 'cron', minute='*', id='archive_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
@@ -128,7 +128,7 @@ class Flow(object):
                                 
                         if found == False:
                             log.info('Removing orphaned hostid: ' + str(cachedhost))
-                            self._poolcache[pool.id]["backup"].delete_server(cachedhost)
+                            self._poolcache[pool.id]["backup"].remove_server(cachedhost)
 
                     self._poolcache[pool.id]["backup"].discover()
 
@@ -210,54 +210,62 @@ class Flow(object):
         # if no lock in place
         if self._archive_lock == False:
             self._archive_lock = True
+            try:
+                session = db.session
 
-            session = db.session
+                # get all the healthy archives 
+                archives = session.query(Archive).filter(Archive.source_id.isnot(None), Archive.target_id.isnot(None)).all()
+                for archive in archives:
+                    machines = {}
+                    # for each archive check attached datastore backups
+                    backups = session.query(Backup).join(Task).filter(Task.datastore_id == archive.source_id)
+                    archivetasks = session.query(ArchiveTask).filter(ArchiveTask.archive_id == archive.id)
 
-            # get all the healthy archives 
-            archives = session.query(Archive).filter(Archive.source_id.isnot(None), Archive.target_id.isnot(None)).all()
-            for archive in archives:
-                # for each archive check attached datastore backups
-                backups = session.query(Backup).join(Task).filter(Task.datastore_id == archive.source_id)
+                    # group for each uuid
+                    for backup in backups:
+                        if 'done' in backup.task.status:
+                            if backup.task.uuid in machines:
+                                machines[backup.task.uuid].append(backup)
+                            else:
+                                machines[backup.task.uuid] = []
+                                machines[backup.task.uuid].append(backup)
 
-                machines = {}
-                # group in uuid
-                for backup in backups:
-                    if 'done' in backup.task.status:
-                        try:
-                            machines[backup.task.uuid].append(backup)
-                        except: 
-                            machines[backup.task.uuid] = []
-                            machines[backup.task.uuid].append(backup)
+                    for machine in machines:
+                        length = len(machines[machine])
 
-                for machine in machines:
-                    if len(machines[machine]) > archive.retention:
-                        print 'Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine
-                        # getting oldest: we only do one each time
-                        oldest = None
-                        try:
-                            for b in machines[machine]:
-                                if oldest is None:
-                                    ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
-                                    if len(ongoing) == 0:
-                                        oldest = b
-                                else:
-                                    if oldest.task.started > b.task.started:
-                                         # check if not already archiving:
-                                        ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
+                        # remove ongoing tasks
+                        for archivetask in archivetasks:
+                            if 'done' not in archivetask.status:
+                                length = length - 1
 
-                                        if len(ongoing) == 0:
-                                            oldest = b
-                        except Exception as e:
-                            print e
-                        print 'Marking backup to archive: ' + str(oldest.id)
+                        # if we need to archive
+                        if length > archive.retention:
+                            print 'Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine
 
-                        # oldest.task.status = 'archive_pending'
-                        archivetask = ArchiveTask(archive=archive, backup=oldest, status='archive_pending')
+                            toarchive = self._internal_get_archive(machine, machines, session)
 
-                        session.add(archivetask)
-                        session.commit()
+                            archivetask = ArchiveTask(archive=archive, backup=toarchive, status='archive_pending')
+                            session.add(archivetask)
+                            session.commit()
 
-            # unlock
-            session.close()
+                session.close()
+
+            except:
+                print 'Uh oh, exception'
             self._archive_lock = False
 
+    def _internal_get_archive(self, machine, machines, session):
+        oldest = None
+
+        for b in machines[machine]:
+            if oldest is None:
+                ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
+                if len(ongoing) == 0:
+                    oldest = b
+            else:
+                if oldest.task.started > b.task.started:
+                    ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
+                    if len(ongoing) == 0:
+                        oldest = b
+
+        return oldest

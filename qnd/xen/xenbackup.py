@@ -34,6 +34,7 @@ class XenBackup:
                 self.servers.remove(server)
                 break
 
+
     def get_native_host(self, uuid):
         found = None
         for host in self.hosts:

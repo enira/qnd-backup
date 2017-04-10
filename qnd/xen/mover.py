@@ -15,10 +15,12 @@ from database.models import ArchiveTask
 class Mover:
     """
     """
-
     archivetasks = []
 
     _server = None
+
+    # TODO: remove lock
+    _lock = False
 
     ARCHIVEROOT = '/media/.qnd'
 
@@ -31,16 +33,21 @@ class Mover:
             self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
 
     def run_archives(self):
-        # run all archives
 
-        # copy all jobs
-        jobs = list(self.archivetasks)
+        # Todo remove lock
+        if self._lock == True:
+            self._lock = True
+            # run all archives
 
-        # empty tasks
-        self.archive_tasks = []
+            # copy all jobs
+            jobs = list(self.archivetasks)
 
-        for job in jobs:
-            self.archive(job)
+            # empty tasks
+            self.archive_tasks = []
+
+            for job in jobs:
+                self.archive(job)
+            self._lock = False
 
 
     def archive(self, task_id):

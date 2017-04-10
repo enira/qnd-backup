@@ -15,12 +15,7 @@ from database.models import ArchiveTask
 class Mover:
     """
     """
-    archivetasks = []
-
     _server = None
-
-    # TODO: remove lock
-    _lock = False
 
     ARCHIVEROOT = '/media/.qnd'
 
@@ -31,29 +26,13 @@ class Mover:
             config = configparser.ConfigParser()
             config.read('mover.ini')
             self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
-
-    def run_archives(self):
-
-        # Todo remove lock
-        if self._lock == True:
-            self._lock = True
-            # run all archives
-
-            # copy all jobs
-            jobs = list(self.archivetasks)
-
-            # empty tasks
-            self.archive_tasks = []
-
-            for job in jobs:
-                self.archive(job)
-            self._lock = False
-
-
+            
     def archive(self, task_id):
+        print 'Archiving'
+
         session = db.session
         # get backup object 
-        task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id[0]).one()
+        task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id).one()
 
         # folders
         sid = self.ARCHIVEROOT + '/a-' + str(task.archive.source.id)
@@ -73,7 +52,7 @@ class Mover:
 
             # cleanup original task and backup
             cpb = task.backup
-            cpt = task.archive
+            cpt = task.backup.task
             task.status = 'archive_done'
             task.backup = None
             task.backup_id = None
@@ -81,9 +60,12 @@ class Mover:
             task.archive_id = None
 
             session.add(task)
-            session.delete(cpb)
-            session.delete(cpt)
+            session.commit()
 
+            session.delete(cpb)
+            session.commit()
+            session.delete(cpt)
             session.commit()
 
         session.close()
+        print 'Archiving done'

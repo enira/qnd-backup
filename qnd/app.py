@@ -79,7 +79,7 @@ def initialize_app():
     database.check_version(application)
 
     # start a background thread
-    threading.Timer(1, Flow.instance().run).start()
+    # threading.Timer(1, Flow.instance().run).start()
 
     # initialize the scheduler
     Flow.instance().initialize_scheduler()

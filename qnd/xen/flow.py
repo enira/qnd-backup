@@ -35,11 +35,7 @@ class Flow(object):
 
     _minute = None
     _poolcache = {}
-    _orphan_lock = False
-    _archive_lock = False
-
     _scheduler = None
-
     _mover = Mover()
 
     def get_environment(self, pool_id):
@@ -89,6 +85,8 @@ class Flow(object):
 
         # run
         self._scheduler.add_job(self.archive, 'cron', minute='*', id='archive_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.cleanup, 'cron', minute='*', id='cleanup_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
@@ -168,91 +166,72 @@ class Flow(object):
             session.add(task)
             session.commit()
 
-        tasks = session.query(ArchiveTask).filter(ArchiveTask.status == 'archive_pending').all()
-        for task in tasks:
-            # submit a task to the archive mover
-            self._mover.archivetasks.append([task.id])
-            task.status = 'archive_submitted'
-
-            session.add(task)
-            session.commit()
-
         session.close()
 
         for pool in self._poolcache:
             self._poolcache[pool]["backup"].run_backups()
 
-        self._mover.run_archives()
-        
-        
-        #threading.Timer(5, self.archive).start()
-        threading.Timer(5, self.cleanup).start()
-
-        # constant flow, wait five seconds
-        threading.Timer(5, self.run).start()
 
     def cleanup(self):
         # cleanup task
         session = db.session
-        if self._orphan_lock == False:
-            # locking the cleanup task
-            self._orphan_lock = True
-            orphans = session.query(Host).filter(Host.pool_id == None).all()
-            for orphan in orphans:
-                log.info('Orphaned host found: ' + str(orphan.address))
-                session.delete(orphan)
-                session.commit()
-            self._orphan_lock = False
+        
+        orphans = session.query(Host).filter(Host.pool_id == None).all()
+        for orphan in orphans:
+            log.info('Orphaned host found: ' + str(orphan.address))
+            session.delete(orphan)
+            session.commit()
+
         session.close()
 
 
     def archive(self):
         # if no lock in place
-        if self._archive_lock == False:
-            self._archive_lock = True
-            try:
-                session = db.session
+        
+        try:
+            session = db.session
 
-                # get all the healthy archives 
-                archives = session.query(Archive).filter(Archive.source_id.isnot(None), Archive.target_id.isnot(None)).all()
-                for archive in archives:
-                    machines = {}
-                    # for each archive check attached datastore backups
-                    backups = session.query(Backup).join(Task).filter(Task.datastore_id == archive.source_id)
-                    archivetasks = session.query(ArchiveTask).filter(ArchiveTask.archive_id == archive.id)
+            # get all the healthy archives 
+            archives = session.query(Archive).filter(Archive.source_id.isnot(None), Archive.target_id.isnot(None)).all()
+            for archive in archives:
+                machines = {}
+                # for each archive check attached datastore backups
+                backups = session.query(Backup).join(Task).filter(Task.datastore_id == archive.source_id)
+                archivetasks = session.query(ArchiveTask).filter(ArchiveTask.archive_id == archive.id)
 
-                    # group for each uuid
-                    for backup in backups:
-                        if 'done' in backup.task.status:
-                            if backup.task.uuid in machines:
-                                machines[backup.task.uuid].append(backup)
-                            else:
-                                machines[backup.task.uuid] = []
-                                machines[backup.task.uuid].append(backup)
+                # group for each uuid
+                for backup in backups:
+                    if 'done' in backup.task.status:
+                        if backup.task.uuid in machines:
+                            machines[backup.task.uuid].append(backup)
+                        else:
+                            machines[backup.task.uuid] = []
+                            machines[backup.task.uuid].append(backup)
 
-                    for machine in machines:
-                        length = len(machines[machine])
+                for machine in machines:
+                    length = len(machines[machine])
 
-                        # remove ongoing tasks
-                        for archivetask in archivetasks:
-                            if 'done' not in archivetask.status:
-                                length = length - 1
+                    # remove ongoing tasks
+                    for archivetask in archivetasks:
+                        if 'done' not in archivetask.status:
+                            length = length - 1
 
-                        # if we need to archive
-                        if length > archive.retention:
-                            print 'Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine
+                    # if we need to archive
+                    if length > archive.retention:
+                        print 'Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine
 
-                            toarchive = self._internal_get_archive(machine, machines, session)
+                        toarchive = self._internal_get_archive(machine, machines, session)
 
-                            archivetask = ArchiveTask(archive=archive, backup=toarchive, status='archive_pending')
-                            session.add(archivetask)
-                            session.commit()
+                        committask = ArchiveTask(archive=archive, backup=toarchive, status='archive_pending')
+                        session.add(committask)
+                        session.commit()
 
-                session.close()
+                        self._mover.archive(committask.id)
+            session.close()
 
-            except:
-                print 'Uh oh, exception'
-            self._archive_lock = False
+        except Exception as e :
+            print 'Uh oh, exception: ' + str(e)
+
 
     def _internal_get_archive(self, machine, machines, session):
         oldest = None

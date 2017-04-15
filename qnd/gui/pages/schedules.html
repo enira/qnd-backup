@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Quick 'n Dirty  Xen Backup | Datastores</title>
+  <title>Quick 'n Dirty  Xen Backup | Schedules</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -302,13 +302,13 @@
 				
 				<div class="nav-tabs-custom">
             <ul class="nav nav-tabs">
-              <li class="active"><a href="#tab_1" id="tab_11" data-toggle="tab">Simple</a></li>
-              <li><a href="#tab_2" id="tab_22" data-toggle="tab">Advanced</a></li>
+              <li><a href="#tab_1" id="tab_11" data-toggle="tab">Simple</a></li>
+              <li class="active"><a href="#tab_2" id="tab_22" data-toggle="tab">Advanced</a></li>
               
               
             </ul>
             <div class="tab-content">
-              <div class="tab-pane active" id="tab_1">
+              <div class="tab-pane" id="tab_1">
                 
 					
 					
@@ -330,7 +330,7 @@
 					
               </div>
               <!-- /.tab-pane -->
-              <div class="tab-pane" id="tab_2">
+              <div class="tab-pane active" id="tab_2">
                 
 				
 				<div class="form-group" >
@@ -504,7 +504,7 @@
 
   <footer class="main-footer">
     <div class="pull-right hidden-xs">
-      <b>Version</b> alpha-1
+      <b>Version</b> alpha-2
     </div>
     <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
@@ -541,14 +541,14 @@
 		
 		$("#saveit").unbind();
 		$("#saveit").click(function(){
-				saveitbasic();
-			});
+			//saveitbasic();
+			saveitadvanced();
+		});
 	}
 	
 	function editschedule(id) {
 		$.getJSON( "/api/xen/schedule/" + id, function( data ) {
-		//alert(data);
-		   $("#wizardtitle").html("Edit Datastore")
+		   $("#wizardtitle").html("Edit Schedule")
 		  
 			$("#inputName" ).val(data.name);
 			$("#inputUsername" ).val(data.username);
@@ -562,7 +562,7 @@
 	}
 	
 	function confirmdelete(id, title) {
-		$("#deletetxt").html("Are you sure you want to delete the datastore '" + title + "'?");
+		$("#deletetxt").html("Are you sure you want to delete the schedule '" + title + "'?");
 		
 		$("#confirmdeletebtn").unbind();
 		$("#confirmdeletebtn").bind("click", function(e) { 
@@ -570,11 +570,11 @@
 			$('#deletemodal').modal('toggle');
 			
 			$.ajax({
-				url: '/api/xen/datastore/' + id,
+				url: '/api/xen/schedule/' + id,
 				type: "DELETE"
 			}).done(function() {
 			  //canceldatastore();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + title + '\' deleted.')
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + title + '\' deleted.')
 			  $("#messagebox").html(msg);
 			  load();
 			});
@@ -589,52 +589,6 @@
 		$("#inputPassword" ).val('');
 		$("#inputHost").val('');
 		$("#inputArguments").val('');
-	}
-	
-	function saveit() {
-		var call = $("#inputId" ).val();
-		
-		var type = $("#inputType option:selected" )[0].value;
-		var name = $("#inputName" ).val();
-		var username = $("#inputUsername" ).val();
-		var password = $("#inputPassword" ).val();
-		var host = $("#inputHost" ).val();
-		
-		var jsonData = '';
-		
-		if(call == '(null)') {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
-		
-			$.ajax({
-				url: '/api/xen/datastore/',
-				type: "POST",
-				dataType: "json",
-				data: jsonData,
-				contentType: "application/json"
-			}).done(function() {
-			  canceldatastore();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' added.')
-			  $("#messagebox").html(msg);
-			  load();
-			});
-		}
-		else {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
-			
-			$.ajax({
-				url: '/api/xen/datastore/' + call,
-				type: "PUT",
-				dataType: "json",
-				data: jsonData,
-				contentType: "application/json"
-			}).done(function() {
-			  canceldatastore();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' changed.')
-			  $("#messagebox").html(msg);
-			  load();
-			});
-		}
-	
 	}
 
 	function update_system() {
@@ -652,11 +606,54 @@
 	}
 	
 	function saveitbasic() {
-		alert("basic");
+	    // TODO
+		alert("Not implemented");
+		var call = $("#inputId" ).val();
 	}
 	
 	function saveitadvanced() {
-		alert("advanced");
+	
+		var call = $("#inputId" ).val();
+		
+		
+		var name = $("#inputName" ).val();
+		var poolid = $("#inputPools option:selected" )[0].value;
+		var vmuuid = $("#inputVMS option:selected" )[0].value;
+		var datastoreid = $("#inputDatastore option:selected" )[0].value;
+		alert(name + ' ' + poolid + ' ' + vmuuid + ' ' + datastoreid);
+	
+		if(call == '(null)') {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
+			jsonData = '{"week": "string","uuid": "string","pool_id": 0,"name": "string","hour": "string","datastore_id": 0,"day": "string","minute": "string","month": "string"}';
+			/*$.ajax({
+				url: '/api/xen/schedule/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' added.')
+			  $("#messagebox").html(msg);
+			  load();
+			});*/
+		}
+		else {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
+			
+			/*$.ajax({
+				url: '/api/xen/schedule/' + call,
+				type: "PUT",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' changed.')
+			  $("#messagebox").html(msg);
+			  load();
+			});*/
+		}
 	}
 	
 	function toggle() {
@@ -731,12 +728,14 @@
 		// load datastores
 		$.get( '/api/xen/datastore/', function( data ) {
 			if(typeof data != "undefined" && data != null && data.length > 0){
+				$("#inputDatastore").empty();
 				for (var d = 0; d < data.length; d++) {
-					$("#inputDatastore").empty();
-					$("#inputDatastore").append($('<option>', {
+					if(data[d].type == 'smb') {
+						$("#inputDatastore").append($('<option>', {
 											value: data[d].id,
 											text: data[d].name
 										}));
+					}
 				}
 			}
 			else {

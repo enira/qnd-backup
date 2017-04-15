@@ -1,7 +1,7 @@
 !#/bin/bash
 
 # install from
-# wget -O - https://raw.githubusercontent.com/enira/qnd-backup/install/deploy/ubuntu-xenial/provision.sh | sudo bash
+# wget -O - https://raw.githubusercontent.com/enira/qnd-backup/install/deploy/ubuntu-xenial/latest.sh | sudo bash
 
 # update operating system
 apt-get update
@@ -13,6 +13,10 @@ apt-get -y install python python-pip build-essential libssl-dev libffi-dev pytho
 # install postgres
 apt-get -y install postgresql postgresql-contrib
 
+
+runuser -l postgres -c $'psql -c "CREATE USER qnd WITH PASSWORD \'quickndirty\';"'
+runuser -l postgres -c $'psql -c "CREATE DATABASE qnd OWNER qnd;"'
+
 # check from git the latest commit
 mkdir -p /opt/qndbackup/
 
@@ -20,13 +24,13 @@ mkdir -p /opt/qndbackup/
 wget https://github.com/enira/qnd-backup/archive/master.zip -O /opt/qndbackup/latest.zip
 unzip /opt/qndbackup/latest.zip -d /opt/qndbackup/
 rm /opt/qndbackup/latest.zip
-mv /opt/qndbackup/qnd-backup-`git ls-remote --tags https://github.com/enira/qnd-backup.git | awk -F/ '{print $NF}' | tail -1`/qnd /opt/qndbackup/qnd
+mv /opt/qndbackup/qnd-backup-master/qnd /opt/qndbackup/qnd
 
 # install requirements
 pip install -r /opt/qndbackup/qnd/requirements.txt 
 
 # move nginx file
-mv /opt/qndbackup/qnd-backup-`git ls-remote --tags https://github.com/enira/qnd-backup.git | awk -F/ '{print $NF}' | tail -1`/install/ubuntu-xenial/nginx.conf /etc/nginx/nginx.conf
+mv /opt/qndbackup/qnd-backup-master/install/ubuntu-xenial/nginx.conf /etc/nginx/nginx.conf
 
 # starting nginx
 systemctl restart nginx
@@ -37,9 +41,9 @@ systemctl enable nginx
 # create a log folder for the service 
 mkdir -p /var/log/qnd/
 chown qnd:qnd /var/log/qnd/
-mv /opt/qndbackup/qnd-backup-`git ls-remote --tags https://github.com/enira/qnd-backup.git | awk -F/ '{print $NF}' | tail -1`/install/ubuntu-xenial/qnd.service /etc/systemd/system/qnd.service
+mv /opt/qndbackup/qnd-backup-master/install/ubuntu-xenial/qnd.service /etc/systemd/system/qnd.service
 
 systemctl start qnd
 systemctl enable qnd
 
-rm -rf /opt/qndbackup/qnd-backup-`git ls-remote --tags https://github.com/enira/qnd-backup.git | awk -F/ '{print $NF}' | tail -1`
+rm -rf /opt/qndbackup/qnd-backup-master

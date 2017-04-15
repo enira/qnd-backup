@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>AdminLTE 2 | Calendar</title>
+  <title>Quick 'n Dirty  Xen Backup | Datastores</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -156,7 +156,7 @@
 		
 		<li>
           <a href="backup.html">
-            <i class="fa fa-server"></i> <span>Backup</span>
+            <i class="fa fa-shield"></i> <span>Backup</span>
           </a>
         </li>
 		
@@ -168,7 +168,7 @@
 		
 		<li class="active">
           <a href="schedules.html">
-            <i class="fa fa-tasks"></i> <span>Schedules</span>
+            <i class="fa fa-calendar"></i> <span>Schedules</span>
           </a>
         </li>
 		
@@ -187,15 +187,13 @@
 		
 		<li>
           <a href="settings.html">
-            <i class="fa fa-server"></i> <span>Settings</span>
+            <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
         </li>
+		
+
         
-        <li>
-		  <a href="documentation.html">
-		    <i class="fa fa-book"></i> <span>Documentation</span>
-		  </a>
-		</li>
+        <li><a href="documentation.html"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
         
       </ul>
     </section>
@@ -220,28 +218,277 @@
     <section class="content">
 	
 			<div id="messagebox"></div>
+	
+	
+		<!-- Delete modal -->
+		
+		
+			<div id="deletemodal" class="modal-dialog modal" style="position:absolute; height: 181px;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Confirm delete</h4>
+              </div>
+              <div class="modal-body">
+                <p id="deletetxt"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmdeletebtn">Confirm Delete</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+	
+	
+	
+	
+	
+		<!-- Wizard-->
+		<div class="row" id="datastore_dialog"  style="display:none">
+        <div class="col-xs-12" >
+		<div class="box box-success">
+            <div class="box-header with-border">
+              <h3 id="wizardtitle" class="box-title">Add Schedule</h3> <input type="hidden" id="inputId" value="(null)">
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <form class="form-horizontal">
+              <div class="box-body">
+			  
+			  <div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Name</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputName" placeholder="name">
+                  </div>
+                </div>
+
+			  <div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Pool</label>
+
+                  <div class="col-sm-10">
+						<select id="inputPools"class="form-control">
+                  </select>
+				  
+                  </div>
+                </div>
+				
+				
+				<div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Virtual Machine</label>
+
+                  <div class="col-sm-10">
+						<select id="inputVMS"class="form-control">
+                  </select>
+				  
+                  </div>
+                </div>
+			  
+				<!-- -->
+			
+			<div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Datastore</label>
+
+                  <div class="col-sm-10">
+						<select id="inputDatastore"class="form-control">
+                  </select>
+				  
+                  </div>
+                </div>
+				
+				
+				
+				<div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#tab_1" id="tab_11" data-toggle="tab">Simple</a></li>
+              <li><a href="#tab_2" id="tab_22" data-toggle="tab">Advanced</a></li>
+              
+              
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab_1">
+                
+					
+					
+					<div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Every</label>
+
+                  <div class="col-sm-10">
+						<select id="inputType"class="form-control">
+                    <option value="day">day</option>
+					<option value="week">week</option>
+					<option value="month">month</option>
+                  </select>
+				  
+                  </div>
+                </div>
+				
+					
+					
+					
+              </div>
+              <!-- /.tab-pane -->
+              <div class="tab-pane" id="tab_2">
+                
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Minute</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputAdvancedMinute" placeholder="*">
+                  </div>
+                </div>
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Hour</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputAdvancedHour" placeholder="*">
+                  </div>
+                </div>
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Day</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputAdvancedDay" placeholder="*">
+                  </div>
+                </div>
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Month</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputAdvancedMonth" placeholder="*">
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Weekday</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputAdvancedWeekday" placeholder="*">
+                  </div>
+                </div>
+<table><tr><td>			
+				
+				
+				
+				<table class="table">
+                <tbody><tr>
+                  <th colspan="2">Parameters</th>
+                </tr>
+                <tr>
+                  <td>month</td>
+				  <td>(1-12)</td>
+                </tr>
+                <tr>
+                  <td>day of the month</td>
+				  <td>(1-31)</td>
+                </tr>
+				<tr>
+                  <td>week</td>
+				  <td>(1-53)</td>
+                </tr>
+				<tr>
+                  <td>day_of_week</td>
+				  <td>(mon=0,tue,wed,thu,fri,sat,sun=6)</td>
+                </tr>
+				<tr>
+                  <td>hour</td>
+				  <td>(0-23)</td>
+                </tr>
+				<tr>
+                  <td>minute</td>
+				  <td>(0-59)</td>
+                </tr>
+              </tbody></table>
+</td><td>
+<table class="table">
+                <tbody><tr>
+                  <th colspan="2">Values</th>
+                </tr>
+                <tr>
+                  <td>*</td>
+				  <td>Fire on every value</td>
+                </tr>
+                <tr>
+                  <td>*/a</td>
+				  <td>Fire every a values, starting from the minimum</td>
+                </tr>
+				<tr>
+                  <td>a-b</td>
+				  <td>Fire on any value within the a-b range (a must be smaller than b)</td>
+                </tr>
+				<tr>
+                  <td>a-b/c</td>
+				  <td>Fire every c values within the a-b range</td>
+                </tr>
+				<tr>
+                  <td>last</td>
+				  <td>Fire on the last day within the month</td>
+                </tr>
+				<tr>
+                  <td>x,y,z</td>
+				  <td>Fire on any matching expression; can combine any number of any of the above expressions</td>
+                </tr>
+              </tbody></table>
+</tr></table>
+				
+              </div>
+              <!-- /.tab-pane -->
+              
+            </div>
+            <!-- /.tab-content -->
+          </div>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				<!-- -->
+
+			  
+			  
+		
+              </div>
+              
+              <!-- /.box-footer -->
+            </form>
+            </div>
+            <!-- /.box-body -->
+			<div class="box-footer">
+                <button type="submit" onclick="canceldatastore()" class="btn btn-default">Cancel</button>
+                <button type="submit" id="saveit" class="btn btn-info pull-right">Save</button>
+              </div>
+          </div>
+		  </div>
+		  </div>
+	
+	<!-- end wizard-->
+	
+	
 		<!-- -->
 		<div class="row">
         <div class="col-xs-12">
           <div class="box">
-            <div class="box-header with-border">
-              <h3 class="box-title">Schedules</h3>
+            <div class="box-header">
+              <h3 class="box-title">Available schedules</h3>
             </div>
-			
-			
             <!-- /.box-header -->
-            <div class="box-body">
+            <div class="box-body table-responsive no-padding">
               <table class="table table-hover">
-                <tbody >
-				<tr></td>
-                unimplemented
-				</td>
-				</tr>
+                <tbody id="schedules_table">
+				
+                
               </tbody></table>
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                &nbsp;
+                <button type="submit" onclick="addschedule()" class="btn btn-primary pull-right">Add Schedule</button>
             </div>
           </div>
           <!-- /.box -->
@@ -259,9 +506,10 @@
     <div class="pull-right hidden-xs">
       <b>Version</b> alpha-1
     </div>
-    <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+    <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
   </footer>
+
 </div>
 <!-- ./wrapper -->
 
@@ -284,8 +532,113 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
+	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
+
+	function addschedule() {
+		$("#wizardtitle").html("Add Schedule");
+		$("#inputId").val("(null)");
+		$("#datastore_dialog").css('display', 'block');
+		
+		$("#saveit").unbind();
+		$("#saveit").click(function(){
+				saveitbasic();
+			});
+	}
+	
+	function editschedule(id) {
+		$.getJSON( "/api/xen/schedule/" + id, function( data ) {
+		//alert(data);
+		   $("#wizardtitle").html("Edit Datastore")
+		  
+			$("#inputName" ).val(data.name);
+			$("#inputUsername" ).val(data.username);
+			$("#inputPassword" ).val(data.password);
+			$("#inputHost").val(data.host);
+			$("#inputArguments").val('');
+			$("#inputId").val(data.id);
+			
+			$("#datastore_dialog").css('display', 'block');
+		});
+	}
+	
+	function confirmdelete(id, title) {
+		$("#deletetxt").html("Are you sure you want to delete the datastore '" + title + "'?");
+		
+		$("#confirmdeletebtn").unbind();
+		$("#confirmdeletebtn").bind("click", function(e) { 
+			//alert('Delete ' + id);
+			$('#deletemodal').modal('toggle');
+			
+			$.ajax({
+				url: '/api/xen/datastore/' + id,
+				type: "DELETE"
+			}).done(function() {
+			  //canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + title + '\' deleted.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+			
+		});
+	}
+	
+	function cancelschedule() {
+		$("#datastore_dialog").css('display', 'none');
+		$("#inputName" ).val('');
+		$("#inputUsername" ).val('');
+		$("#inputPassword" ).val('');
+		$("#inputHost").val('');
+		$("#inputArguments").val('');
+	}
+	
+	function saveit() {
+		var call = $("#inputId" ).val();
+		
+		var type = $("#inputType option:selected" )[0].value;
+		var name = $("#inputName" ).val();
+		var username = $("#inputUsername" ).val();
+		var password = $("#inputPassword" ).val();
+		var host = $("#inputHost" ).val();
+		
+		var jsonData = '';
+		
+		if(call == '(null)') {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
+		
+			$.ajax({
+				url: '/api/xen/datastore/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' added.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
+		else {
+			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
+			
+			$.ajax({
+				url: '/api/xen/datastore/' + call,
+				type: "PUT",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' changed.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+		}
+	
+	}
+
 	function update_system() {
-		$.get('/api/xen/ui/system', function( stats ) {
+		$.get( '/api/xen/ui/system', function( stats ) {
 			$("#cpu_load").attr("aria-valuenow", stats.cpu_load);
 			$("#ram_load").attr("aria-valuenow", stats.ram_pct);
 			$("#cpu_load").attr("style", "width: " + stats.cpu_load + "%");
@@ -297,12 +650,107 @@
 			}, 3000);
 		});
 	}
+	
+	function saveitbasic() {
+		alert("basic");
+	}
+	
+	function saveitadvanced() {
+		alert("advanced");
+	}
+	
+	function toggle() {
+		if($("#label_cpu").css('display') === 'none' ) {
+			$("#label_cpu").css('display', 'block');
+		}
+		else {
+			$("#label_cpu").css('display', 'none');
+		}
+		
+		if($("#label_ram").css('display') === 'none' ) {
+			$("#label_ram").css('display', 'block');
+		}
+		else {
+			$("#label_ram").css('display', 'none');
+		}
+	}
+	
+	function load() {
+		var button = '<button onclick="$EDIT$" type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button data-toggle="modal" data-target="#deletemodal" onclick="$DELETE$" style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
+		
+		$.get( '/api/xen/schedule/', function( data ) {
+			var contents = '<tr><th>Name</th><th>VM</th><th>Pool</th><th>Datastore</th><th>Schedule</th></tr>';
+                
+			if(typeof data != "undefined" && data != null && data.length > 0){
+				for (var i = 0; i < data.length; i++) {
+					var dobtns = button.replace('$DELETE$', 'confirmdelete(' + data[i].id + ',\'' + data[i].name + '\')');
+					dobtns = dobtns.replace('$EDIT$', 'editdatastore(' + data[i].id + ')');
+					contents = contents + '<tr><td>' + data[i].name + '</td><td><span class="' + data[i].pool_id + '_' + data[i].uuid + '">' + data[i].uuid + '</span></td>';
+					contents = contents + '<td>' + data[i].pool.name + '</td><td>' + data[i].datastore.name + '</td><td>';
+					contents = contents + data[i].minute + ' ' + data[i].hour + ' ' + data[i].day +' ' + data[i].month +' ' + data[i].week + '</td></tr>';
+				}
+			}
+			else {
+				contents = contents + '<tr><td colspan="6">No schedules available...</td></tr>';
+			}
+			
+			$("#schedules_table").html(contents);
+		});
+		
+		// already load pools
+		var firstpool = -1;
+		$.get( '/api/xen/pool/', function( pool ) {
+			$("#inputPools").empty();
+			
+			if(typeof pool != "undefined" && pool != null && pool.length > 0){	
+				for (var i = 0; i < pool.length; i++) {
+				
+						if(firstpool == -1) {
+							firstpool = pool[i].id;
+							// for the first pool load the vms
+							$.get( '/api/xen/vms/' + firstpool, function( vms ) {
+								$("#inputVMS").empty();
+								if(typeof vms != "undefined" && vms != null && vms.length > 0){
+									for (var j = 0; j < vms.length; j++) {
+										$("#inputVMS").append($('<option>', {
+											value: vms[j].uuid,
+											text: vms[j].name
+										}));
+									}
+								}
+							});
+						}
+						$("#inputPools").append($('<option>', {
+							value: pool[i].id,
+							text: pool[i].name
+						}));
+				}
+			}
+		});
+		
+		// load datastores
+		$.get( '/api/xen/datastore/', function( data ) {
+			if(typeof data != "undefined" && data != null && data.length > 0){
+				for (var d = 0; d < data.length; d++) {
+					$("#inputDatastore").empty();
+					$("#inputDatastore").append($('<option>', {
+											value: data[d].id,
+											text: data[d].name
+										}));
+				}
+			}
+			else {
+				
+			}
+		});
+		
+	}
 
 	$(document).ready(function(){
+		load();
 		
 		$.get( '/api/xen/users/currentuser', function( user ) {
 			$("#loggedin_user").html(user.name);
-		
 		});
 		
 		$.get( '/api/xen/ui/messages', function( messages ) {
@@ -338,6 +786,24 @@
 		});
 		
 		update_system();
+		
+		$(".sidebar-toggle").click(function(){
+			toggle();
+		});
+		
+		$("#tab_11").click(function(){
+			$("#saveit").unbind();
+			$("#saveit").click(function(){
+				saveitbasic();
+			});
+		});
+		
+		$("#tab_22").click(function(){
+			$("#saveit").unbind();
+			$("#saveit").click(function(){
+				saveitadvanced();
+			});
+		});
 	});
 </script>
 </body>

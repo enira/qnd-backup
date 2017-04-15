@@ -374,6 +374,23 @@
 		});
 	}
 
+	
+	function toggle() {
+		if($("#label_cpu").css('display') === 'none' ) {
+			$("#label_cpu").css('display', 'block');
+		}
+		else {
+			$("#label_cpu").css('display', 'none');
+		}
+		
+		if($("#label_ram").css('display') === 'none' ) {
+			$("#label_ram").css('display', 'block');
+		}
+		else {
+			$("#label_ram").css('display', 'none');
+		}
+	}
+	
 	$(document).ready(function(){
 	
 		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
@@ -499,6 +516,9 @@
 		
 		update_system();
 		
+		$(".sidebar-toggle").click(function(){
+			toggle();
+		});
 	});
 </script>
 </body>

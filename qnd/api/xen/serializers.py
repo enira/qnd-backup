@@ -44,6 +44,13 @@ datastore = api.model('Datastore', {
     'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\')'),
 })
 
+datastore_safe = api.model('Datastore_Safe', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a datastore'),
+    'name': fields.String(required=True, description='Name being used by the datastore'),
+    'host': fields.String(required=True, description='Datastore host address (ip or hostname)'),
+    'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\')'),
+})
+
 user = api.model('user', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
     'name': fields.String(required=True, description='The username'),
@@ -95,6 +102,7 @@ archive = api.model('Archive', {
     'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
 })
 
+
 schedule = api.model('Schedule', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
     'name': fields.String(required=True, description='The given display name of a schedule'),
@@ -106,5 +114,32 @@ schedule = api.model('Schedule', {
     'uuid': fields.String(required=True, description='VM UUID'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'pool_id': fields.Integer(required=True, description='The pool id'),
+})
+
+schedule_rw = api.model('ScheduleUpdate', {
+    'name': fields.String(required=True, description='The given display name of a schedule'),
+    'minute': fields.String(required=True, description='Cron: minute'),
+    'hour': fields.String(required=True, description='Cron: hour'),
+    'day': fields.String(required=True, description='Cron: day'),
+    'month': fields.String(required=True, description='Cron: month'),
+    'week': fields.String(required=True, description='Cron: week'),
+    'uuid': fields.String(required=True, description='VM UUID'),
+    'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'pool_id': fields.Integer(required=True, description='The pool id'),
+})
+
+schedule_ro = api.model('ScheduleRead', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
+    'name': fields.String(required=True, description='The given display name of a schedule'),
+    'minute': fields.String(required=True, description='Cron: minute'),
+    'hour': fields.String(required=True, description='Cron: hour'),
+    'day': fields.String(required=True, description='Cron: day'),
+    'month': fields.String(required=True, description='Cron: month'),
+    'week': fields.String(required=True, description='Cron: week'),
+    'uuid': fields.String(required=True, description='VM UUID'),
+    'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'datastore': fields.Nested(datastore_safe),
+    'pool_id': fields.Integer(required=True, description='The pool id'),
+    'pool': fields.Nested(pool),
 })
 

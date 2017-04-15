@@ -26,7 +26,17 @@ class Mover:
             config = configparser.ConfigParser()
             config.read('mover.ini')
             self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
-            
+        else:
+            if os.path.isfile('mover.cfg'):
+                # load the external mover
+                config = configparser.ConfigParser()
+                config.read('mover.cfg')
+                self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
+            else:
+                print 'No mover found, archiving not possible.'
+                exit()
+
+
     def archive(self, task_id):
         print 'Archiving'
 

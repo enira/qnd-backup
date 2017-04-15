@@ -84,15 +84,44 @@ class Flow(object):
                                     id=str(schedule.id))
 
         # run
-        self._scheduler.add_job(self.archive, 'cron', minute='*', id='archive_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
-        self._scheduler.add_job(self.cleanup, 'cron', minute='*', id='cleanup_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
 
-    def check_schedules(self):
-        pass
+    def schedule_edit(self, id):
+        self._scheduler.remove_job(id)
+
+        session = db.session
+        schedule = session.query(Schedule).filter(Schedule.id == id).one()
+
+        self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
+                                    day=schedule.day, 
+                                    hour=schedule.hour, 
+                                    minute=schedule.minute, 
+                                    month=schedule.month,
+                                    day_of_week=schedule.week,
+                                    id=str(schedule.id))
+
+        session.close()
+                
+
+    def schedule_add(self, id):
+        session = db.session
+        schedule = session.query(Schedule).filter(Schedule.id == id).one()
+        self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
+                                    day=schedule.day, 
+                                    hour=schedule.hour, 
+                                    minute=schedule.minute, 
+                                    month=schedule.month,
+                                    day_of_week=schedule.week,
+                                    id=str(schedule.id))
+        session.close()
+
+    def schedule_delete(self, id):
+        self._scheduler.remove_job(id)
 
     def run(self):
         session = db.session
@@ -147,15 +176,6 @@ class Flow(object):
                 log.info("Created a pool with " + str(len(self._poolcache[pool.id]["hosts"])) + " hosts")
 
                 self._poolcache[pool.id]["backup"].discover()
-
-        # check schedules
-        now = datetime.datetime.now()
-        if now.minute != self._minute:
-            log.debug('Tick tock: ' + str(now.year) + "/" + str(now.month) + "/" + str(now.day) + " " + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second)) 
-            self._minute = now.minute
-
-            # a new minute, calculate the schedules if they need to spawn tasks
-            self.check_schedules()
 
         # submit all backup tasks
         tasks = session.query(Task).filter(Task.status == 'backup_pending').all()

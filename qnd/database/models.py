@@ -152,7 +152,6 @@ class Archive(db.Model):
     incremental = db.Column(db.Integer)                                         # not implemented
 
 
-
 class Backup(db.Model):
     """
     A database model spawned after a task has completed a backup.

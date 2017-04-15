@@ -298,6 +298,22 @@
 			}, 3000);
 		});
 	}
+	
+	function toggle() {
+		if($("#label_cpu").css('display') === 'none' ) {
+			$("#label_cpu").css('display', 'block');
+		}
+		else {
+			$("#label_cpu").css('display', 'none');
+		}
+		
+		if($("#label_ram").css('display') === 'none' ) {
+			$("#label_ram").css('display', 'block');
+		}
+		else {
+			$("#label_ram").css('display', 'none');
+		}
+	}
 
 	$(document).ready(function(){
 		
@@ -339,6 +355,10 @@
 		});
 		
 		update_system();
+		
+		$(".sidebar-toggle").click(function(){
+			toggle();
+		});
 	});
 </script>
 </body>

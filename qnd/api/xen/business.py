@@ -1,6 +1,8 @@
 from database import db
 from database.models import Pool, Host, Datastore, Task, Archive, Schedule
 
+from xen.flow import Flow
+
 # Pools
 def create_pool(data):
     """
@@ -249,6 +251,8 @@ def create_schedule(data):
     db.session.add(schedule)
     db.session.commit()
 
+    Flow.instance().schedule_add(schedule.id)
+
 def update_schedule(schedule_id, data):
     """
     Update a schedule
@@ -272,6 +276,8 @@ def update_schedule(schedule_id, data):
     db.session.add(schedule)
     db.session.commit()
 
+    Flow.instance().schedule_update(schedule.id)
+
 def delete_schedule(schedule_id):
     """
     Delete a schedule.
@@ -279,3 +285,5 @@ def delete_schedule(schedule_id):
     schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).one()
     db.session.delete(schedule)
     db.session.commit()
+
+    Flow.instance().schedule_delete(schedule.id)

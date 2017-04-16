@@ -246,7 +246,7 @@
 	
 	
 		<!-- Wizard-->
-		<div class="row" id="datastore_dialog"  style="display:none">
+		<div class="row" id="schedule_dialog"  style="display:none">
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
@@ -537,7 +537,7 @@
 	function addschedule() {
 		$("#wizardtitle").html("Add Schedule");
 		$("#inputId").val("(null)");
-		$("#datastore_dialog").css('display', 'block');
+		$("#schedule_dialog").css('display', 'block');
 		
 		$("#saveit").unbind();
 		$("#saveit").click(function(){
@@ -548,16 +548,24 @@
 	
 	function editschedule(id) {
 		$.getJSON( "/api/xen/schedule/" + id, function( data ) {
-		   $("#wizardtitle").html("Edit Schedule")
+		   $("#wizardtitle").html("Edit Schedule");
+		   
+		   
+		   $("#inputAdvancedDay" ).val(data.day);
+		$("#inputAdvancedHour" ).val(data.hour);
+		$("#inputAdvancedMinute" ).val(data.minute);
+		$("#inputAdvancedMonth" ).val(data.month);
+		$("#inputAdvancedWeekday" ).val(data.week);
+		
+		$("#inputName" ).val(data.name);
 		  
-			$("#inputName" ).val(data.name);
-			$("#inputUsername" ).val(data.username);
-			$("#inputPassword" ).val(data.password);
-			$("#inputHost").val(data.host);
-			$("#inputArguments").val('');
+		  $('#inputPools option[value="''"]').attr("selected", "selected");
+		  $('#element option[value="no"]').attr("selected", "selected");
+		  
+
 			$("#inputId").val(data.id);
 			
-			$("#datastore_dialog").css('display', 'block');
+			$("#schedule_dialog").css('display', 'block');
 		});
 	}
 	
@@ -584,11 +592,17 @@
 	
 	function cancelschedule() {
 		$("#schedule_dialog").css('display', 'none');
-		/*$("#inputName" ).val('');
-		$("#inputUsername" ).val('');
-		$("#inputPassword" ).val('');
-		$("#inputHost").val('');
-		$("#inputArguments").val('');*/
+	
+		$("#inputAdvancedDay" ).val('');
+		$("#inputAdvancedHour" ).val('');
+		$("#inputAdvancedMinute" ).val('');
+		$("#inputAdvancedMonth" ).val('');
+		$("#inputAdvancedWeekday" ).val('');
+		
+		$("#inputName" ).val('');
+		$("#inputPools").find('select option:eq(0)').prop('selected', true);
+		$("#inputVMS").find('select option:eq(0)').prop('selected', true);
+		$("#inputDatastore").find('select option:eq(0)').prop('selected', true);
 	}
 
 	function update_system() {

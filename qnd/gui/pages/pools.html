@@ -644,7 +644,7 @@
 						var dobtnspools = button.replace('$DELETE$', 'confirmdeletepool(' + pool[i].id + ',\'' + pool[i].name + '\')');
 						dobtnspools = dobtnspools.replace('$EDIT$', 'editpool(' + pool[i].id + ')');
 					
-						contents = '<tr><td>' + pool[i].name + '</td></td><td class="pull-right" style="margin-right:3px;">' + dobtnspools + '</td></tr>';
+						contents = '<tr><td>' + pool[i].name + '</td></td><td><span class="pull-right" style="margin-right:3px;">' + dobtnspools + '</span></td></tr>';
 						$("#pools_table").append(contents);
 						
 						// pools to the datasave table
@@ -660,7 +660,7 @@
 								if(host[j].pool_id == pool[i].id) {
 									var dobtnshosts = button.replace('$DELETE$', 'confirmdeletehost(' + host[j].id + ',\'' + host[j].address + '\', \'' + pool[i].name + '\')');
 									dobtnshosts = dobtnshosts.replace('$EDIT$', 'edithost(' + host[j].id + ')').replace('deletemodalpool', 'deletemodalhost');
-									contents = '<tr><td>' + host[j].address + '</td><td>' + host[j].username + '</td><td>' + pool[i].name + '</td></td><td class="pull-right" style="margin-right:3px;">' + dobtnshosts + '</td></tr>';
+									contents = '<tr><td>' + host[j].address + '</td><td>' + host[j].username + '</td><td>' + pool[i].name + '</td></td><td><span class="pull-right" style="margin-right:3px;">' + dobtnshosts + '</span></td></tr>';
 									$("#hosts_table").append(contents);
 									therearehosts == true;
 								}

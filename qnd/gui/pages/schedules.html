@@ -583,12 +583,12 @@
 	}
 	
 	function cancelschedule() {
-		$("#datastore_dialog").css('display', 'none');
-		$("#inputName" ).val('');
+		$("#schedule_dialog").css('display', 'none');
+		/*$("#inputName" ).val('');
 		$("#inputUsername" ).val('');
 		$("#inputPassword" ).val('');
 		$("#inputHost").val('');
-		$("#inputArguments").val('');
+		$("#inputArguments").val('');*/
 	}
 
 	function update_system() {
@@ -612,47 +612,52 @@
 	}
 	
 	function saveitadvanced() {
-	
 		var call = $("#inputId" ).val();
-		
 		
 		var name = $("#inputName" ).val();
 		var poolid = $("#inputPools option:selected" )[0].value;
 		var vmuuid = $("#inputVMS option:selected" )[0].value;
 		var datastoreid = $("#inputDatastore option:selected" )[0].value;
-		alert(name + ' ' + poolid + ' ' + vmuuid + ' ' + datastoreid);
-	
+		
+		var day = $("#inputAdvancedDay" ).val();
+		var hour = $("#inputAdvancedHour" ).val();
+		var minute = $("#inputAdvancedMinute" ).val();
+		var month = $("#inputAdvancedMonth" ).val();
+		var weekday = $("#inputAdvancedWeekday" ).val();
+		
 		if(call == '(null)') {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
-			jsonData = '{"week": "string","uuid": "string","pool_id": 0,"name": "string","hour": "string","datastore_id": 0,"day": "string","minute": "string","month": "string"}';
-			/*$.ajax({
+			jsonData = '{"week": "' + weekday + '","uuid": "' + vmuuid + '","pool_id": ' + poolid + ' ,"name": "' + name + '","hour": "' + hour + '","datastore_id": ' + datastoreid;
+			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'"}';
+			
+			$.ajax({
 				url: '/api/xen/schedule/',
 				type: "POST",
 				dataType: "json",
 				data: jsonData,
 				contentType: "application/json"
 			}).done(function() {
-			  canceldatastore();
+			  cancelschedule();
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' added.')
 			  $("#messagebox").html(msg);
 			  load();
-			});*/
+			});
 		}
 		else {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
+			jsonData = '{"week": "' + weekday + '","uuid": "' + vmuuid + '","pool_id": ' + poolid + ' ,"name": "' + name + '","hour": "' + hour + '","datastore_id": ' + datastoreid;
+			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'"}';
 			
-			/*$.ajax({
+			$.ajax({
 				url: '/api/xen/schedule/' + call,
 				type: "PUT",
 				dataType: "json",
 				data: jsonData,
 				contentType: "application/json"
 			}).done(function() {
-			  canceldatastore();
+			  cancelschedule();
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
-			});*/
+			});
 		}
 	}
 	
@@ -676,15 +681,17 @@
 		var button = '<button onclick="$EDIT$" type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button data-toggle="modal" data-target="#deletemodal" onclick="$DELETE$" style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
 		
 		$.get( '/api/xen/schedule/', function( data ) {
-			var contents = '<tr><th>Name</th><th>VM</th><th>Pool</th><th>Datastore</th><th>Schedule</th></tr>';
+			var contents = '<tr><th>Name</th><th>VM</th><th>Pool</th><th>Datastore</th><th>Schedule</th><th></th></tr>';
                 
 			if(typeof data != "undefined" && data != null && data.length > 0){
 				for (var i = 0; i < data.length; i++) {
 					var dobtns = button.replace('$DELETE$', 'confirmdelete(' + data[i].id + ',\'' + data[i].name + '\')');
-					dobtns = dobtns.replace('$EDIT$', 'editdatastore(' + data[i].id + ')');
+					dobtns = dobtns.replace('$EDIT$', 'editschedule(' + data[i].id + ')');
+					
 					contents = contents + '<tr><td>' + data[i].name + '</td><td><span class="' + data[i].pool_id + '_' + data[i].uuid + '">' + data[i].uuid + '</span></td>';
 					contents = contents + '<td>' + data[i].pool.name + '</td><td>' + data[i].datastore.name + '</td><td>';
-					contents = contents + data[i].minute + ' ' + data[i].hour + ' ' + data[i].day +' ' + data[i].month +' ' + data[i].week + '</td></tr>';
+					contents = contents + data[i].minute + ' ' + data[i].hour + ' ' + data[i].day +' ' + data[i].month +' ' + data[i].week + '</td>';
+					contents = contents + '<td><span  class="pull-right" style="margin-right:3px;">' + dobtns + '</span></td></tr>';
 				}
 			}
 			else {

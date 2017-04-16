@@ -121,7 +121,7 @@ class Flow(object):
         session.close()
 
     def schedule_delete(self, id):
-        self._scheduler.remove_job(id)
+        self._scheduler.remove_job(str(id))
 
     def run(self):
         session = db.session

@@ -269,47 +269,39 @@
                     <input type="text" class="form-control" id="inputName" placeholder="name">
                   </div>
                 </div>
+				
 				<div class="form-group">
-                  <label for="datastoreLabel" class="col-sm-2 control-label">Type</label>
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Source Datastore</label>
 
                   <div class="col-sm-10">
-						<select id="inputType"class="form-control">
-                    <option value="smb">Samba/CIFS share</option>
-					<option value="smb-archive">Samba/CIFS archive</option>
+						<select id="inputSource"class="form-control">
+                    
+                  </select>
+				  
+                  </div>
+                </div>
+				
+				<div class="form-group">
+                  <label for="datastoreLabel" class="col-sm-2 control-label">Target Datastore</label>
+
+                  <div class="col-sm-10">
+						<select id="inputTarget"class="form-control">
+                    
                   </select>
 				  
                   </div>
                 </div>
 				
 				<div class="form-group" >
-                  <label for="machineLabel" class="col-sm-2 control-label">Username</label>
+                  <label for="machineLabel" class="col-sm-2 control-label">Retention copies</label>
 
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" id="inputUsername" placeholder="username">
-                  </div>
-                </div>
-				<div class="form-group" >
-                  <label for="machineLabel" class="col-sm-2 control-label">Password</label>
-
-                  <div class="col-sm-10">
-                    <input type="password" class="form-control" id="inputPassword" placeholder="password">
+                    <input type="text" class="form-control" id="inputRetention" placeholder="7">
                   </div>
                 </div>
 				
-				<div class="form-group" >
-                  <label for="machineLabel" class="col-sm-2 control-label">Host</label>
-
-                  <div class="col-sm-10">
-                    <input type="text" class="form-control" id="inputHost" placeholder="//<ip-address>/sharename">
-                  </div>
-                </div>
-                <div class="form-group" >
-                  <label for="machineLabel" class="col-sm-2 control-label">Additional arguments</label>
-
-                  <div class="col-sm-10">
-                    <input type="text" class="form-control" id="inputArguments" placeholder="">
-                  </div>
-                </div>
+				
+				
                 
               </div>
               
@@ -318,7 +310,7 @@
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                <button type="submit" onclick="canceldatastore()" class="btn btn-default">Cancel</button>
+                <button type="submit" onclick="cancelschedule()" class="btn btn-default">Cancel</button>
                 <button type="submit" onclick="saveit()" class="btn btn-info pull-right">Save</button>
               </div>
           </div>
@@ -345,7 +337,7 @@
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                <button type="submit" onclick="adddatastore()" class="btn btn-primary pull-right">Add Datastore</button>
+                <button type="submit" onclick="addarchive()" class="btn btn-primary pull-right">Add Archive</button>
             </div>
           </div>
           <!-- /.box -->
@@ -425,7 +417,6 @@
 				url: '/api/xen/archive/' + id,
 				type: "DELETE"
 			}).done(function() {
-			  //canceldatastore();
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + title + '\' deleted.')
 			  $("#messagebox").html(msg);
 			  load();
@@ -437,34 +428,35 @@
 	function cancelarchive() {
 		$("#archives_dialog").css('display', 'none');
 		$("#inputName" ).val('');
-		$("#inputUsername" ).val('');
-		$("#inputPassword" ).val('');
-		$("#inputHost").val('');
-		$("#inputArguments").val('');
+		
+		$("#inputRetention" ).val('');
+		
+		$("#inputSource option:first").attr('selected','selected');
+		$("#inputTarget option:first").attr('selected','selected');
 	}
 	
 	function saveit() {
 		var call = $("#inputId" ).val();
 		
-		var type = $("#inputType option:selected" )[0].value;
+		var source_id = $("#inputSource option:selected" )[0].value;
+		var target_id = $("#inputTarget option:selected" )[0].value;
 		var name = $("#inputName" ).val();
-		var username = $("#inputUsername" ).val();
-		var password = $("#inputPassword" ).val();
-		var host = $("#inputHost" ).val();
+		
+		var retention = $("#inputRetention" ).val();
 		
 		var jsonData = '';
 		
 		if(call == '(null)') {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": 0}';
+			jsonData = '{ "name": "' + name + '", "target_id": "' + target_id + '", "encryption_key": "todo", "incremental": 0, "source_id": "' + source_id + '", "retention": ' + retention + '}';
 		
 			$.ajax({
-				url: '/api/xen/datastore/',
+				url: '/api/xen/archive/',
 				type: "POST",
 				dataType: "json",
 				data: jsonData,
 				contentType: "application/json"
 			}).done(function() {
-			  canceldatastore();
+			  cancelarchive();
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' added.')
 			  $("#messagebox").html(msg);
 			  load();
@@ -474,13 +466,13 @@
 			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
 			
 			$.ajax({
-				url: '/api/xen/datastore/' + call,
+				url: '/api/xen/archive/' + call,
 				type: "PUT",
 				dataType: "json",
 				data: jsonData,
 				contentType: "application/json"
 			}).done(function() {
-			  canceldatastore();
+			  cancelarchive();
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
@@ -525,6 +517,32 @@
 			}
 			
 			$("#datastores_table").html(contents);
+		});
+		
+		
+		$.get( '/api/xen/datastore/', function( datastore ) {
+			$("#inputSource").empty();
+			$("#inputTarget").empty();
+			if(typeof datastore != "undefined" && datastore != null && datastore.length > 0){
+			
+				for (var k = 0; k < datastore.length; k++) {
+					//alert(datastore[k].name);
+					
+					if(datastore[k].type == 'smb') {
+					
+						$("#inputSource").append($('<option>', {
+							value: datastore[k].id,
+							text: datastore[k].name
+						}));
+					}
+					else {
+						$("#inputTarget").append($('<option>', {
+							value: datastore[k].id,
+							text: datastore[k].name
+						})); 
+					}
+				}
+			}
 		});
 	}
 	

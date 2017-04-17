@@ -110,7 +110,6 @@ archive = api.model('ArchiveUpdate', {
 })
 
 archive_rw = api.model('Archive', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of an archive'),
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
     'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),

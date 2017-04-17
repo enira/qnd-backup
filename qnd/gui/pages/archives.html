@@ -310,7 +310,7 @@
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                <button type="submit" onclick="cancelschedule()" class="btn btn-default">Cancel</button>
+                <button type="submit" onclick="cancelarchive()" class="btn btn-default">Cancel</button>
                 <button type="submit" onclick="saveit()" class="btn btn-info pull-right">Save</button>
               </div>
           </div>
@@ -395,10 +395,10 @@
 		   $("#wizardtitle").html("Edit Archive")
 		  
 			$("#inputName" ).val(data.name);
-			$("#inputUsername" ).val(data.username);
-			$("#inputPassword" ).val(data.password);
-			$("#inputHost").val(data.host);
-			$("#inputArguments").val('');
+			$("#inputRetention" ).val(data.retention);
+			$('#inputSource option[value="' + data.source_id + '"]').attr("selected", "selected");
+			$('#inputTarget option[value="' + data.target_id + '"]').attr("selected", "selected");
+			
 			$("#inputId").val(data.id);
 			
 			$("#archives_dialog").css('display', 'block');
@@ -457,14 +457,14 @@
 				contentType: "application/json"
 			}).done(function() {
 			  cancelarchive();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' added.')
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + name + '\' added.')
 			  $("#messagebox").html(msg);
 			  load();
 			});
 		}
 		else {
-			jsonData = '{ "username": "' + username + '", "name": "' + name + '", "host": "' + host + '", "password": "' + password + '", "type": "' + type + '", "id": ' + call + '}';
-			
+			jsonData = '{ "name": "' + name + '", "target_id": "' + target_id + '", "encryption_key": "todo", "incremental": 0, "source_id": "' + source_id + '", "retention": ' + retention + '}';
+		
 			$.ajax({
 				url: '/api/xen/archive/' + call,
 				type: "PUT",
@@ -473,15 +473,11 @@
 				contentType: "application/json"
 			}).done(function() {
 			  cancelarchive();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + name + '\' changed.')
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + name + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
 			});
 		}
-	
-		
-		
-		
 		
 	}
 

@@ -186,6 +186,12 @@
         </li>
 		
 		<li>
+          <a href="archives.html">
+            <i class="fa fa-archive"></i> <span>Archives</span>
+          </a>
+        </li>
+		
+		<li>
           <a href="settings.html">
             <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
@@ -662,7 +668,7 @@
 									dobtnshosts = dobtnshosts.replace('$EDIT$', 'edithost(' + host[j].id + ')').replace('deletemodalpool', 'deletemodalhost');
 									contents = '<tr><td>' + host[j].address + '</td><td>' + host[j].username + '</td><td>' + pool[i].name + '</td></td><td><span class="pull-right" style="margin-right:3px;">' + dobtnshosts + '</span></td></tr>';
 									$("#hosts_table").append(contents);
-									therearehosts == true;
+									therearehosts = true;
 								}
 							}
 						}

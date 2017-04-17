@@ -1,5 +1,5 @@
 from database import db
-from database.models import Pool, Host, Datastore, Task, Archive, Schedule
+from database.models import Pool, Host, Datastore, Task, Archive, ArchiveTask, Schedule
 
 from xen.flow import Flow
 
@@ -223,6 +223,13 @@ def delete_archive(archive_id):
     """
     Delete an archive.
     """
+    # delete associated archive tasks
+    archivetasks = db.session.query(ArchiveTask).filter(ArchiveTask.archive_id == archive_id).all()
+
+    for archivetask in archivetasks:
+        db.session.delete(archivetask)
+
+    # delete archive
     archive = db.session.query(Archive).filter(Archive.id == archive_id).one()
     db.session.delete(archive)
     db.session.commit()
@@ -276,7 +283,7 @@ def update_schedule(schedule_id, data):
     db.session.add(schedule)
     db.session.commit()
 
-    Flow.instance().schedule_update(schedule.id)
+    Flow.instance().schedule_edit(schedule.id)
 
 def delete_schedule(schedule_id):
     """

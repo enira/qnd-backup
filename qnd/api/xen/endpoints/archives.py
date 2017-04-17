@@ -4,7 +4,7 @@ from flask import request
 from flask_restplus import Resource
 
 from api.xen.business import create_archive, delete_archive, update_archive
-from api.xen.serializers import archive
+from api.xen.serializers import archive, archive_ro, archive_rw
 from api.restplus import api
 
 from database.models import Archive
@@ -17,7 +17,7 @@ ns = api.namespace('xen/archive', description='Operations related to archives')
 @ns.route('/')
 class ArchiveCollection(Resource):
 
-    @api.marshal_list_with(archive)
+    @api.marshal_list_with(archive_ro)
     def get(self):
         """
         Returns list of archives.
@@ -26,7 +26,7 @@ class ArchiveCollection(Resource):
         return pools
 
     @api.response(201, 'Archive successfully created.')
-    @api.expect(archive)
+    @api.expect(archive_rw)
     def post(self):
         """
         Creates a new archive.
@@ -40,14 +40,14 @@ class ArchiveCollection(Resource):
 @api.response(404, 'Archive not found.')
 class ArchiveItem(Resource):
 
-    @api.marshal_with(archive)
+    @api.marshal_with(archive_ro)
     def get(self, id):
         """
         Returns an archive.
         """
         return db.session.query(Archive).filter(Archive.id == id).one()
     
-    @api.expect(archive)
+    @api.expect(archive_rw)
     @api.response(204, 'Archive successfully updated.')
     def put(self, id):
         """

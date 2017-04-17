@@ -100,12 +100,32 @@ task = api.model('Task', {
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
 })
 
-archive = api.model('Archive', {
+archive = api.model('ArchiveUpdate', {
+    'name': fields.String(required=True, description='The given display name of an archive'),
+    'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
+    'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),
+    'encryption_key': fields.String(required=True, description='The encryption key used for encrypting the archived backups'),
+    'retention': fields.Integer(required=True, description='The retention versions policy (versions to keep)'),
+    'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
+})
+
+archive_rw = api.model('Archive', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of an archive'),
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
     'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),
     'encryption_key': fields.String(required=True, description='The encryption key used for encrypting the archived backups'),
+    'retention': fields.Integer(required=True, description='The retention versions policy (versions to keep)'),
+    'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
+})
+
+archive_ro = api.model('ArchiveRead', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of an archive'),
+    'name': fields.String(required=True, description='The given display name of an archive'),
+    'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
+    'source': fields.Nested(datastore_safe),
+    'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),
+    'target': fields.Nested(datastore_safe),
     'retention': fields.Integer(required=True, description='The retention versions policy (versions to keep)'),
     'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
 })

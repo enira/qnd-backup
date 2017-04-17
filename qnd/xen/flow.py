@@ -84,7 +84,6 @@ class Flow(object):
         schedules = session.query(Schedule).all()
         for schedule in schedules:
             print 'Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id)
-            """
             self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
                                     hour=schedule.hour, 
@@ -92,18 +91,18 @@ class Flow(object):
                                     month=schedule.month,
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
-            """
 
         # run
-        #self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
-        #self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
 
     def schedule_edit(self, id):
-        self._scheduler.remove_job(id)
+        if self._scheduler.get_job(str(id)) != None:
+            self._scheduler.remove_job(str(id))
 
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == id).one()
@@ -132,7 +131,8 @@ class Flow(object):
         session.close()
 
     def schedule_delete(self, id):
-        self._scheduler.remove_job(str(id))
+        if self._scheduler.get_job(str(id)) != None:
+            self._scheduler.remove_job(str(id))
 
     def run(self):
         session = db.session

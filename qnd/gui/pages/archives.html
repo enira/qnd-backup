@@ -211,12 +211,12 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        Datastores
+        Archives
         <small>Control panel</small>
       </h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Datastores</li>
+        <li class="active">Archives</li>
       </ol>
     </section>
 
@@ -252,11 +252,11 @@
 	
 	
 		<!-- Wizard-->
-		<div class="row" id="datastore_dialog"  style="display:none">
+		<div class="row" id="archives_dialog"  style="display:none">
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
-              <h3 id="wizardtitle" class="box-title">Add Datastore</h3> <input type="hidden" id="inputId" value="(null)">
+              <h3 id="wizardtitle" class="box-title">Add Archive</h3> <input type="hidden" id="inputId" value="(null)">
             </div>
             <!-- /.box-header -->
             <div class="box-body">
@@ -391,16 +391,16 @@
 <script>
 	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
 
-	function adddatastore() {
-		$("#wizardtitle").html("Add Datastore");
+	function addarchive() {
+		$("#wizardtitle").html("Add Archive");
 		$("#inputId").val("(null)");
-		$("#datastore_dialog").css('display', 'block');
+		$("#archives_dialog").css('display', 'block');
 	}
 	
-	function editdatastore(id) {
-		$.getJSON( "/api/xen/datastore/" + id, function( data ) {
+	function editarchive(id) {
+		$.getJSON( "/api/xen/archive/" + id, function( data ) {
 		//alert(data);
-		   $("#wizardtitle").html("Edit Datastore")
+		   $("#wizardtitle").html("Edit Archive")
 		  
 			$("#inputName" ).val(data.name);
 			$("#inputUsername" ).val(data.username);
@@ -409,12 +409,12 @@
 			$("#inputArguments").val('');
 			$("#inputId").val(data.id);
 			
-			$("#datastore_dialog").css('display', 'block');
+			$("#archives_dialog").css('display', 'block');
 		});
 	}
 	
 	function confirmdelete(id, title) {
-		$("#deletetxt").html("Are you sure you want to delete the datastore '" + title + "'?");
+		$("#deletetxt").html("Are you sure you want to delete the archive '" + title + "'?");
 		
 		$("#confirmdeletebtn").unbind();
 		$("#confirmdeletebtn").bind("click", function(e) { 
@@ -422,11 +422,11 @@
 			$('#deletemodal').modal('toggle');
 			
 			$.ajax({
-				url: '/api/xen/datastore/' + id,
+				url: '/api/xen/archive/' + id,
 				type: "DELETE"
 			}).done(function() {
 			  //canceldatastore();
-			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Datastore \'' + title + '\' deleted.')
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + title + '\' deleted.')
 			  $("#messagebox").html(msg);
 			  load();
 			});
@@ -434,8 +434,8 @@
 		});
 	}
 	
-	function canceldatastore() {
-		$("#datastore_dialog").css('display', 'none');
+	function cancelarchive() {
+		$("#archives_dialog").css('display', 'none');
 		$("#inputName" ).val('');
 		$("#inputUsername" ).val('');
 		$("#inputPassword" ).val('');
@@ -510,18 +510,18 @@
 	function load() {
 		var button = '<button onclick="$EDIT$" type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button data-toggle="modal" data-target="#deletemodal" onclick="$DELETE$" style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
 		
-		$.get( '/api/xen/datastore/', function( data ) {
-			var contents = '<tr><th>Name</th><th>Type</th><th>Username</th><th>Host</th><th>Arguments</th><th></th></tr>';
+		$.get( '/api/xen/archive/', function( data ) {
+			var contents = '<tr><th>Name</th><th>Source Datastore</th><th>Target Datastore</th><th>Retention copies</th><th></th></tr>';
                 
 			if(typeof data != "undefined" && data != null && data.length > 0){
 				for (var i = 0; i < data.length; i++) {
 					var dobtns = button.replace('$DELETE$', 'confirmdelete(' + data[i].id + ',\'' + data[i].name + '\')');
-					dobtns = dobtns.replace('$EDIT$', 'editdatastore(' + data[i].id + ')');
-					contents = contents + '<tr><td>' + data[i].name + '</td><td>' + data[i].type + '</td><td>' + data[i].username + '</td><td>' + data[i].host + '</td><td>' + '</td><td><span class="pull-right" style="margin-right:3px;">' + dobtns + '</span></td></tr>';
+					dobtns = dobtns.replace('$EDIT$', 'editarchive(' + data[i].id + ')');
+					contents = contents + '<tr><td>' + data[i].name + '</td><td>' + data[i].source.name + '</td><td>' + data[i].target.name + '</td><td>' + data[i].retention + '</td><td>' + '</td><td><span class="pull-right" style="margin-right:3px;">' + dobtns + '</span></td></tr>';
 				}
 			}
 			else {
-				contents = contents + '<tr><td colspan="6">No datastores available...</td></tr>';
+				contents = contents + '<tr><td colspan="6">No archives available...</td></tr>';
 			}
 			
 			$("#datastores_table").html(contents);

@@ -21,16 +21,16 @@ class Mover:
 
     def __init__(self):
         # checking if mover is external
-        if os.path.isfile('mover.ini'):
+        if os.path.isfile('config.ini'):
             # load the external mover
             config = configparser.ConfigParser()
-            config.read('mover.ini')
+            config.read('config.ini')
             self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
         else:
-            if os.path.isfile('mover.cfg'):
+            if os.path.isfile('config.cfg'):
                 # load the external mover
                 config = configparser.ConfigParser()
-                config.read('mover.cfg')
+                config.read('config.cfg')
                 self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
             else:
                 print 'No mover found, archiving not possible.'

@@ -1,8 +1,10 @@
 import datetime
 import sys
 import paramiko
+import configparser
 
 from bridge import Bridge
+from xenbridge import XenBridge
 
 from database import db
 from database.models import Task, Backup
@@ -13,135 +15,134 @@ log = logging.getLogger(__name__)
 
 class XenBackup:
     """
+    Xen Backup tasks
     """
 
-    servers = []
+    servers = []            # all servers
+    poolmaster = None       # poolmaster
+
     backuptasks = []
-    hosts = None
+    hosts = None            #
     
     BACKUPROOT = '/media/.qnd'
     _commandpool = []
+    _server = None
 
-    def __init__(self, servers, pool):
-        self.servers = servers
+    def __init__(self, servers, pool_name, pool_id):
+        """
+        Initialize the servers, copy all db info to workable XenBridge objects
+        """
+        self.servers = []
+        # create the server objects
+        for server in servers:
+            self.servers.append(XenBridge(server.id, server.address, server.username, server.password))
+
+
+
+        # checking if xenbridge is external
+        if os.path.isfile('config.ini'):
+            # load the external xenbridge
+            config = configparser.ConfigParser()
+            config.read('config.ini')
+            self._server=[config['bridge']['hostname'], config['bridge']['username'], config['bridge']['password']]
+        else:
+            if os.path.isfile('config.cfg'):
+                # load the external xenbridge
+                config = configparser.ConfigParser()
+                config.read('config.cfg')
+                self._server=[config['bridge']['hostname'], config['bridge']['username'], config['bridge']['password']]
+            else:
+                print 'No bridge found, bridge not possible.'
+                exit()
 
     def add_server(self, server):
-        self.servers.append(server)
+        """
+        Add a XenBridge object
+        """
+        self.servers.append(XenBridge(server.id, server.address, server.username, server.password))
 
     def remove_server(self, serverid):
+        """
+        Remove a XenBridge object
+        """
         for server in self.servers:
             if serverid == server.id:
                 self.servers.remove(server)
                 break
 
-
+    
     def get_native_host(self, uuid):
-        found = None
-        for host in self.hosts:
-            if host["uuid"] == uuid:
-                log.info('Found assigned host: ' + host["name-label"])
-                if host["attached"] == True:
-                    found = host["address"]
-                break
+        # todo
+        pass
 
-        if found == None:
-            # credentials are not found just return one
-            log.info('Native host credentials not found, using first active host. Performance is severely impacted')
-            return self.get_active_server()
-            
+
+    def get_active_host(self):
+        """
+        Return an active host
+        """
+        if self.poolmaster == None:
+            return self.servers[0]
         else:
-            # host credentials are there
-            for server in self.servers:
-                if server.address == found:
-                    log.info('Active server found: ' + server.address)
-                    return server
-
-        # default return default
-        return self.get_active_server()
-
-
+            return self.poolmaster
+    
     def discover(self):
-        connection = self.get_active_server()
-
-        if connection == None:
-            log.info('No hosts attached.')
-            return
-
-        # discover the host list 
-        hosts = connection.command_array('xe host-list params=all')
-
-        # check if all hosts are available
-        self.hosts = hosts
-
-        # set all hosts as unattached
-        for host in hosts:
-            host["attached"] = False
-
-        for host in hosts:
-            for server in self.servers:
-                if host["address"] == server.address:
-                    log.info('Host discovered: ' + host["address"] + ', OK')
-                    host["attached"] = True
-        
-        for host in hosts:
-            if host["attached"] == False:
-                log.info(host["address"] + ', No credentials found, VMs running on this host may backup slow.')
-
-
-    def get_active_server(self):
-        # connect to xen
-        connection = None 
-
-        # get the first available connection
+        """
+        Find the Xenserver who is a master
+        """
         for server in self.servers:
-            connection = Bridge(server.address, server.username, server.password)
-            connection.connect()
-
-            if not connection.is_connected():
-                connection = None
-            else:
+            log.info('Searching master.')
+            if server.ismaster():
+                self.poolmaster = server
                 break
 
-        if connection == None:
-            log.info('No available servers!')
-            return None
-
-        return connection
-
+        if self.poolmaster == None:
+            log.warning('Performance degraded, pool master not in pool.')
 
     def get_vms(self):   
-        if self.get_active_server() == None:
-            return None
-        result = self.get_active_server().command_array('xe vm-list params')
-        return result
+        """
+        Get all VMs in the pool
+        """
+        return self.get_active_host().get_vms()
 
     def get_hosts(self): 
-        if self.get_active_server() == None:
-            return None
-        result = self.get_active_server().command_array('xe host-list params')
-        return result
+        """
+        Get all hosts in the pool
+        """
+        return self.get_active_host().get_hosts()
+
 
     def get_attached_disks(self, vms):
+        """
+        Get all disks attached to a VM
+        """
         result = {}
-        if vms == None:
-            return result
 
-        for vm in vms:
+        # get all disks
+        blockdevices = self.get_active_host().get_block_devices()
+        images = self.get_active_host().get_images()
+
+        for e in vms:
+            vm = e[1]
+            # empty object
             result[vm["uuid"]] = []
 
-            disks = self.get_active_server().command_array('xe snapshot-disk-list uuid=' + vm["uuid"] + ' params=all')
+            # search all blockdevices
+            for bd in blockdevices:
+                if bd[1]['VM'] == e[0]:
 
-            # weed through
-            for disk in disks:
-                #
-                if disk["type"] == 'User':
-                    result[vm["uuid"]].append([disk['sr-name-label'], disk['name-label'], disk['physical-utilisation'], disk['virtual-size']])
-                
+                    for img in images:
+                        if img[0] == bd[1]['VDI']:
+
+                            result[vm["uuid"]].append(img[1])
+
+
         return result
 
     
     def run_backups(self):
-        # run all backups
+        """
+        Run all backups
+        """
 
         # copy all jobs
         jobs = list(self.backuptasks)
@@ -155,6 +156,10 @@ class XenBackup:
 
 
     def update_pct(self, task, pct1, pct2, divisor, status, session):
+        """
+        Update percentages for a given task
+        """
+
         task.pct1 = 0
         if pct2 != None:
             task.pct2 = 0
@@ -164,12 +169,16 @@ class XenBackup:
         session.commit()
         
     def backup_smb(self, task_id):
+        """
+        Backup a VM to a SMB fileshare
+        """
+
         session = db.session
         task = session.query(Task).filter(Task.id == task_id).one()
         datastore = task.datastore
         uuid = task.uuid
 
-        # folder 
+        # make folder name
         bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
 
         self.update_pct(task, 0, 0, 0.20, 'discovery', session)
@@ -190,18 +199,18 @@ class XenBackup:
         self.update_pct(task, 0.20, 0, 0.20, 'discovery', session)
 
         # start backing up: create a connection
-        connection = Bridge(backuphost.address, backuphost.username, backuphost.password)
+        connection = Bridge(self._server[0], self._server[1], self._server[2])
 
         self.update_pct(task, 0.30, 0, 0.20, 'mount', session)
 
         # create mount point
-        connection.command('mkdir -p ' + bckfolder)
+        connection.sudo_command('mkdir -p ' + bckfolder, self._server[2])
 
         self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
 
         # mount smb
         # TODO: create error 
-        result = connection.command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder)
+        result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
 
         self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session)
 
@@ -218,7 +227,8 @@ class XenBackup:
             backup_name = backup_name[1:]
 
         # create a snapshot
-        snapshotuuid = connection.command('xe vm-snapshot uuid=' + vm["uuid"] + ' new-name-label=' + snapshot_label)
+        #snapshotuuid = connection.command('xe vm-snapshot uuid=' + vm["uuid"] + ' new-name-label=' + snapshot_label)
+        snapshot = self.poolmaster.create_snapshot()
 
         self.update_pct(task, 0.60, None, 0.20, 'snapshot', session)
 

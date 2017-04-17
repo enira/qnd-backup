@@ -53,6 +53,15 @@ class Flow(object):
 
         return obj
 
+    def get_vms(self, pool_id):
+        obj = {}
+
+        if pool_id not in self._poolcache:
+            return obj
+
+        return self._poolcache[pool_id]["backup"].get_vms()
+
+
     def create_task(self, schedule_id):
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == schedule_id).one()
@@ -75,6 +84,7 @@ class Flow(object):
         schedules = session.query(Schedule).all()
         for schedule in schedules:
             print 'Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id)
+            """
             self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
                                     hour=schedule.hour, 
@@ -82,11 +92,12 @@ class Flow(object):
                                     month=schedule.month,
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
+            """
 
         # run
-        self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
+        #self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
-        self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
+        #self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
@@ -160,7 +171,7 @@ class Flow(object):
                     self._poolcache[pool.id]["backup"].discover()
 
             else:
-                log.info("No pool object created. Creating a bridge for pool_id=" + str(pool.id))
+                log.info("No pool object created. Creating a xenbackup for pool_id=" + str(pool.id))
                 self._poolcache[pool.id] = {}
                 self._poolcache[pool.id]["hosts"] = []
 
@@ -171,7 +182,7 @@ class Flow(object):
 
                 log.info("Initialized a pool with " + str(len(self._poolcache[pool.id]["hosts"])) + " hosts")
 
-                self._poolcache[pool.id]["backup"] = XenBackup(localhosts, pool.name)
+                self._poolcache[pool.id]["backup"] = XenBackup(localhosts, pool.name, pool.id)
 
                 log.info("Created a pool with " + str(len(self._poolcache[pool.id]["hosts"])) + " hosts")
 

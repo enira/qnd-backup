@@ -411,11 +411,11 @@
 					var poollabel = pool[i].name;
 					var poolid = pool[i].id
 					
-					$.get( '/api/xen/vms/' + pool[i].id, function( vms ) {
+					$.get( '/api/xen/vms/full/' + pool[i].id, function( vms ) {
 						
 						if(typeof vms != "undefined" && vms != null && vms.length > 0){
 							var vmtable = '<div class="box-body"><table class="table table-bordered">';
-							vmtable = vmtable + '<tbody><tr><th></th><th>Name</th><th>Pool</th><th>Server</th><th>Memory</th><th>Disk</th><th></th></tr>';
+							vmtable = vmtable + '<tbody><tr><th></th><th>Name</th><th>Pool</th><th>Server</th><th>vCPU</th><th>Memory</th><th>Disk</th><th></th></tr>';
 						
 							for (var j = 0; j < vms.length; j++) {
 								var status = '<i class="fa fa-fw fa-play"></i>';
@@ -425,10 +425,13 @@
 								if(vms[j].status == 'suspended') {
 									status = '<i class="fa fa-fw fa-pause"></i>';
 								}
-								var mbs = parseInt(vms[j].mem_max);
+								var mbs = parseInt(vms[j].mem);
 								mbs = mbs / 1024 / 1024;
 								
-								vmtable = vmtable + '<tr><td>' + status + '</td><td>' + vms[j].name + '</td><td>' + poollabel + '</td><td>' + vms[j].resident + '</td><td>' + mbs + ' Mb</td><td></td><td>';
+								var mbsdv = parseInt(vms[j].disk_virtual);
+								mbsdv = mbsdv / 1024 / 1024 / 1024;
+								
+								vmtable = vmtable + '<tr><td>' + status + '</td><td>' + vms[j].name + '</td><td>' + poollabel + '</td><td>' + vms[j].resident + '</td><td>' + vms[j].cpu + '</td><td>' + mbs + ' Mb</td><td>' + mbsdv +' Gb</td><td>';
 								vmtable = vmtable + '<button onclick="backup(\'' + poolid + '\', \'' + vms[j].uuid + '\', \''+vms[j].name+'\')" type="button " class="btn btn-block btn-primary btn-sm">Backup</button></td></tr>';
 							
 							

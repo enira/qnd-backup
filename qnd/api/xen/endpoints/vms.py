@@ -4,7 +4,7 @@ import os
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.serializers import vm
+from api.xen.serializers import vm, vm_full
 from api.restplus import api
 from xen.flow import Flow
 
@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/vms', description='Operations related to vms')
 
-@ns.route('/<int:pool_id>')
-class VmsCollection(Resource):
+@ns.route('/full/<int:pool_id>')
+class VmsFullCollection(Resource):
 
     def calc(self, bytes):
         """
@@ -24,10 +24,10 @@ class VmsCollection(Resource):
         except:
             return bytes
 
-    @api.marshal_list_with(vm)
+    @api.marshal_list_with(vm_full)
     def get(self, pool_id):
         """
-        Returns list of vms.
+        Returns list of vms with full info.
         """
         env = Flow.instance().get_environment(pool_id)
 
@@ -35,37 +35,70 @@ class VmsCollection(Resource):
         if env['vms'] == None:
             return wrapped
 
-        for vm in env['vms']:
-            if vm["is-a-snapshot"] == 'false' and 'Control domain on host' not in vm["name-label"]:
-                # finding resident
-                hostlabel = ''
-                for host in env["hosts"]:
-                    if vm["power-state"] == 'running':
-                        if vm["resident-on"] == host["uuid"]:
-                            hostlabel = host["hostname"] + ' (' + host["address"] + ')'
-                    else:
-                        # suspended or paused
-                        if vm["affinity"] == host["uuid"]:
-                            hostlabel = host["hostname"] + ' (' + host["address"] + ')'
+        for e in env['vms']:
+            vm = e[1]
 
-                disks = env['disks'][vm["uuid"]]
+            # finding resident
+            hostlabel = ''
+            for host in env["hosts"]:
+                if vm["power_state"].lower() == 'running':
+                    if vm["resident_on"] == host[0]:
+                        hostlabel = host[1]["hostname"] + ' (' + host[1]["address"] + ')'
+                else:
+                    # suspended or paused
+                    if vm["affinity"] == host[0]:
+                        hostlabel = host[1]["hostname"] + ' (' + host[1]["address"] + ')'
 
-                # create object
-                obj = type('',(object,),{"name": vm["name-label"], 
-                                         "uuid": vm["uuid"],
-                                         "status": vm["power-state"],
-                                         "resident": hostlabel,
-                                         "mem_actual": vm["memory-actual"],
-                                         "mem_max": vm["memory-static-max"],
-                                         "mem_pct": (float(vm["memory-actual"]) - float(vm["memory-overhead"]))  / float( vm["memory-static-max"])
-                                         })()
+            disks = env['disks'][vm["uuid"]]
+            disk_used = 0
+            disk_virtual = 0
+            for disk in disks:
+                disk_used = disk_used + int(disk['physical_utilisation'])
+                disk_virtual = disk_virtual + int(disk['virtual_size'])
+
+            # create object
+            obj = type('',(object,),{"name": vm["name_label"], 
+                                     "uuid": vm["uuid"],
+                                     "status": vm["power_state"].lower(),
+                                     "resident": hostlabel,
+                                     "cpu": vm['VCPUs_at_startup'],
+                                     "mem": vm["memory_static_max"],
+                                     "disk_used": str(disk_used),
+                                     "disk_virtual": str(disk_virtual),
+                                    })()
            
-                wrapped.append(obj)
+            wrapped.append(obj)
         return wrapped
 
     
+@ns.route('/summary/<int:pool_id>')
+class VmsCollection(Resource):
+
+    @api.marshal_list_with(vm)
+    def get(self, pool_id):
+        """
+        Returns list of vms with short info.
+        """
+        env = Flow.instance().get_vms(pool_id)
+
+        wrapped = []
+        if len(env) == 0:
+            return wrapped
+
+        for e in env:
+            vm = e[1]
+            # create object
+            obj = type('',(object,),{"name": vm["name_label"], 
+                                     "uuid": vm["uuid"],
+                                     "status": vm["power_state"].lower(),
+                                    })()
+           
+            wrapped.append(obj)
+        return wrapped
+
+
     
-@ns.route('/<int:vm_uuid>/<string:uuid>')
+@ns.route('/<int:pool_id>/<string:uuid>')
 @api.response(404, 'VM not found.')
 class VmItem(Resource):
 
@@ -74,5 +107,6 @@ class VmItem(Resource):
         """
         Returns a VM.
         """
-        return db.session.query(Pool).filter(Pool.id == id).one()
+        # this is a todo
+        return None
    

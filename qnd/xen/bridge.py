@@ -5,7 +5,7 @@ logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 class Bridge:
     """
-    Bridge between API and Xen. This class uses SSH to connect to the Xen server.
+    Bridge between a server and the host. This class uses SSH to connect to the Xen server.
     """
 
     username = None

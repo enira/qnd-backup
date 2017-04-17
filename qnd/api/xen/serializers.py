@@ -1,14 +1,22 @@
 from flask_restplus import fields
 from api.restplus import api
 
-vm = api.model('VM', {
+vm_full = api.model('VMFull', {
     'name': fields.String(required=True, description='VM name'),
     'uuid': fields.String(required=True, description='VM uuid'),
     'status': fields.String(required=True, description='VM status'),
     'resident': fields.String(required=True, description='VM host resident'),
-    'mem_actual': fields.String(required=True, description='VM memory in use'),
-    'mem_max': fields.String(required=True, description='VM installed memory'),
-    'mem_pct': fields.String(required=True, description='VM memory used in percent'),
+    'resident_uuid': fields.String(required=True, description='VM host resident uuid'),
+    'mem': fields.String(required=True, description='VM memory'),
+    'cpu': fields.String(required=True, description='CPUs'),
+    'disk_used': fields.String(required=True, description='Disk usage on disk'),
+    'disk_virtual': fields.String(required=True, description='Virtual allocated size on disk'),
+})
+
+vm = api.model('VM', {
+    'name': fields.String(required=True, description='VM name'),
+    'uuid': fields.String(required=True, description='VM uuid'),
+    'status': fields.String(required=True, description='VM status'),
 })
 
 system = api.model('System', {

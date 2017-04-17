@@ -270,4 +270,4 @@ qnd/env/
 qnd/db.sqlite
 qnd/uuid
 
-qnd/mover.ini
+qnd/config.ini

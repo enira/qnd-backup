@@ -389,30 +389,30 @@
                 <tbody><tr>
                   <th colspan="2">Parameters</th>
                 </tr>
-                <tr>
-                  <td>month</td>
-				  <td>(1-12)</td>
-                </tr>
-                <tr>
-                  <td>day of the month</td>
-				  <td>(1-31)</td>
-                </tr>
 				<tr>
-                  <td>week</td>
-				  <td>(1-53)</td>
-                </tr>
-				<tr>
-                  <td>day_of_week</td>
-				  <td>(mon=0,tue,wed,thu,fri,sat,sun=6)</td>
+                  <td>minute</td>
+				  <td>(0-59)</td>
                 </tr>
 				<tr>
                   <td>hour</td>
 				  <td>(0-23)</td>
                 </tr>
 				<tr>
-                  <td>minute</td>
-				  <td>(0-59)</td>
+                  <td>day of the month</td>
+				  <td>(1-31)</td>
                 </tr>
+                <tr>
+                  <td>month</td>
+				  <td>(1-12)</td>
+                </tr>
+				<tr>
+                  <td>day_of_week</td>
+				  <td>(mon=0,tue,wed,thu,fri,sat,sun=6)</td>
+                </tr>
+				<tr>
+				<td></td><td></td></tr>
+				
+				
               </tbody></table>
 </td><td>
 <table class="table">
@@ -545,7 +545,8 @@
 <!-- Page specific script -->
 <script>
 	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
-
+	var vms_cache = [];
+	
 	function addschedule() {
 		$("#wizardtitle").html("Add Schedule");
 		$("#inputId").val("(null)");
@@ -558,26 +559,69 @@
 		});
 	}
 	
+	function load_pool(pool_id) {
+		$.get( '/api/xen/vms/summary/' + pool_id, function( vms ) {
+			if(typeof vms != "undefined" && vms != null && vms.length > 0){
+				vms_cache[pool_id] = vms;
+			}
+			
+			resolve_vms();
+		});
+	}
+	
+	function resolve_vms() {
+		for (var i in vms_cache) {
+			for(var j in vms_cache[i]) {
+				$('.' + i + '_' + vms_cache[i][j].uuid ).text(vms_cache[i][j].name);
+			}
+		}
+	}
+	
+	function select_vm(pool_id, uuid) {
+		//alert(pool_id + ' ' + uuid);
+		$("#inputVMS").empty();
+		vms = vms_cache[pool_id];
+		
+			if(typeof vms != "undefined" && vms != null && vms.length > 0){
+				for (var j = 0; j < vms.length; j++) {
+					$("#inputVMS").append($('<option>', {
+						value: vms[j].uuid,
+						text: vms[j].name
+					}));
+					
+				}
+			}
+					
+			if(uuid != '') {
+				$('#inputVMS option[value="' + uuid + '"]').attr("selected", "selected");
+			}
+	}
+	
 	function editschedule(id) {
 		$.getJSON( "/api/xen/schedule/" + id, function( data ) {
-		   $("#wizardtitle").html("Edit Schedule");
+			$("#wizardtitle").html("Edit Schedule");
 		   
-		   
-		   $("#inputAdvancedDay" ).val(data.day);
-		$("#inputAdvancedHour" ).val(data.hour);
-		$("#inputAdvancedMinute" ).val(data.minute);
-		$("#inputAdvancedMonth" ).val(data.month);
-		$("#inputAdvancedWeekday" ).val(data.week);
+			$("#inputAdvancedDay" ).val(data.day);
+			$("#inputAdvancedHour" ).val(data.hour);
+			$("#inputAdvancedMinute" ).val(data.minute);
+			$("#inputAdvancedMonth" ).val(data.month);
+			$("#inputAdvancedWeekday" ).val(data.week);
 		
-		$("#inputName" ).val(data.name);
+			$("#inputName" ).val(data.name);
 		  
-		  $('#inputPools option[value="''"]').attr("selected", "selected");
-		  $('#element option[value="no"]').attr("selected", "selected");
-		  
-
+			$('#inputPools option[value="' + data.pool_id + '"]').attr("selected", "selected");
+			$('#inputDatastore option[value="' + data.datastore_id + '"]').attr("selected", "selected");
+			select_vm(parseInt(data.pool_id), data.uuid);
+			
 			$("#inputId").val(data.id);
 			
 			$("#schedule_dialog").css('display', 'block');
+			
+			$("#saveit").unbind();
+		$("#saveit").click(function(){
+			//saveitbasic();
+			saveitadvanced();
+		});
 		});
 	}
 	
@@ -728,34 +772,18 @@
 		});
 		
 		// already load pools
-		var firstpool = -1;
 		$.get( '/api/xen/pool/', function( pool ) {
-			$("#inputPools").empty();
-			
 			if(typeof pool != "undefined" && pool != null && pool.length > 0){	
 				for (var i = 0; i < pool.length; i++) {
-				
-						if(firstpool == -1) {
-							firstpool = pool[i].id;
-							// for the first pool load the vms
-							$.get( '/api/xen/vms/' + firstpool, function( vms ) {
-								$("#inputVMS").empty();
-								if(typeof vms != "undefined" && vms != null && vms.length > 0){
-									for (var j = 0; j < vms.length; j++) {
-										$("#inputVMS").append($('<option>', {
-											value: vms[j].uuid,
-											text: vms[j].name
-										}));
-									}
-								}
-							});
-						}
 						$("#inputPools").append($('<option>', {
 							value: pool[i].id,
 							text: pool[i].name
 						}));
+						load_pool(pool[i].id);
 				}
 			}
+			
+			
 		});
 		
 		// load datastores

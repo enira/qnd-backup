@@ -25,7 +25,6 @@ class XenBackup:
     hosts = None            #
     
     BACKUPROOT = '/media/.qnd'
-    _commandpool = []
     _server = None
 
     def __init__(self, servers, pool_name, pool_id):
@@ -36,8 +35,6 @@ class XenBackup:
         # create the server objects
         for server in servers:
             self.servers.append(XenBridge(server.id, server.address, server.username, server.password))
-
-
 
         # checking if xenbridge is external
         if os.path.isfile('config.ini'):
@@ -69,11 +66,18 @@ class XenBackup:
             if serverid == server.id:
                 self.servers.remove(server)
                 break
-
     
-    def get_native_host(self, uuid):
-        # todo
-        pass
+    def get_native_host(self, ref, hosts):
+        """
+        Find the active host by opaque ref id
+        """
+        # find the active host by opaque ref id
+        for host in hosts:
+            if host[0] == ref:
+                return host[1]['address']
+
+        # return just an active host
+        return hosts[0][1]['address']
 
 
     def get_active_host(self):
@@ -129,12 +133,11 @@ class XenBackup:
             # search all blockdevices
             for bd in blockdevices:
                 if bd[1]['VM'] == e[0]:
-
+                    # vm matching id
                     for img in images:
                         if img[0] == bd[1]['VDI']:
-
+                            # image matching id
                             result[vm["uuid"]].append(img[1])
-
 
         return result
 
@@ -172,7 +175,6 @@ class XenBackup:
         """
         Backup a VM to a SMB fileshare
         """
-
         session = db.session
         task = session.query(Task).filter(Task.id == task_id).one()
         datastore = task.datastore
@@ -185,16 +187,22 @@ class XenBackup:
 
         # search the VM
         vms = self.get_vms()
+        hosts = self.get_hosts()
         tobackup = None
         for vm in vms:
-            if vm["uuid"] == uuid:
+            if vm[1]["uuid"] == uuid:
                 tobackup = vm
                 break
+
+        if tobackup == None:
+            log.error('VM not found')
+            self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session)
+            return
 
         self.update_pct(task, 0.10, 0, 0.20, 'discovery', session)
 
         # search which host we can use
-        backuphost = self.get_native_host(vm["resident-on"])
+        backuphost = self.get_native_host(tobackup[1]["resident_on"], hosts)
 
         self.update_pct(task, 0.20, 0, 0.20, 'discovery', session)
 
@@ -208,56 +216,49 @@ class XenBackup:
 
         self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
 
-        # mount smb
-        # TODO: create error 
-        result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
+        # check if already mounted
+        result = connection.command('df -h | grep -i ' + bckfolder)
+        if len(result) == 0:
+            # mount smb
+            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
+
+        result = connection.command('df -h | grep -i ' + bckfolder)
+        if len(result) == 0:
+            log.error('Could not mount the datastore')
+            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
+            return
 
         self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session)
 
-        # TODO: check if mounted, if not mounted change os filling root OS
-
-        # TODO: remove
-        print "Backing up: " + vm["name-label"] + "(" + vm["uuid"] + ")"
+        log.info("Backing up: " + tobackup[1]["name_label"] + "(" + tobackup[1]["uuid"] + ")")
         
         # creating names
-        snapshot_label = vm["name-label"] + "." + datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
-        backup_name = vm["name-label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".xva"
-        meta_name = vm["name-label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".meta"
+        snapshot_label = tobackup[1]["name_label"] + "." + datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
+        backup_name = tobackup[1]["name_label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".xva"
+        meta_name = tobackup[1]["name_label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".meta"
         if backup_name.startswith("."):
             backup_name = backup_name[1:]
 
-        # create a snapshot
-        #snapshotuuid = connection.command('xe vm-snapshot uuid=' + vm["uuid"] + ' new-name-label=' + snapshot_label)
-        snapshot = self.poolmaster.create_snapshot()
-
-        self.update_pct(task, 0.60, None, 0.20, 'snapshot', session)
-
-        # change snapshot to a vm 
-        connection.command('xe template-param-set is-a-template=false ha-always-run=false uuid=' + snapshotuuid[0])
-
         self.update_pct(task, 0.70, None, 0.20, 'backup', session)
 
-        # create a task viewer
-        tcmd = 'xe task-list name-label="Export of VM: ' + vm["uuid"] + '"'
-        self._commandpool.append(tcmd)
-
-        # export as a xva
-        connection.command('xe vm-export vm=' + snapshotuuid[0] + ' filename=' + bckfolder + '/' + backup_name)
+        # create a snapshot
+        snapshot = self.get_active_host().create_snapshot(tobackup[0], snapshot_label)        
 
         self.update_pct(task, 0.80, None, 0.20, 'export', session)
 
+        # download the xva TODO: connect on task
+        dlsession = self.get_active_host().create_session()
+        result = connection.sudo_command('curl https://' + backuphost + '/export?session_id=' + dlsession._session + '\\&ref=' + snapshot + ' -o ' + bckfolder + '/' + backup_name +' --insecure', self._server[2])
+        dlsession.close()
+
+        self.update_pct(task, 0.80, None, 0.20, 'cleanup', session)
+
         # remove snapshot
-        connection.command('xe vm-uninstall uuid=' + snapshotuuid[0] + ' force=true')
+        self.get_active_host().remove_snapshot(snapshot)      
 
         self.update_pct(task, 0.90, None, 0.20, 'closing', session)
 
-        # unmount smb
-        # connection.command('umount ' + bckfolder)
-
-        # delete mount point
-        # connection.command('rmdir -r ' + bckfolder)
-
-        # create backup object
+        # create backup object as done
         backup = Backup(task_id=task.id, 
                         metafile=meta_name, 
                         backupfile=backup_name, 

@@ -49,6 +49,10 @@ class XenBridge:
         return session
 
     def ismaster(self):
+        """
+        Check if this instance is a master instance in a pool. Do this by logging in and logging out.
+        """
+
         if self.master == None:
             session = self.create_session()
             session.logout()
@@ -120,12 +124,25 @@ class XenBridge:
         return disks
 
 
-    def create_snapshot(self, uuid, name):
+    def create_snapshot(self, ref, name):
+        """
+        Create an exportable snapshot
+        """
         session = self.create_session()
 
-        snapshot = session.xenapi.VM.snapshot(uuid, name)
+        snapshot = session.xenapi.VM.snapshot(ref, name)
         
         session.xenapi.VM.set_is_a_template(snapshot, False)
         
         session.logout()
         return snapshot
+
+    def remove_snapshot(self, ref):
+        """
+        Remove a snapshot
+        """
+        session = self.create_session()
+
+        session.xenapi.VM.destroy(ref)
+
+        session.logout()

@@ -115,10 +115,7 @@ class XenBridge:
         disks = []
         for disk in all:
             record = session.xenapi.VDI.get_record(disk)
-            if not(record["is_a_snapshot"]) and not(record["is_tools_iso"]) and not(record["missing"]) and record['type'] == 'user' and bool(record['sm_config']) == True:
-                if record['name_label'] != 'base copy': 
-                    # base copy are orphaned vdi's
-                    disks.append([disk, record])
+            disks.append([disk, record])
         session.logout()
 
         return disks

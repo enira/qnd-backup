@@ -14,6 +14,7 @@ from database.models import ArchiveTask
 
 class Mover:
     """
+    Mover class, moves a VM backup from a datastore to an archive
     """
     _server = None
 
@@ -36,8 +37,10 @@ class Mover:
                 print 'No mover found, archiving not possible.'
                 exit()
 
-
     def archive(self, task_id):
+        """
+        Archive a VM
+        """
         print 'Archiving'
 
         session = db.session

@@ -67,7 +67,7 @@ class XenBridge:
         vms = []
         for vm in all:
             record = session.xenapi.VM.get_record(vm)
-            if not(record["is_a_template"]) and not(record["is_control_domain"]):
+            if not(record["is_a_template"]) and not(record["is_control_domain"]) and record["is_a_snapshot"] == False:
                 vms.append([vm, record])
 
         session.logout()

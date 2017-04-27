@@ -87,19 +87,6 @@ messages = api.model('messages', {
     'tasks_items': fields.List(fields.Nested(tasks_item)),
 })
 
-task = api.model('Task', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
-    'uuid': fields.String(required=True, description='The uuid being used by the task'),
-    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
-    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
-    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
-    'status': fields.String(required=True, description='The status of the task'),
-    'pool_id': fields.Integer(required=True, description='The associated pool id'),
-    'datastore_id': fields.Integer(required=True, description='The associated datastore id'),
-    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
-    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
-})
-
 archive = api.model('ArchiveUpdate', {
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
@@ -170,3 +157,81 @@ schedule_ro = api.model('ScheduleRead', {
     'pool': fields.Nested(pool),
 })
 
+
+
+backup_safe = api.model('BackupRead', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
+    'metafile': fields.String(required=True, description='The given display name of a schedule'),
+    'backupfile': fields.String(required=True, description='Cron: minute'),
+    'comment': fields.String(required=True, description='Cron: hour'),
+    'uuid': fields.String(required=True, description='VM UUID'),
+    'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'datastore': fields.Nested(datastore_safe),
+    'pool_id': fields.Integer(required=True, description='The pool id'),
+    'pool': fields.Nested(pool),
+})
+
+
+backuptask = api.model('BackupTask', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
+    'schedule_id': fields.Integer(required=True, description='The associated datastore id'),
+    'snapshotname': fields.String(required=True, description='The uuid being used by the task'),
+
+    'pool_id': fields.Integer(required=True, description='The pool id'),
+    'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'uuid': fields.String(required=True, description='VM UUID'),
+
+    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup': fields.Nested(backup_safe),
+
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
+    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
+    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
+    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
+    'status': fields.String(required=True, description='The status of the task'),
+})
+
+backuptask_rw = api.model('BackupTaskRW', {
+    'pool_id': fields.Integer(required=True, description='The pool id'),
+    'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'uuid': fields.String(required=True, description='VM UUID'),
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
+    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
+    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
+    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
+    'status': fields.String(required=True, description='The status of the task'),
+})
+
+archivetask = api.model('ArchiveTask', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
+
+    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup': fields.Nested(backup_safe),
+
+    'archive_id': fields.Integer(required=True, description='The pool id'),
+    'archive': fields.Nested(archive_ro),
+
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
+    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
+    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
+    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
+    'status': fields.String(required=True, description='The status of the task'),
+})
+
+restoretask = api.model('RestoreTask', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
+    'backupname': fields.String(required=True, description='The uuid being used by the task'),
+
+    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup': fields.Nested(backup_safe),
+
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
+    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
+    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
+    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
+    'status': fields.String(required=True, description='The status of the task'),
+})

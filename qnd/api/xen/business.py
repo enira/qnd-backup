@@ -1,5 +1,5 @@
 from database import db
-from database.models import Pool, Host, Datastore, Task, Archive, ArchiveTask, Schedule
+from database.models import Pool, Host, Datastore, RestoreTask, BackupTask, Archive, ArchiveTask, Schedule
 
 from xen.flow import Flow
 
@@ -121,23 +121,19 @@ def delete_datastore(datastore_id):
 
 
 # Tasks
-def create_task(data):
+def create_backup_task(data):
     """
-    Create a task.
+    Create a backup task.
     """
     pool_id = data.get('pool_id')
-    pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
-
     datastore_id = data.get('datastore_id')
-    datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
-
     status = data.get('status')
     divisor = data.get('divisor')
     pct1 = data.get('pct1')
     pct2 = data.get('pct2')
     uuid = data.get('uuid')
 
-    task = Task(status=status, divisor=divisor, pct1=pct1, pct2=pct2, uuid=uuid, pool=pool, datastore=datastore)
+    task = BackupTask(status=status, divisor=divisor, pct1=pct1, pct2=pct2, uuid=uuid, pool_id=pool_id, datastore_id=datastore_id)
 
     try:
         db.session.add(task)
@@ -145,35 +141,30 @@ def create_task(data):
     except Exception as e:
         print e
 
-def update_task(task_id, data):
+def update_backup_task(task_id, data):
     """
-    Update a task.
+    Update a backup task.
     """
-    task = db.session.query(Task).filter(Task.id == task_id).one()
+    task = db.session.query(BackupTask).filter(BackupTask.id == task_id).one()
 
     pool_id = data.get('pool_id')
-    pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
 
     datastore_id = data.get('datastore_id')
-    datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
-
 
     task.status = data.get('status')
     task.divisor = data.get('divisor')
     task.pct1 = data.get('pct1')
     task.pct2 = data.get('pct2')
     task.uuid = data.get('uuid')
-    task.pool = pool
-    task.datastore = datastore
-
+    
     db.session.add(task)
     db.session.commit()
 
-def delete_task(task_id):
+def delete_backup_task(task_id):
     """
-    Delete a task.
+    Delete a backup task.
     """
-    task = db.session.query(Task).filter(Task.id == task_id).one()
+    task = db.session.query(BackupTask).filter(BackupTask.id == task_id).one()
 
     db.session.delete(task)
     db.session.commit()

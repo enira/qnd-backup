@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from database.models import Pool, Host, Task, Datastore, Schedule, Archive, Backup, ArchiveTask
+from database.models import Pool, Host, BackupTask, ArchiveTask, RestoreTask, Datastore, Schedule, Archive, Backup
 from database import db
 
 from mover import Mover
@@ -189,7 +189,7 @@ class Flow(object):
                 self._poolcache[pool.id]["backup"].discover()
 
         # submit all backup tasks
-        tasks = session.query(Task).filter(Task.status == 'backup_pending').all()
+        tasks = session.query(BackupTask).filter(BackupTask.status == 'backup_pending').all()
         for task in tasks:
             self._poolcache[task.pool_id]["backup"].backuptasks.append([task.id, task.datastore.type])
             task.status = 'backup_submitted'

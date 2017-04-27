@@ -5,13 +5,14 @@ import logging.config
 
 db = SQLAlchemy()
 
-VERSION = '2'
+VERSION = '3'
 
 """
     DB VERSIONS:
     ------------
-    1       alpha-1(-fix)
-    2       alpha-2
+    1       alpha-1(-fix)       deprecated: no upgrade possible (alpha)
+    2       alpha-2             deprecated: no upgrade possible (alpha)
+    3       alpha-3             current
 
 """
 
@@ -21,10 +22,11 @@ def reset_database(app):
     """
     log = logging.getLogger(__name__)
 
-    from database.models import User, Pool, Host, Datastore, Task, Schedule, Setting
+    from database.models import User, Pool, Host, Datastore, BackupTask, ArchiveTask, RestoreTask, Backup, Archive, Schedule, Setting
     log.info('Creating database')
 
     # drop everything
+    db.reflect(app=app)
     db.drop_all(app=app)
 
     # create again
@@ -77,10 +79,16 @@ def check_version(app):
 
         # database migrations 
 
-        # from alpha-1 to alpha-2: unsupported due to a lot of db changes and no use of alpha-1 (alpha-1 = demo version) 
+        # from alpha-1 to alpha-2: unsupported
         if int(VERSION) >= 2 and int(dbversion.value) == 1:
             log.error('Database version 1 is deprecated, no upgrade possible!')
             print 'Database version 1 is deprecated, no upgrade possible!'
+            exit()
+
+        # from alpha-2 to alpha-3: unsupported 
+        if int(VERSION) >= 3 and int(dbversion.value) == 2:
+            log.error('Database version 2 is deprecated, no upgrade possible!')
+            print 'Database version 2 is deprecated, no upgrade possible!'
             exit()
 
 

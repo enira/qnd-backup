@@ -68,49 +68,6 @@ class Datastore(db.Model):
     arguments = db.Column(db.String)                                            # unsupported
 
 
-class Task(db.Model):
-    """
-    A task is a one time backup shot. For a scheduled backup, see Schedule
-    """
-    __tablename__ = 'tasks'
-    id = db.Column(db.Integer, primary_key=True)                                # id
-    uuid = db.Column(db.String)                                                 # uuid of VM to backup
-    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
-    ended = db.Column(db.DateTime)                                              # end time
-    snapshotname = db.Column(db.String)                                         # name of the snapshot
-    pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
-    pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
-    divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
-
-    status = db.Column(db.String)                                               # status of the task
-
-    schedule_id = db.Column(db.Integer)                                         # if there is an associated schedule
-
-    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
-    datastore = db.relationship('Datastore', lazy='immediate')                                    # datastore object  
-
-    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
-    pool = db.relationship('Pool', lazy='immediate')                                              # pool object
-
-    def pct(self):
-        if self.pct1 == None:
-            s1 = 0
-        else:
-            s1 = self.pct1
-
-        if self.pct2 == None:
-            s2 = 0
-        else:
-            s2 = self.pct1
-
-        if self.divisor == None:
-            d = 1
-        else:
-            d = self.divisor
-
-        return s1 * d + s2 * (1 - d)
-
-
 class Schedule(db.Model):
     """
     A cron like schedule. Picked up by the application flow, and spawns a Task when triggered
@@ -152,17 +109,6 @@ class Archive(db.Model):
     incremental = db.Column(db.Integer)                                         # not implemented
 
 
-class Backup(db.Model):
-    """
-    A database model spawned after a task has completed a backup.
-    """
-    __tablename__ = 'backups'
-    id = db.Column(db.Integer, primary_key=True)                                # id
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))                  # task id
-    task = db.relationship('Task', lazy='immediate')                                              # task object
-    metafile = db.Column(db.String)                                             # meta-file location
-    backupfile = db.Column(db.String)                                           # backup file location
-    comment = db.Column(db.String)                                              # comments on the backup
 
 class Setting(db.Model):
     """
@@ -172,13 +118,140 @@ class Setting(db.Model):
     key = db.Column(db.String, primary_key=True)                                # key
     value = db.Column(db.String)                                                # value
 
+
+
+class Backup(db.Model):
+    """
+    A database model spawned after a task has completed a backup.
+    """
+    __tablename__ = 'backups'
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    metafile = db.Column(db.String)                                             # meta-file location
+    backupfile = db.Column(db.String)                                           # backup file location
+    snapshotname = db.Column(db.String)                                         # name of the snapshot
+
+    comment = db.Column(db.String)                                              # comments on the backup
+    uuid = db.Column(db.String)                                                 # uuid of VM to backup
+
+    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
+    datastore = db.relationship('Datastore', lazy='immediate')                                    # datastore object  
+    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
+    pool = db.relationship('Pool', lazy='immediate')                                              # pool object
+
+
+class BackupTask(db.Model):
+    """
+    A task is a one time backup shot. For a scheduled backup, see Schedule
+    """
+    __tablename__ = 'backuptasks'
+    id = db.Column(db.Integer, primary_key=True)                                # id
+
+    schedule_id = db.Column(db.Integer)                                         # if there is an associated schedule
+    
+
+    backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'))              # backup id
+    backup = db.relationship('Backup', lazy='immediate')                        # backup object
+
+    #duplicate
+    uuid = db.Column(db.String)                                                 # uuid of VM to backup
+    datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
+    pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
+
+    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
+    ended = db.Column(db.DateTime)                                              # end time
+
+    pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
+    pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
+    divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
+
+    status = db.Column(db.String)                                               # status of the task
+    def pct(self):
+        if self.pct1 == None:
+            s1 = 0
+        else:
+            s1 = self.pct1
+
+        if self.pct2 == None:
+            s2 = 0
+        else:
+            s2 = self.pct1
+
+        if self.divisor == None:
+            d = 1
+        else:
+            d = self.divisor
+
+        return s1 * d + s2 * (1 - d)
+
 class ArchiveTask(db.Model):
     __tablename__ = 'archivetasks'
     id = db.Column(db.Integer, primary_key=True)                                # id
-    status = db.Column(db.String)                                               # status of the task
+
+    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
+    ended = db.Column(db.DateTime)                                              # end time
 
     archive_id = db.Column(db.Integer, db.ForeignKey('archives.id'), nullable=True)                  # task id
     archive = db.relationship('Archive', lazy='immediate')                                              # task object
 
     backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'), nullable=True)                  # task id
     backup = db.relationship('Backup', lazy='immediate')                                              # task object
+
+
+    pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
+    pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
+    divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
+
+    status = db.Column(db.String)                                               # status of the task
+    def pct(self):
+        if self.pct1 == None:
+            s1 = 0
+        else:
+            s1 = self.pct1
+
+        if self.pct2 == None:
+            s2 = 0
+        else:
+            s2 = self.pct1
+
+        if self.divisor == None:
+            d = 1
+        else:
+            d = self.divisor
+
+        return s1 * d + s2 * (1 - d)
+
+class RestoreTask(db.Model):
+    """
+    A task is a one restore.
+    """
+    __tablename__ = 'restoretasks'
+    id = db.Column(db.Integer, primary_key=True)                                # id
+    started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
+    ended = db.Column(db.DateTime)                                              # end time
+    backupname = db.Column(db.String)                                         # name of the xva
+
+    backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'))              # backup id
+    backup = db.relationship('Backup', lazy='immediate')                        # backup object
+
+    pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
+    pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
+    divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
+
+    status = db.Column(db.String)                                               # status of the task
+    def pct(self):
+        if self.pct1 == None:
+            s1 = 0
+        else:
+            s1 = self.pct1
+
+        if self.pct2 == None:
+            s2 = 0
+        else:
+            s2 = self.pct1
+
+        if self.divisor == None:
+            d = 1
+        else:
+            d = self.divisor
+
+        return s1 * d + s2 * (1 - d)

@@ -7,7 +7,7 @@ from bridge import Bridge
 from xenbridge import XenBridge
 
 from database import db
-from database.models import Task, Backup
+from database.models import BackupTask, ArchiveTask, RestoreTask, Backup
 
 import logging
 import os
@@ -157,7 +157,6 @@ class XenBackup:
             if job[1] == 'smb':
                 self.backup_smb(job[0])
 
-
     def update_pct(self, task, pct1, pct2, divisor, status, session):
         """
         Update percentages for a given task
@@ -246,9 +245,20 @@ class XenBackup:
 
         self.update_pct(task, 0.80, None, 0.20, 'export', session)
 
+        ####
+
+        #http://xapi-project.github.io/xen-api/classes/task.html
+
         # download the xva TODO: connect on task
         dlsession = self.get_active_host().create_session()
+
+        task = self.get_active_host().create_task(dlsession, 
+                                           'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
+
         result = connection.sudo_command('curl https://' + backuphost + '/export?session_id=' + dlsession._session + '\\&ref=' + snapshot + ' -o ' + bckfolder + '/' + backup_name +' --insecure', self._server[2])
+        
+        self.get_active_host().remove_task(task)
+
         dlsession.close()
 
         self.update_pct(task, 0.80, None, 0.20, 'cleanup', session)
@@ -270,3 +280,33 @@ class XenBackup:
 
         session.close()
         
+    def restore_smb(self, task_id):
+        """
+        Restore a VM from a SMB fileshare
+        """
+
+        #curl -T <exportfile> http://root:foo@myxenserver2/import?sr_id=<ref_of_sr>
+
+        session = db.session
+        task = session.query(Task).filter(Task.id == task_id).one()
+        datastore = task.datastore
+        uuid = task.uuid
+
+        # make folder name
+        bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
+
+        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
+
+        # search the VM if it already exists
+        vms = self.get_vms()
+        hosts = self.get_hosts()
+        tobackup = None
+        for vm in vms:
+            if vm[1]["uuid"] == uuid:
+                tobackup = vm
+                break
+
+        if tobackup == None:
+            log.error('VM not found')
+            self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session)
+            return

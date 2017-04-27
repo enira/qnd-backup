@@ -120,6 +120,18 @@ class XenBridge:
 
         return disks
 
+    def create_task(self, session, description):
+        """
+        Create a task
+        """
+        task = session.xenapi.task.create(session._session, description)
+        return task
+
+    def remove_task(self, session, ref):
+        """
+        Destroy task
+        """
+        session.xenapi.task.destroy(ref)
 
     def create_snapshot(self, ref, name):
         """

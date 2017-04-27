@@ -352,7 +352,7 @@
 		
 		jsonData = '{"status": "backup_pending","pct2": 0,"pct1": 0,"pool_id": ' + $("#backup_pool").val() + ',"uuid": "' + $("#backup_uuid").val()+ '","ended": "","started": "","datastore_id": ' + ds + ',"id": 0,"divisor": 0}';
 		$.ajax({
-			url: '/api/xen/task/',
+			url: '/api/xen/task/backup/',
 			type: "POST",
 			dataType: "json",
 			data: jsonData,

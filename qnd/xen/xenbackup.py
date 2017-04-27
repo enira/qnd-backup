@@ -7,7 +7,7 @@ from bridge import Bridge
 from xenbridge import XenBridge
 
 from database import db
-from database.models import BackupTask, ArchiveTask, RestoreTask, Backup
+from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool
 
 import logging
 import os
@@ -175,8 +175,9 @@ class XenBackup:
         Backup a VM to a SMB fileshare
         """
         session = db.session
-        task = session.query(Task).filter(Task.id == task_id).one()
-        datastore = task.datastore
+        task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
+        datastore = session.query(Datastore).filter(Datastore.id == task.datastore_id).one()
+        pool = session.query(Pool).filter(Pool.id == task.pool_id).one()
         uuid = task.uuid
 
         # make folder name
@@ -252,12 +253,12 @@ class XenBackup:
         # download the xva TODO: connect on task
         dlsession = self.get_active_host().create_session()
 
-        task = self.get_active_host().create_task(dlsession, 
+        taskref = self.get_active_host().create_task(dlsession, 
                                            'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
 
         result = connection.sudo_command('curl https://' + backuphost + '/export?session_id=' + dlsession._session + '\\&ref=' + snapshot + ' -o ' + bckfolder + '/' + backup_name +' --insecure', self._server[2])
         
-        self.get_active_host().remove_task(task)
+        self.get_active_host().remove_task(dlsession, taskref)
 
         dlsession.close()
 
@@ -269,11 +270,22 @@ class XenBackup:
         self.update_pct(task, 0.90, None, 0.20, 'closing', session)
 
         # create backup object as done
-        backup = Backup(task_id=task.id, 
-                        metafile=meta_name, 
+        backup = Backup(metafile=meta_name, 
                         backupfile=backup_name, 
-                        comment='Backup created at :' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+                        snapshotname=snapshot_label,
+                        comment='Backup created at :' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+                        uuid=uuid,
+                        datastore=datastore,
+                        pool=pool)
+
         session.add(backup)
+        session.commit()
+
+        # update the task
+        task.ended=datetime.datetime.now()
+        task.backup=backup
+
+        session.add(task)
         session.commit()
         
         self.update_pct(task, 1, 1, 0.20, 'done', session)

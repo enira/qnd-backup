@@ -191,7 +191,8 @@ class Flow(object):
         # submit all backup tasks
         tasks = session.query(BackupTask).filter(BackupTask.status == 'backup_pending').all()
         for task in tasks:
-            self._poolcache[task.pool_id]["backup"].backuptasks.append([task.id, task.datastore.type])
+            type =  session.query(Datastore).filter(Datastore.id == task.datastore_id).one().type
+            self._poolcache[task.pool_id]["backup"].backuptasks.append([task.id, type])
             task.status = 'backup_submitted'
 
             session.add(task)

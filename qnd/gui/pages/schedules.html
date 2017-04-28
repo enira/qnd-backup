@@ -547,6 +547,20 @@
 		$("#inputId").val("(null)");
 		$("#schedule_dialog").css('display', 'block');
 		
+		
+		
+		$("#inputVMS").empty();
+				for (var j in vms_cache[$("#inputPools option:selected" )[0].value]) {
+					
+						$("#inputVMS").append($('<option>', {
+											value: vms_cache[$("#inputPools option:selected" )[0].value][j].uuid,
+											text: vms_cache[$("#inputPools option:selected" )[0].value][j].name
+										}));
+					
+				}
+				
+		
+		
 		$("#saveit").unbind();
 		$("#saveit").click(function(){
 			//saveitbasic();

@@ -235,3 +235,26 @@ restoretask = api.model('RestoreTask', {
     'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
     'status': fields.String(required=True, description='The status of the task'),
 })
+
+
+available_backups = api.model('available_backups', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
+    'backupfile': fields.String(required=True, description='The status of the task'),
+    'metafile': fields.String(required=True, description='The status of the task'),
+    'comment': fields.String(required=True, description='The status of the task'),
+    'created': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'uuid': fields.String(required=True, description='The status of the task'),
+    'snapshotname': fields.String(required=True, description='The status of the task'),
+
+    'pool': fields.Nested(pool),
+
+    'datastore': fields.Nested(datastore_safe),
+
+    
+})
+
+
+restore_rw = api.model('RestoreRW', {
+    'title': fields.String(readOnly=True, description='Title of the task'),
+    'percent': fields.String(required=True, description='Percent complete'),
+})

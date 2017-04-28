@@ -273,7 +273,7 @@ class XenBackup:
         backup = Backup(metafile=meta_name, 
                         backupfile=backup_name, 
                         snapshotname=snapshot_label,
-                        comment='Backup created at :' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+                        comment='Backup created at: ' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
                         uuid=uuid,
                         datastore=datastore,
                         pool=pool)

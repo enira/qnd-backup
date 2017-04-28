@@ -16,6 +16,7 @@ from api.xen.endpoints.schedules import ns as xen_schedules_namespace
 from api.xen.endpoints.archives import ns as xen_archives_namespace
 from api.xen.endpoints.vms import ns as xen_vms_namespace
 from api.xen.endpoints.ui import ns as xen_ui_namespace
+from api.xen.endpoints.restore import ns as xen_restore_namespace
 
 from api.restplus import api
 
@@ -39,6 +40,7 @@ api.add_namespace(xen_vms_namespace)
 api.add_namespace(xen_archives_namespace)
 api.add_namespace(xen_schedules_namespace)
 api.add_namespace(xen_ui_namespace)
+api.add_namespace(xen_restore_namespace)
 
 application.register_blueprint(blueprint)
 

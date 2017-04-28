@@ -67,7 +67,7 @@ class Flow(object):
         schedule = session.query(Schedule).filter(Schedule.id == schedule_id).one()
         print str(datetime.datetime.now()) + '>>' + str(schedule.id)
 
-        task = Task(status='backup_pending', pct1=0, pct2=0, pool=schedule.pool, datastore=schedule.datastore, uuid=schedule.uuid)
+        task = BackupTask(status='backup_pending', pct1=0, pct2=0, pool_id=schedule.pool.id, datastore_id=schedule.datastore.id, uuid=schedule.uuid)
         try:
             session.add(task)
             session.commit()

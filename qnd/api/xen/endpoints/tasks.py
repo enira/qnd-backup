@@ -47,28 +47,6 @@ class TaskItem(Resource):
         Returns a backup task.
         """
         return db.session.query(BackupTask).filter(BackupTask.id == id).one()
-    
-    @api.expect(backuptask_rw)
-    @api.response(204, 'Task successfully updated.')
-    def put(self, id):
-        """
-        Updates a task.
-        Use this method to change the properties of a task.
-        * Send a JSON object with the new name in the request body.
-        ```
-        {
-          "uuid": "New uuid",
-          "divisor": "New divisor",
-          "status": "New status",
-          "datastore_id": "New datastore_id",
-          "pool_id": "New pool_id",
-        }
-        ```
-        * Specify the ID of the pool to modify in the request URL path.
-        """
-        data = request.json
-        update_backup_task(id, data)
-        return None, 204
 
     @api.response(204, 'BackupTask successfully deleted.')
     def delete(self, id):
@@ -110,29 +88,7 @@ class TaskItem(Resource):
         """
         Returns a restore task.
         """
-        return db.session.query(Task).filter(Task.id == id).one()
-    
-    @api.expect(restoretask)
-    @api.response(204, 'RestoreTask successfully updated.')
-    def put(self, id):
-        """
-        Updates a task.
-        Use this method to change the properties of a task.
-        * Send a JSON object with the new name in the request body.
-        ```
-        {
-          "uuid": "New uuid",
-          "divisor": "New divisor",
-          "status": "New status",
-          "datastore_id": "New datastore_id",
-          "pool_id": "New pool_id",
-        }
-        ```
-        * Specify the ID of the pool to modify in the request URL path.
-        """
-        data = request.json
-        update_task(id, data)
-        return None, 204
+        return db.session.query(RestoreTask).filter(RestoreTask.id == id).one()
 
     @api.response(204, 'RestoreTask successfully deleted.')
     def delete(self, id):

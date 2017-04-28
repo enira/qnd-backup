@@ -228,24 +228,25 @@ class Flow(object):
             for archive in archives:
                 machines = {}
                 # for each archive check attached datastore backups
-                backups = session.query(Backup).join(Task).filter(Task.datastore_id == archive.source_id)
+                backups = session.query(Backup).filter(Backup.datastore_id == archive.source_id)
                 archivetasks = session.query(ArchiveTask).filter(ArchiveTask.archive_id == archive.id)
 
                 # group for each uuid
                 for backup in backups:
-                    if 'done' in backup.task.status:
-                        if backup.task.uuid in machines:
-                            machines[backup.task.uuid].append(backup)
-                        else:
-                            machines[backup.task.uuid] = []
-                            machines[backup.task.uuid].append(backup)
+                    if backup.uuid in machines:
+                        machines[backup.uuid].append(backup)
+                    else:
+                        machines[backup.uuid] = []
+                        machines[backup.uuid].append(backup)
 
                 for machine in machines:
                     length = len(machines[machine])
 
                     # remove ongoing tasks
                     for archivetask in archivetasks:
-                        if 'done' not in archivetask.status:
+                        if 'done' in archivetask.status or 'failed' in archivetask.status:
+                            pass
+                        else:
                             length = length - 1
 
                     # if we need to archive
@@ -271,11 +272,16 @@ class Flow(object):
         for b in machines[machine]:
             if oldest is None:
                 ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
+
+                # if there are no archive tasks ongoing for this backup id
                 if len(ongoing) == 0:
                     oldest = b
             else:
-                if oldest.task.started > b.task.started:
+                # if oldest is newer then the one we have take that one
+                if oldest.created > b.created:
                     ongoing = session.query(ArchiveTask).filter(ArchiveTask.backup_id == b.id).all()
+
+                    # we aren't busy right?
                     if len(ongoing) == 0:
                         oldest = b
 

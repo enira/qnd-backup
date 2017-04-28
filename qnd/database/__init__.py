@@ -79,16 +79,10 @@ def check_version(app):
 
         # database migrations 
 
-        # from alpha-1 to alpha-2: unsupported
-        if int(VERSION) >= 2 and int(dbversion.value) == 1:
-            log.error('Database version 1 is deprecated, no upgrade possible!')
-            print 'Database version 1 is deprecated, no upgrade possible!'
-            exit()
-
-        # from alpha-2 to alpha-3: unsupported 
-        if int(VERSION) >= 3 and int(dbversion.value) == 2:
-            log.error('Database version 2 is deprecated, no upgrade possible!')
-            print 'Database version 2 is deprecated, no upgrade possible!'
+        # alpha-1 & alpha-2: unsupported by this version. 
+        if int(dbversion.value) < 3:
+            log.error('Database version 1 & 2 are deprecated, no upgrade possible!')
+            print 'Database version 1 & 2 are deprecated, no upgrade possible!'
             exit()
 
 

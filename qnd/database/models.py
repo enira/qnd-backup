@@ -133,6 +133,9 @@ class Backup(db.Model):
     comment = db.Column(db.String)                                              # comments on the backup
     uuid = db.Column(db.String)                                                 # uuid of VM to backup
 
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
+    
+
     datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
     datastore = db.relationship('Datastore', lazy='immediate')                                    # datastore object  
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
@@ -147,7 +150,6 @@ class BackupTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)                                # id
 
     schedule_id = db.Column(db.Integer)                                         # if there is an associated schedule
-    
 
     backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'))              # backup id
     backup = db.relationship('Backup', lazy='immediate')                        # backup object

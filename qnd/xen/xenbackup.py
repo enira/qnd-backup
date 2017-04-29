@@ -241,6 +241,8 @@ class XenBackup:
 
         self.update_pct(task, 0.70, None, 0.20, 'backup', session)
 
+        #        # TODO check if snapshots are oke
+
         # create a snapshot
         snapshot = self.get_active_host().create_snapshot(tobackup[0], snapshot_label)        
 

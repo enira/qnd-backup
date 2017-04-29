@@ -36,7 +36,7 @@
     <Compile Include="api\xen\endpoints\hosts.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="api\xen\endpoints\restore.py" />
+    <Compile Include="api\xen\endpoints\backups.py" />
     <Compile Include="api\xen\endpoints\pools.py">
       <SubType>Code</SubType>
     </Compile>

@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-api = Api(version='alpha-2', title='Quick \'n Dirty XenServer Backup', description='Quick \'n Dirty XenServer Backup API')
+api = Api(version='alpha-3', title='Quick \'n Dirty XenServer Backup', description='Quick \'n Dirty XenServer Backup API')
 
 @api.errorhandler
 def default_error_handler(e):

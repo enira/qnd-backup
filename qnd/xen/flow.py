@@ -35,31 +35,76 @@ class Flow(object):
 
     _minute = None
     _poolcache = {}
+    _vmscache = {}
+    _envcache = {}
     _scheduler = None
     _mover = Mover()
 
     def get_environment(self, pool_id):
+        """
+        Get all environment for a pool. 
+        """
+
         obj = {}
 
+        # no pool is there
         if pool_id not in self._poolcache:
             obj["vms"] = []
             obj["hosts"] = []
             obj["disks"] = []
             return obj
 
+
+        # there is a pool, check if we have cached vms
+        if pool_id not in self._envcache:
+            obj["vms"] = self._poolcache[pool_id]["backup"].get_vms()
+            obj["hosts"] = self._poolcache[pool_id]["backup"].get_hosts()
+            obj["disks"] = self._poolcache[pool_id]["backup"].get_attached_disks(obj["vms"])
+            # cache it
+            self._envcache[pool_id] = obj
+        else:
+            # return cache, submit a scan
+            obj = self._envcache[pool_id]
+            # submit a rescan
+            self._scheduler.add_job(self.scan_environment, args=[pool_id], id="scan_environment")
+
+        return obj
+
+
+    def scan_environment(self, pool_id):
+        obj = {}
         obj["vms"] = self._poolcache[pool_id]["backup"].get_vms()
         obj["hosts"] = self._poolcache[pool_id]["backup"].get_hosts()
         obj["disks"] = self._poolcache[pool_id]["backup"].get_attached_disks(obj["vms"])
 
-        return obj
+        self._envcache[pool_id] = obj
 
     def get_vms(self, pool_id):
+        """
+        Get all VMs for a pool. 
+        """
         obj = {}
 
+        # no pool is there
         if pool_id not in self._poolcache:
             return obj
 
-        return self._poolcache[pool_id]["backup"].get_vms()
+        # there is a pool, check if we have cached vms
+        if pool_id not in self._vmscache:
+            vms = self._poolcache[pool_id]["backup"].get_vms()
+            # cache it
+            self._vmscache[pool_id] = vms
+        else:
+            # return cache, submit a scan
+            vms = self._vmscache[pool_id]
+            # submit a rescan
+            self._scheduler.add_job(self.scan_vms, args=[pool_id], id="scan_vms")
+
+        return vms
+
+    def scan_vms(self, pool_id):
+        vms = self._poolcache[pool_id]["backup"].get_vms()
+        self._vmscache[pool_id] = vms
 
 
     def create_task(self, schedule_id):

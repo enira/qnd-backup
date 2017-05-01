@@ -244,7 +244,16 @@ class XenBackup:
         #        # TODO check if snapshots are oke
 
         # create a snapshot
-        snapshot = self.get_active_host().create_snapshot(tobackup[0], snapshot_label)        
+        try:
+            snapshot = self.get_active_host().create_snapshot(tobackup[0], snapshot_label)        
+        except Exception as e:
+            log.error(str(e.details))
+            
+            if e.details[0] == 'SR_BACKEND_FAILURE_109':
+                # snapshot chain too long
+                self.update_pct(task, 1, 1, 0.20, 'failed_snapshot_chain', session)
+                return
+
 
         self.update_pct(task, 0.80, None, 0.20, 'export', session)
 

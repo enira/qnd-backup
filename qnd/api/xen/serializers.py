@@ -160,10 +160,10 @@ schedule_ro = api.model('ScheduleRead', {
 
 
 backup_safe = api.model('BackupRead', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
-    'metafile': fields.String(required=True, description='The given display name of a schedule'),
-    'backupfile': fields.String(required=True, description='Cron: minute'),
-    'comment': fields.String(required=True, description='Cron: hour'),
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a backup'),
+    'metafile': fields.String(required=True, description='The metafile name'),
+    'backupfile': fields.String(required=True, description='The backupfile name'),
+    'comment': fields.String(required=True, description='comment of the backup'),
     'uuid': fields.String(required=True, description='VM UUID'),
     'vmname': fields.String(required=True, description='VM Name of backed up VM'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
@@ -174,18 +174,18 @@ backup_safe = api.model('BackupRead', {
 
 
 backuptask = api.model('BackupTask', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
-    'schedule_id': fields.Integer(required=True, description='The associated datastore id'),
-    'snapshotname': fields.String(required=True, description='The uuid being used by the task'),
+    'id': fields.Integer(readOnly=True, description='The unique identifier of a backup task'),
+    'schedule_id': fields.Integer(required=True, description='The associated schedule id'),
+    'snapshotname': fields.String(required=True, description='The snapshot name'),
 
     'pool_id': fields.Integer(required=True, description='The pool id'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'uuid': fields.String(required=True, description='VM UUID'),
 
-    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup_id': fields.Integer(required=True, description='The backup id'),
     'backup': fields.Nested(backup_safe),
 
-    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
     'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
     'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
@@ -196,8 +196,10 @@ backuptask = api.model('BackupTask', {
 backuptask_rw = api.model('BackupTaskRW', {
     'pool_id': fields.Integer(required=True, description='The pool id'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
+    'host_id': fields.Integer(required=True, description='The host id'),
+    'sr': fields.String(required=True, description='The SR'),
     'uuid': fields.String(required=True, description='VM UUID'),
-    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
     'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
     'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
@@ -208,13 +210,13 @@ backuptask_rw = api.model('BackupTaskRW', {
 archivetask = api.model('ArchiveTask', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
 
-    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup_id': fields.Integer(required=True, description='The backup id'),
     'backup': fields.Nested(backup_safe),
 
-    'archive_id': fields.Integer(required=True, description='The pool id'),
+    'archive_id': fields.Integer(required=True, description='The archive id'),
     'archive': fields.Nested(archive_ro),
 
-    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
     'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
     'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
@@ -224,12 +226,16 @@ archivetask = api.model('ArchiveTask', {
 
 restoretask = api.model('RestoreTask', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
-    'backupname': fields.String(required=True, description='The uuid being used by the task'),
+    'backupname': fields.String(required=True, description='The backup name'),
 
-    'backup_id': fields.Integer(required=True, description='The pool id'),
+    'backup_id': fields.Integer(required=True, description='The backup id'),
     'backup': fields.Nested(backup_safe),
 
-    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
+    'host_id': fields.Integer(required=True, description='The host id'),
+
+    'sr': fields.String(required=True, description='The SR'),
+
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
     'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
     'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
@@ -239,21 +245,20 @@ restoretask = api.model('RestoreTask', {
 
 
 available_backups = api.model('available_backups', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
-    'backupfile': fields.String(required=True, description='The status of the task'),
-    'metafile': fields.String(required=True, description='The status of the task'),
-    'comment': fields.String(required=True, description='The status of the task'),
-    'created': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
-    'uuid': fields.String(required=True, description='The status of the task'),
-    'snapshotname': fields.String(required=True, description='The status of the task'),
+    'id': fields.Integer(readOnly=True, description='The backup id'),
+    'backupfile': fields.String(required=True, description='The backupfile name'),
+    'metafile': fields.String(required=True, description='The metafile'),
+    'comment': fields.String(required=True, description='Comment'),
+    'created': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
+    'uuid': fields.String(required=True, description='The VM UUID'),
+    'snapshotname': fields.String(required=True, description='The snapshot name of the backup'),
     'vmname': fields.String(required=True, description='VM Name of backed up VM'),
     'pool': fields.Nested(pool),
-
     'datastore': fields.Nested(datastore_safe),
 })
 
 
 host_sr = api.model('HostSR', {
-    'name': fields.String(readOnly=True, description='Title of the task'),
-    'sr': fields.String(required=True, description='Percent complete'),
+    'name': fields.String(readOnly=True, description='Name of the SR'),
+    'sr': fields.String(required=True, description='Xen OpaqueID of the SR'),
 })

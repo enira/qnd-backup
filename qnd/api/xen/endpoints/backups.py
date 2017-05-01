@@ -20,7 +20,7 @@ class BackupsCollection(Resource):
     @api.marshal_list_with(available_backups)
     def get(self, pool_id, datastore_id):
         """
-        Selects all backups for a pool & datastore. .order_by(MyEntity.my_date.desc())
+        Selects all backups for a pool & datastore.
         """
         backups = db.session.query(Backup).filter(Backup.pool_id == pool_id, Backup.datastore_id == datastore_id).order_by(Backup.created.asc()).all()
         return backups

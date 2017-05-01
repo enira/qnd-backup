@@ -318,7 +318,7 @@ class XenBackup:
         #curl -T <exportfile> http://root:foo@myxenserver2/import?sr_id=<ref_of_sr>
 
         session = db.session
-        task = session.query(Task).filter(Task.id == task_id).one()
+        task = session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
         datastore = task.datastore
         uuid = task.uuid
 

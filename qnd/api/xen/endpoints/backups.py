@@ -3,10 +3,10 @@ import logging
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.serializers import available_backups, restore_rw
+from api.xen.serializers import available_backups
 from api.restplus import api
 
-from database.models import Backup, Pool, Datastore
+from database.models import Backup
 from database import db
 
 log = logging.getLogger(__name__)
@@ -21,5 +21,5 @@ class BackupsCollection(Resource):
         """
         Selects all backups for a pool & datastore.
         """
-        backups = db.session.query(Backup).filter(Pool.id == pool_id).filter(Datastore.id == datastore_id).all()
+        backups = db.session.query(Backup).filter(Backup.pool_id == pool_id, Backup.datastore_id == datastore_id).all()
         return backups

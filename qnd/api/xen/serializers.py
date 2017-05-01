@@ -165,6 +165,7 @@ backup_safe = api.model('BackupRead', {
     'backupfile': fields.String(required=True, description='Cron: minute'),
     'comment': fields.String(required=True, description='Cron: hour'),
     'uuid': fields.String(required=True, description='VM UUID'),
+    'vmname': fields.String(required=True, description='VM Name of backed up VM'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'datastore': fields.Nested(datastore_safe),
     'pool_id': fields.Integer(required=True, description='The pool id'),
@@ -245,16 +246,14 @@ available_backups = api.model('available_backups', {
     'created': fields.DateTime(dt_format='rfc822', required=True, description='The time the task ahs been started'),
     'uuid': fields.String(required=True, description='The status of the task'),
     'snapshotname': fields.String(required=True, description='The status of the task'),
-
+    'vmname': fields.String(required=True, description='VM Name of backed up VM'),
     'pool': fields.Nested(pool),
 
     'datastore': fields.Nested(datastore_safe),
-
-    
 })
 
 
-restore_rw = api.model('RestoreRW', {
-    'title': fields.String(readOnly=True, description='Title of the task'),
-    'percent': fields.String(required=True, description='Percent complete'),
+host_sr = api.model('HostSR', {
+    'name': fields.String(readOnly=True, description='Title of the task'),
+    'sr': fields.String(required=True, description='Percent complete'),
 })

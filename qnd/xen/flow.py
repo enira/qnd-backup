@@ -106,6 +106,9 @@ class Flow(object):
         vms = self._poolcache[pool_id]["backup"].get_vms()
         self._vmscache[pool_id] = vms
 
+    def get_sr(self, pool_id, address):
+        srs = self._poolcache[pool_id]["backup"].get_sr(address)
+        return srs
 
     def create_task(self, schedule_id):
         session = db.session

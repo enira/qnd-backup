@@ -58,6 +58,31 @@ class XenBridge:
             session.logout()
         return self.master
 
+    def get_sr(self, address):
+        """
+        Get all SRs for a hostid (based on an Ip address)
+        """
+        session = self.create_session()
+
+        # get all hosts
+        hosts = session.xenapi.host.get_all()
+        srs = []
+
+        for h in hosts:
+            record = session.xenapi.host.get_record(h)
+            if record['address'] == address:
+                # found the correct host
+
+                # get all pbd's
+                for p in record['PBDs']:
+                    pbd = session.xenapi.PBD.get_record(p)
+                    # get the associated SR
+                    sr = session.xenapi.SR.get_record(pbd['SR'])
+                    if sr['type'] == 'nfs' or sr['type'] == 'ext':
+                        srs.append([pbd['SR'],sr])
+
+        return srs
+
     def get_vms(self):
         """
         Get all VMs

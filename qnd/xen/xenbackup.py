@@ -102,6 +102,12 @@ class XenBackup:
         if self.poolmaster == None:
             log.warning('Performance degraded, pool master not in pool.')
 
+    def get_sr(self, address):
+        """
+        Get all SR for a host
+        """
+        return self.get_active_host().get_sr(address)
+
     def get_vms(self):   
         """
         Get all VMs in the pool
@@ -231,7 +237,7 @@ class XenBackup:
         self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session)
 
         log.info("Backing up: " + tobackup[1]["name_label"] + "(" + tobackup[1]["uuid"] + ")")
-        
+
         # creating names
         snapshot_label = tobackup[1]["name_label"] + "." + datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
         backup_name = tobackup[1]["name_label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".xva"
@@ -286,6 +292,7 @@ class XenBackup:
                         snapshotname=snapshot_label,
                         comment='Backup created at: ' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
                         uuid=uuid,
+                        vmname=tobackup[1]["name_label"],
                         datastore=datastore,
                         pool=pool)
 

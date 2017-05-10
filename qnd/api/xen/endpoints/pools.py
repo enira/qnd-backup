@@ -4,7 +4,7 @@ from flask import request
 from flask_restplus import Resource
 
 from api.xen.business import create_pool, delete_pool, update_pool
-from api.xen.serializers import pool
+from api.xen.serializers import pool, pool_rw
 from api.restplus import api
 
 from database.models import Pool
@@ -27,10 +27,16 @@ class PoolCollection(Resource):
         return pools
 
     @api.response(201, 'Pool successfully created.')
-    @api.expect(pool)
+    @api.expect(pool_rw)
     def post(self):
         """
         Creates a new pool.
+        * Send a JSON object with the pool details request body.
+        ```
+        {
+          "name": "Pool name",
+        }
+        ```
         """
         data = request.json
         create_pool(data)
@@ -48,7 +54,7 @@ class PoolItem(Resource):
         """
         return db.session.query(Pool).filter(Pool.id == id).one()
     
-    @api.expect(pool)
+    @api.expect(pool_rw)
     @api.response(204, 'Pool successfully updated.')
     def put(self, id):
         """

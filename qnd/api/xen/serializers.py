@@ -29,8 +29,12 @@ system = api.model('System', {
 })
 
 
-pool = api.model('Pool', {
+pool = api.model('pool', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a pool'),
+    'name': fields.String(required=True, description='Pool name'),
+})
+
+pool_rw = api.model('pool_rw', {
     'name': fields.String(required=True, description='Pool name'),
 })
 

@@ -1,5 +1,5 @@
 from database import db
-from database.models import Pool, Host, Datastore, RestoreTask, BackupTask, Archive, ArchiveTask, Schedule
+from database.models import Pool, Host, Datastore, RestoreTask, BackupTask, Archive, ArchiveTask, Schedule, Backup
 
 from xen.flow import Flow
 
@@ -141,30 +141,45 @@ def create_backup_task(data):
     except Exception as e:
         print e
 
-def update_backup_task(task_id, data):
+# Tasks
+def create_restore_task(data):
     """
-    Update a backup task.
+    Create a restore task.
     """
-    task = db.session.query(BackupTask).filter(BackupTask.id == task_id).one()
+    backupname = data.get('backupname')
+    backup_id = data.get('backup_id')
+    backup = db.session.query(Backup).filter(Backup.id == backup_id).one()
+    host_id = data.get('host_id')
+    sr = data.get('sr')
+    status = data.get('status')
+    divisor = data.get('divisor')
+    pct1 = data.get('pct1')
+    pct2 = data.get('pct2')
 
-    pool_id = data.get('pool_id')
+    task = RestoreTask(status=status, divisor=divisor, pct1=pct1, pct2=pct2, 
+                       backupname=backupname, backup=backup, host_id=host_id, sr=sr)
 
-    datastore_id = data.get('datastore_id')
+    try:
+        db.session.add(task)
+        db.session.commit()
+    except Exception as e:
+        print e
 
-    task.status = data.get('status')
-    task.divisor = data.get('divisor')
-    task.pct1 = data.get('pct1')
-    task.pct2 = data.get('pct2')
-    task.uuid = data.get('uuid')
-    
-    db.session.add(task)
-    db.session.commit()
 
 def delete_backup_task(task_id):
     """
     Delete a backup task.
     """
     task = db.session.query(BackupTask).filter(BackupTask.id == task_id).one()
+
+    db.session.delete(task)
+    db.session.commit()
+
+def delete_restore_task(task_id):
+    """
+    Delete a restore task.
+    """
+    task = db.session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
 
     db.session.delete(task)
     db.session.commit()
@@ -285,3 +300,6 @@ def delete_schedule(schedule_id):
     db.session.commit()
 
     Flow.instance().schedule_delete(schedule.id)
+
+def delete_backup(backup_id):
+    pass

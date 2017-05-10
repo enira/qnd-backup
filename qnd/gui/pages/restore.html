@@ -210,7 +210,7 @@
 		
 		<li>
           <a href="settings.html">
-            <i class="fa fa-server"></i> <span>Settings</span>
+            <i class="fa fa-cogs"></i> <span>Settings</span>
           </a>
         </li>
         
@@ -247,25 +247,90 @@
 			
 			
 			
-					<!-- Wizard-->
+					<!-- Wizard Restore VM -->
 		<div class="row" id="restore_dialog"  style="display:none">
         <div class="col-xs-12" >
 		<div class="box box-success">
             <div class="box-header with-border">
-              <h3 class="box-title" id="wizardtitlepool">Restore VM</h3> <input type="hidden" id="inputIdpool" value="(null)">
+              <h3 class="box-title" id="wizardrestoretitle">Restore VM</h3> <input type="hidden" id="inputIdPool" value="(null)"><input type="hidden" id="inputIdBackup" value="(null)">
 
             </div>
             <!-- /.box-header -->
             <div class="box-body">
               <form class="form-horizontal">
               <div class="box-body">
-                <div class="form-group" >
-                  <label for="machineLabel" class="col-sm-2 control-label">Name</label>
+			  
+			  <div class="post">
+				
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">VM Name</label>
 
-                  <div class="col-sm-10">
-                    <input type="text" class="form-control" id="poolInputName" placeholder="name">
+                  <div class="col-sm-10" style="padding-top: 7px;">
+                    <span id="text_vmname"></span>
                   </div>
                 </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Snapshot Name</label>
+
+                  <div class="col-sm-10" style="padding-top: 7px;">
+                    <span id="text_snapshotname"></span>
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Created At</label>
+
+                  <div class="col-sm-10" style="padding-top: 7px;">
+                    <span id="text_created"></span>
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Comment</label>
+
+                  <div class="col-sm-10" style="padding-top: 7px;">
+                    <span id="text_comment"></span>
+                  </div>
+                </div>
+				
+				</div>
+			  
+				
+			  <div class="post">
+
+			  
+                <div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">Host</label>
+
+                  <div class="col-sm-10">
+                    <select id="inputHost"class="form-control">
+                    
+					</select>
+                  </div>
+                </div>
+				
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">SR</label>
+
+                  <div class="col-sm-10">
+                    <select id="inputSR"class="form-control">
+                    
+					</select>
+                  </div>
+                </div>
+				<div class="form-group" >
+                  <label for="machineLabel" class="col-sm-2 control-label">New Name</label>
+
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputNewName" placeholder="name">
+                  </div>
+                </div>
+				
+				
+				</div>
+				
               </div>
               
               <!-- /.box-footer -->
@@ -491,10 +556,87 @@
 		$("#restore_dialog").css('display', 'none');
 	}
 	
+	function restorevm() {
+		var backupname = $("#inputNewName" ).val();
+		var backupid = $("#inputIdBackup" ).val();
+		var hostId = $("#inputHost option:selected")[0].value;
+		var srId = $("#inputSR option:selected")[0].value;
+		
+		jsonData = '{"status": "restore_pending", "ended": "", "pct1": 0, "backup_id": ' + backupid + ', "backupname": "' + backupname + '", "pct2": 0, "sr": "' + srId + '", "started": "", "host_id": ' + hostId + ', "divisor": 0}';
+		
+		//alert(jsonData);
+		
+			$.ajax({
+				url: '/api/xen/task/restore/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function() {
+			  canceldatastore();
+			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Restore \'' + backupname + '\' added for VM \'' + $("#text_vmname").html() + '\'.')
+			  $("#messagebox").html(msg);
+			  load();
+			});
+	}
+	
+	function fill_srs(id) {
+
+			$("#inputSR").empty();
+			$.get( '/api/xen/backups/sr/' + $("#inputIdPool").val() + '/' + id, function( srs ) {
+					if(typeof srs != "undefined" && srs != null && srs.length > 0){	
+					
+						for (var i = 0; i < srs.length; i++) {
+								$("#inputSR").append($('<option>', {
+									value: srs[i].sr,
+									text: srs[i].name
+								}));
+						}
+					}
+					
+				});
+	}
+	
 	function restore(backupid) {
 		
-		$("#restore_dialog").css('display', 'block');
-	
+		$('#inputHost').on('change', function() {
+		  fill_srs( this.value );
+		})
+		
+		$.get('/api/xen/backups/' + backupid, function( data ) {
+			if(typeof data != "undefined" && data != null){
+				$("#restore_dialog").css('display', 'block');
+				//alert(data);
+				
+				$("#wizardrestoretitle").html("Restoring VM - " + data.vmname);
+				$("#text_vmname").html(data.vmname);
+				$("#text_snapshotname").html(data.snapshotname);
+				$("#inputIdPool").val(data.pool.id);
+				$("#inputIdBackup" ).val(backupid);
+				
+				$("#inputNewName").val(data.snapshotname);
+				
+				
+				$.get( '/api/xen/host/', function( hosts ) {
+					if(typeof hosts != "undefined" && hosts != null && hosts.length > 0){	
+						for (var i = 0; i < hosts.length; i++) {
+								$("#inputHost").append($('<option>', {
+									value: hosts[i].id,
+									text: hosts[i].address
+								}));
+						}
+					}
+					
+					var hostId = $("#inputHost option:selected")[0].value;
+
+					fill_srs(hostId);
+				
+				});
+				
+				
+			}
+			
+		});
 	}
 	
 	function formatDate(string) {
@@ -508,8 +650,7 @@
 		$.get( '/api/xen/backups/' + poolid + '/' + datastoreid, function( data ) {
 			if(typeof data != "undefined" && data != null && data.length > 0){
 			
-			
-				
+
 						$("#empty_placeholder" ).hide();
 						$("#backupstablecontent").empty();
 						for (var d = 0; d < data.length; d++) {

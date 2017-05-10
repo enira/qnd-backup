@@ -246,10 +246,20 @@ class Flow(object):
             session.add(task)
             session.commit()
 
+        # submit all backup tasks
+        tasks = session.query(RestoreTask).filter(RestoreTask.status == 'restore_pending').all()
+        for task in tasks:
+            self._poolcache[task.backup.pool_id]["backup"].restoretasks.append([task.id])
+            task.status = 'restore_submitted'
+
+            session.add(task)
+            session.commit()
+
         session.close()
 
         for pool in self._poolcache:
             self._poolcache[pool]["backup"].run_backups()
+            self._poolcache[pool]["backup"].run_restores()
 
 
     def cleanup(self):

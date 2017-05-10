@@ -243,6 +243,19 @@ restoretask = api.model('RestoreTask', {
     'status': fields.String(required=True, description='The status of the task'),
 })
 
+restoretask_rw = api.model('RestoreTaskRW', {
+    'backupname': fields.String(required=True, description='The backup name'),
+    'backup_id': fields.Integer(required=True, description='The backup id'),
+    'host_id': fields.Integer(required=True, description='The host id'),
+    'sr': fields.String(required=True, description='The SR'),
+    'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
+    'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
+    'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
+    'pct2': fields.Integer(required=True, description='Percent complete of task 2'),
+    'divisor': fields.Integer(required=True, description='Division of percentage compared against task 1 & task 2'),
+    'status': fields.String(required=True, description='The status of the task'),
+})
+
 
 available_backups = api.model('available_backups', {
     'id': fields.Integer(readOnly=True, description='The backup id'),

@@ -4,8 +4,8 @@ import os
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.business import create_backup_task, delete_backup_task, update_backup_task
-from api.xen.serializers import backuptask, backuptask_rw, archivetask, restoretask
+from api.xen.business import create_backup_task, delete_backup_task, create_restore_task, delete_restore_task
+from api.xen.serializers import backuptask, backuptask_rw, archivetask, restoretask, restoretask_rw
 from api.restplus import api
 
 from database.models import BackupTask, ArchiveTask, RestoreTask
@@ -69,13 +69,13 @@ class TaskCollection(Resource):
         return tasks
 
     @api.response(201, 'RestoreTask successfully created.')
-    @api.expect(restoretask)
+    @api.expect(restoretask_rw)
     def post(self):
         """
         Creates a new restore task.
         """
         data = request.json
-        create_task(data)
+        create_restore_task(data)
         return None, 201
 
     
@@ -95,7 +95,7 @@ class TaskItem(Resource):
         """
         Deletes a restore task.
         """
-        delete_task(id)
+        delete_restore_task(id)
         return None, 204
 
 @ns.route('/archive/')

@@ -4,6 +4,7 @@ from flask import request
 from flask_restplus import Resource
 
 from api.xen.serializers import available_backups, host_sr
+from api.xen.business import delete_backup
 from api.restplus import api
 
 from database.models import Backup, Host
@@ -49,3 +50,22 @@ class LocalStorageCollection(Resource):
            
             wrapped.append(obj)
         return wrapped
+
+@ns.route('/<int:id>')
+@api.response(404, 'Backup not found.')
+class BackupItem(Resource):
+
+    @api.marshal_with(available_backups)
+    def get(self, id):
+        """
+        Returns a backup.
+        """
+        return db.session.query(Backup).filter(Backup.id == id).one()
+
+    @api.response(204, 'Backup successfully deleted.')
+    def delete(self, id):
+        """
+        Deletes a pool.
+        """
+        delete_backup(id)
+        return None, 204

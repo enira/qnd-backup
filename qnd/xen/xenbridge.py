@@ -180,3 +180,52 @@ class XenBridge:
         session.xenapi.VM.destroy(ref)
 
         session.logout()
+
+    def get_vm_by_name(self, name):
+        """
+        Get VM by name
+        """
+        session = self.create_session()
+        refs = session.xenapi.VM.get_by_name_label(name)
+        vms = session.xenapi.VM.get_record(refs[0])
+        session.logout()
+
+        return [refs[0], vms]
+
+    def set_vm_name(self, ref, name):
+        """
+        Set a VM name
+        """
+        session = self.create_session()
+        session.xenapi.VM.set_name_label(ref, name)
+        session.logout()
+
+    def set_disk_names(self, vbds, name):
+        """
+        Set a VM name
+        """
+        session = self.create_session()
+        index = 0
+        for vbd in vbds:
+            record = session.xenapi.VBD.get_record(vbd)
+            if record['VDI'] != 'OpaqueRef:NULL':
+                # count the disks
+                index = index + 1
+                
+        # only one disk
+        if index == 1:
+            for vbd in vbds:
+                record = session.xenapi.VBD.get_record(vbd)
+                if record['VDI'] != 'OpaqueRef:NULL':
+                    # get the attached VDI
+                    session.xenapi.VDI.set_name_label(record['VDI'], 'disk-' + name)
+        else:
+            # more than one
+            index = 0
+            for vbd in vbds:
+                record = session.xenapi.VBD.get_record(vbd)
+                if record['VDI'] != 'OpaqueRef:NULL':
+                    # get the attached VDI
+                    index = index + 1
+                    session.xenapi.VDI.set_name_label(record['VDI'], 'disk-' + name + '-' + str(index))
+        session.logout()

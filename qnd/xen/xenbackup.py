@@ -7,7 +7,7 @@ from bridge import Bridge
 from xenbridge import XenBridge
 
 from database import db
-from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool
+from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool, Host
 
 import logging
 import os
@@ -22,6 +22,7 @@ class XenBackup:
     poolmaster = None       # poolmaster
 
     backuptasks = []
+    restoretasks = []
     hosts = None            #
     
     BACKUPROOT = '/media/.qnd'
@@ -163,6 +164,76 @@ class XenBackup:
             if job[1] == 'smb':
                 self.backup_smb(job[0])
 
+    def run_restores(self):
+        """
+        Run all backups
+        """
+
+        # copy all jobs
+        jobs = list(self.restoretasks)
+
+        # empty tasks
+        self.restoretasks = []
+
+        for job in jobs:
+            self.restore(job[0])
+
+    def restore(self, task_id):
+        """
+        Restore a VM
+        """
+        session = db.session
+        task = session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
+        host = session.query(Host).filter(Host.id == task.host_id).one()
+
+        # start backing up: create a connection
+        connection = Bridge(self._server[0], self._server[1], self._server[2])
+
+        # make folder name
+        resfolder = self.BACKUPROOT + '/ds-' + str(task.backup.datastore_id)
+
+        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
+
+        # create mount point
+        connection.sudo_command('mkdir -p ' + resfolder, self._server[2])
+
+        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
+
+        # check if already mounted
+        result = connection.command('df -h | grep -i ' + resfolder)
+        if len(result) == 0:
+            # mount smb
+            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + resfolder, self._server[2])
+
+        result = connection.command('df -h | grep -i ' + resfolder)
+        if len(result) == 0:
+            log.error('Could not mount the datastore')
+            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
+            return
+
+        # upload file to server
+        #curl -T <exportfile> http://root:foo@myxenserver2/import?sr_id=<ref_of_sr>
+
+
+        # download the xva TODO: connect on task
+        dlsession = self.get_active_host().create_session()
+
+        taskref = self.get_active_host().create_task(dlsession, 
+                                           'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task.backup.backupfile + '.')
+
+        result = connection.sudo_command('curl -T ' + resfolder + '/' + task.backup.backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '\\&sr=' + task.sr + ' --insecure', self._server[2])
+        
+        self.get_active_host().remove_task(dlsession, taskref)
+
+        dlsession.close()
+
+        # rename the imported vm task.backup.snapshotname => task.backupname
+        vm = self.get_active_host().get_vm_by_name(task.backup.snapshotname)
+        self.get_active_host().set_vm_name(vm[0], task.backupname)
+        
+        # rename the imported disk task.backupname
+        self.get_active_host().set_disk_names(vm[1]['VBDs'], task.backupname)
+
     def update_pct(self, task, pct1, pct2, divisor, status, session):
         """
         Update percentages for a given task
@@ -172,7 +243,11 @@ class XenBackup:
         if pct2 != None:
             task.pct2 = 0
         task.divisor = 0.20
-        task.status = 'backup_' + status
+        # isinstance
+        if isinstance(task, BackupTask): 
+            task.status = 'backup_' + status
+        if isinstance(task, RestoreTask):
+            task.status = 'restore_' + status
         session.add(task)
         session.commit()
         
@@ -310,33 +385,3 @@ class XenBackup:
 
         session.close()
         
-    def restore_smb(self, task_id):
-        """
-        Restore a VM from a SMB fileshare
-        """
-
-        #curl -T <exportfile> http://root:foo@myxenserver2/import?sr_id=<ref_of_sr>
-
-        session = db.session
-        task = session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
-        datastore = task.datastore
-        uuid = task.uuid
-
-        # make folder name
-        bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
-
-        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
-
-        # search the VM if it already exists
-        vms = self.get_vms()
-        hosts = self.get_hosts()
-        tobackup = None
-        for vm in vms:
-            if vm[1]["uuid"] == uuid:
-                tobackup = vm
-                break
-
-        if tobackup == None:
-            log.error('VM not found')
-            self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session)
-            return

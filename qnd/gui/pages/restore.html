@@ -602,7 +602,7 @@
 		
 		$('#inputHost').on('change', function() {
 		  fill_srs( this.value );
-		})
+		});
 		
 		$.get('/api/xen/backups/' + backupid, function( data ) {
 			if(typeof data != "undefined" && data != null){

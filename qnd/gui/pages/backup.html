@@ -362,6 +362,11 @@
 		  var alertmsg = successmsg.replace('$TITLE$', 'Backup queued').replace('$TEXT$', 'Successfully queued virtual machine \'' +  name + '\' for backup.')
 		  $("#messagebox").html(alertmsg);
 		  
+		  if($('#backup_schedule').is(":checked") == true) {
+		    //redirect to page
+			window.location = '/gui/pages/schedules.html?uuid=' + $("#backup_uuid").val() +"&pool=" + $("#backup_pool").val() + "&datastore=" + ds;
+		  }
+		  
 		});
 	}
 	
@@ -398,7 +403,6 @@
 	}
 	
 	$(document).ready(function(){
-	
 		var button = '<button type="button" style="width:25px; display: inline-block;" class="btn btn-block btn-primary btn-xs"><i class="fa fa-edit"></i></button><button style="width:25px; display: inline-block; margin-top:0px; margin-left:10px;" type="button" class="btn btn-block btn-primary btn-xs"><i class="fa fa-trash"></i></button>';
 		var backup = '{"status": "pending", "pct2": 0, "pct1": 0, "pool_id": $POOL$, "uuid": "$UUID$","ended": "","started": "","datastore_id": $DATASTORE$,"id": 0,"divisor": 0}';
 		

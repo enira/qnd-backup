@@ -252,6 +252,7 @@ def create_schedule(data):
     month = data.get('month')
     week = data.get('week')
     uuid = data.get('uuid')
+    advanced = data.get('advanced')
 
     pool_id = data.get('pool_id')
     pool = db.session.query(Pool).filter(Pool.id == pool_id).one()
@@ -259,7 +260,7 @@ def create_schedule(data):
     datastore_id = data.get('datastore_id')
     datastore = db.session.query(Datastore).filter(Datastore.id == datastore_id).one()
 
-    schedule = Schedule(name=name, minute=minute, hour=hour, day=day, month=month, week=week, uuid=uuid, pool=pool, datastore=datastore)
+    schedule = Schedule(name=name, minute=minute, hour=hour, day=day, month=month, week=week, uuid=uuid, pool=pool, datastore=datastore, advanced=advanced)
 
     db.session.add(schedule)
     db.session.commit()

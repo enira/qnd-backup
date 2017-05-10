@@ -121,7 +121,7 @@ archive_ro = api.model('ArchiveRead', {
 })
 
 
-schedule = api.model('Schedule', {
+schedule = api.model('schedule', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
     'name': fields.String(required=True, description='The given display name of a schedule'),
     'minute': fields.String(required=True, description='Cron: minute'),
@@ -132,9 +132,10 @@ schedule = api.model('Schedule', {
     'uuid': fields.String(required=True, description='VM UUID'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'pool_id': fields.Integer(required=True, description='The pool id'),
+    'advanced': fields.Integer(required=True, description='Simple or advanced (0=simple, 1=advanced)'),
 })
 
-schedule_rw = api.model('ScheduleUpdate', {
+schedule_rw = api.model('schedule_rw', {
     'name': fields.String(required=True, description='The given display name of a schedule'),
     'minute': fields.String(required=True, description='Cron: minute'),
     'hour': fields.String(required=True, description='Cron: hour'),
@@ -144,9 +145,10 @@ schedule_rw = api.model('ScheduleUpdate', {
     'uuid': fields.String(required=True, description='VM UUID'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'pool_id': fields.Integer(required=True, description='The pool id'),
+    'advanced': fields.Integer(required=True, description='Simple or advanced (0=simple, 1=advanced)'),
 })
 
-schedule_ro = api.model('ScheduleRead', {
+schedule_ro = api.model('schedule_ro', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a schedule'),
     'name': fields.String(required=True, description='The given display name of a schedule'),
     'minute': fields.String(required=True, description='Cron: minute'),
@@ -159,6 +161,7 @@ schedule_ro = api.model('ScheduleRead', {
     'datastore': fields.Nested(datastore_safe),
     'pool_id': fields.Integer(required=True, description='The pool id'),
     'pool': fields.Nested(pool),
+    'advanced': fields.Integer(required=True, description='Simple or advanced (0=simple, 1=advanced)'),
 })
 
 

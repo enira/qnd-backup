@@ -86,6 +86,7 @@ class Schedule(db.Model):
     datastore = db.relationship('Datastore', lazy='immediate')                  # datastore object  
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
     pool = db.relationship('Pool', lazy='immediate')                            # pool object
+    advanced = db.Column(db.Integer)                                            # 0 = simple, 1 = advanced
 
 
 class Archive(db.Model):

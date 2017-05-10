@@ -157,14 +157,16 @@ class Flow(object):
 
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == id).one()
-
-        self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
+        try:
+            self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
                                     hour=schedule.hour, 
                                     minute=schedule.minute, 
                                     month=schedule.month,
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
+        except:
+            print 'Error editing schedule'
 
         session.close()
                 
@@ -172,13 +174,17 @@ class Flow(object):
     def schedule_add(self, id):
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == id).one()
-        self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
+        try:
+            self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
                                     hour=schedule.hour, 
                                     minute=schedule.minute, 
                                     month=schedule.month,
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
+        except:
+            print 'Error adding schedule'
+
         session.close()
 
     def schedule_delete(self, id):

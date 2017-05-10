@@ -132,13 +132,16 @@ class Flow(object):
         schedules = session.query(Schedule).all()
         for schedule in schedules:
             print 'Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id)
-            self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
+            try:
+                self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
                                     hour=schedule.hour, 
                                     minute=schedule.minute, 
                                     month=schedule.month,
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
+            except:
+                print 'Issue on schedule: ' + schedule.name + ' with id ' + str(schedule.id)
 
         # run
         self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)

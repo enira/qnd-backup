@@ -3,7 +3,8 @@ import datetime
 
 import logging
 import os 
-log = logging.getLogger(__name__)
+
+import logging.config
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -11,16 +12,13 @@ from database.models import Pool, Host, BackupTask, ArchiveTask, RestoreTask, Da
 from database import db
 
 from mover import Mover
-
 from xenbackup import XenBackup
 
-logging.getLogger("apscheduler.scheduler").setLevel(logging.WARNING)
 
 class Flow(object):
     """
     Internal flow of the application.
     """
-
     __lock = threading.Lock()
     __instance = None
 
@@ -80,6 +78,7 @@ class Flow(object):
         self._envcache[pool_id] = obj
 
     def get_vms(self, pool_id):
+
         """
         Get all VMs for a pool. 
         """
@@ -124,6 +123,9 @@ class Flow(object):
         session.close()
 
     def initialize_scheduler(self):
+        log = logging.getLogger(__name__)
+
+        log.info("Creating sechuler...")
         # initialize the scheduler
         session = db.session()
         self._scheduler = BackgroundScheduler()
@@ -131,7 +133,7 @@ class Flow(object):
         # read the cron jobs from DB
         schedules = session.query(Schedule).all()
         for schedule in schedules:
-            print 'Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id)
+            log.info('Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id))
             try:
                 self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
                                     day=schedule.day, 
@@ -141,7 +143,7 @@ class Flow(object):
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
             except:
-                print 'Issue on schedule: ' + schedule.name + ' with id ' + str(schedule.id)
+                log.error('Issue on schedule: ' + schedule.name + ' with id ' + str(schedule.id))
 
         # run
         self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
@@ -150,6 +152,8 @@ class Flow(object):
 
         session.close()
         self._scheduler.start()
+
+        log.info('Flow initialized')
 
     def schedule_edit(self, id):
         if self._scheduler.get_job(str(id)) != None:
@@ -192,6 +196,8 @@ class Flow(object):
             self._scheduler.remove_job(str(id))
 
     def run(self):
+        log = logging.getLogger(__name__)
+
         session = db.session
         # create a xenbackup for each xen master
         pools = session.query(Pool).all()
@@ -272,6 +278,8 @@ class Flow(object):
 
 
     def cleanup(self):
+        log = logging.getLogger(__name__)
+
         # cleanup task
         session = db.session
         

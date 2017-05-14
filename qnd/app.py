@@ -59,6 +59,8 @@ api.add_namespace(xen_backups_namespace)
 app.register_blueprint(blueprint)
 
 
+
+
 def routes(app):
     """
     Prints all routes known to the application. Only to be used for debugging
@@ -101,7 +103,6 @@ def main():
     """
     Main running configuration
     """
-    initialize_app()
 
     log.info('>>>>> Starting server <<<<<')
     try:
@@ -109,6 +110,8 @@ def main():
         app.run(port=8080, host='0.0.0.0', debug=settings.FLASK_DEBUG, use_reloader=False)
     except:
         log.error('That \'s an uncaught error.')
+
+initialize_app()
 
 if __name__ == "__main__":
     main()

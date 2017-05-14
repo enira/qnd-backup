@@ -999,7 +999,7 @@
 					$.get( '/api/xen/vms/summary/' + array_pool[pid], function( vms ) {
 						if(typeof vms != "undefined" && vms != null && vms.length > 0){
 							for (var j in vms) {
-								$('.' + i + '_' + vms[j].uuid ).text(vms[j].name);
+								$('.' + array_pool[pid] + '_' + vms[j].uuid ).text(vms[j].name);
 							}
 						}
 					});

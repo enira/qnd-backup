@@ -68,6 +68,7 @@ def routes(app):
 
 def reset_db():
     database.reset_database(app) 
+    database.check_version(app)
 
 def initialize_app():
     """

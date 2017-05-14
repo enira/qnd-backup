@@ -62,7 +62,6 @@
     <Compile Include="reset_db.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="wsgi.py" />
     <Compile Include="xapi\XenAPI.py">
       <SubType>Code</SubType>
     </Compile>

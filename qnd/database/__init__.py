@@ -16,6 +16,9 @@ VERSION = '3'
 
 """
 
+def assign(app):
+    db.app = app
+
 def reset_database(app):
     """
     Resets the database
@@ -39,8 +42,7 @@ def check_version(app):
     log = logging.getLogger(__name__)
 
     from database.models import Setting
-
-    db.app = app
+    
     session = db.session
 
     # check version

@@ -23,7 +23,7 @@ from api.restplus import api
 from database import db
 import database
 
-application = Flask(__name__)
+app = Flask(__name__)
 logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'))
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -42,7 +42,7 @@ api.add_namespace(xen_schedules_namespace)
 api.add_namespace(xen_ui_namespace)
 api.add_namespace(xen_backups_namespace)
 
-application.register_blueprint(blueprint)
+app.register_blueprint(blueprint)
 
 def configure_app(flask_app):
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
@@ -62,9 +62,11 @@ def routes(app):
     pprint.pprint(list(map(lambda x: repr(x), app.url_map.iter_rules())))
 
 def reset_db():
-    configure_app(application)
-    db.init_app(application)
-    database.reset_database(application) 
+    configure_app(app)
+    database.assign(app)
+
+    db.init_app(app)
+    database.reset_database(app) 
 
 def initialize_app():
     """
@@ -73,27 +75,27 @@ def initialize_app():
 
     log.info('Initializing application...')
 
-    configure_app(application)
+    database.assign(app)
 
-    db.init_app(application)
+    # adding additional stuff
+    configure_app(app)
+
+    db.init_app(app)
 
     # check database version and mirate if needed
-    database.check_version(application)
-
-    # start a background thread
-    # threading.Timer(1, Flow.instance().run).start()
+    database.check_version(app)
 
     # initialize the scheduler
     Flow.instance().initialize_scheduler()
 
-@application.route('/')
+@app.route('/')
 def index():
     """
     Default route, redirects to the gui index.html page
     """
     return redirect('gui/index.html')
 
-@application.route('/gui/<path:path>')
+@app.route('/gui/<path:path>')
 def send_gui(path):
     """
     Handler for GUI component.
@@ -110,7 +112,7 @@ def main():
     log.info('>>>>> Starting server <<<<<')
     try:
         # run flask
-        application.run(port=8080, host='0.0.0.0', debug=settings.FLASK_DEBUG, use_reloader=False)
+        app.run(port=8080, host='0.0.0.0', debug=settings.FLASK_DEBUG, use_reloader=False)
     except:
         log.error('That \'s an uncaught error.')
 

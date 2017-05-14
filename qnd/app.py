@@ -28,6 +28,20 @@ logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+database.assign(app)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = settings.SQLALCHEMY_TRACK_MODIFICATIONS
+app.config['SWAGGER_UI_DOC_EXPANSION'] = settings.RESTPLUS_SWAGGER_UI_DOC_EXPANSION
+app.config['RESTPLUS_VALIDATE'] = settings.RESTPLUS_VALIDATE
+app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
+app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
+app.config['SQLALCHEMY_POOL_SIZE'] = settings.SQLALCHEMY_POOL_SIZE
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = settings.SQLALCHEMY_MAX_OVERFLOW
+
+db.init_app(app)
+
+
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 api.init_app(blueprint)
 
@@ -44,15 +58,6 @@ api.add_namespace(xen_backups_namespace)
 
 app.register_blueprint(blueprint)
 
-def configure_app(flask_app):
-    flask_app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
-    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = settings.SQLALCHEMY_TRACK_MODIFICATIONS
-    flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = settings.RESTPLUS_SWAGGER_UI_DOC_EXPANSION
-    flask_app.config['RESTPLUS_VALIDATE'] = settings.RESTPLUS_VALIDATE
-    flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
-    flask_app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
-    flask_app.config['SQLALCHEMY_POOL_SIZE'] = settings.SQLALCHEMY_POOL_SIZE
-    flask_app.config['SQLALCHEMY_MAX_OVERFLOW'] = settings.SQLALCHEMY_MAX_OVERFLOW
 
 def routes(app):
     """
@@ -62,25 +67,13 @@ def routes(app):
     pprint.pprint(list(map(lambda x: repr(x), app.url_map.iter_rules())))
 
 def reset_db():
-    configure_app(app)
-    database.assign(app)
-
-    db.init_app(app)
     database.reset_database(app) 
 
 def initialize_app():
     """
     initialize the application
     """
-
     log.info('Initializing application...')
-
-    database.assign(app)
-
-    # adding additional stuff
-    configure_app(app)
-
-    db.init_app(app)
 
     # check database version and mirate if needed
     database.check_version(app)

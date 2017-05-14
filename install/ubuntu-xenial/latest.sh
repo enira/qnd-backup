@@ -13,7 +13,7 @@ apt-get -y install python python-pip build-essential libssl-dev libffi-dev pytho
 # install postgres
 apt-get -y install postgresql postgresql-contrib
 
-
+# create the database
 runuser -l postgres -c $'psql -c "CREATE USER qnd WITH PASSWORD \'quickndirty\';"'
 runuser -l postgres -c $'psql -c "CREATE DATABASE qnd OWNER qnd;"'
 
@@ -42,6 +42,9 @@ systemctl enable nginx
 mkdir -p /var/log/qnd/
 chown qnd:qnd /var/log/qnd/
 mv /opt/qndbackup/qnd-backup-master/install/ubuntu-xenial/qnd.service /etc/systemd/system/qnd.service
+
+# reset the database
+python /opt/qndbackup/qnd/reset_db.py
 
 systemctl start qnd
 systemctl enable qnd

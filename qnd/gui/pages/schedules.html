@@ -309,13 +309,13 @@
 				
 				<div class="nav-tabs-custom">
             <ul class="nav nav-tabs">
-              <li><a href="#tab_1" id="tab_11" data-toggle="tab">Simple</a></li>
-              <li class="active"><a href="#tab_2" id="tab_22" data-toggle="tab">Advanced</a></li>
+              <li id="li_simple" class="active"><a href="#tab_1" id="tab_11" data-toggle="tab">Simple</a></li>
+              <li id="li_advanced"><a href="#tab_2" id="tab_22" data-toggle="tab">Advanced</a></li>
               
               
             </ul>
             <div class="tab-content">
-              <div class="tab-pane" id="tab_1">
+              <div class="tab-pane active" id="tab_1">
                 
 					
 					
@@ -336,7 +336,7 @@
                   <label for="machineLabel" class="col-sm-2 control-label">On the</label>
 
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" id="inputSimpleMonth" placeholder="">
+                    <input type="text" class="form-control" id="inputSimpleDay" placeholder="">
                   </div>
                 </div>
 				
@@ -344,14 +344,14 @@
                   <label for="datastoreLabel" class="col-sm-2 control-label">Every</label>
 
                   <div class="col-sm-10">
-						<select id="inputType"class="form-control">
+						<select id="inputSimpleWeekDay"class="form-control">
                     <option value="0">Monday</option>
-					<option value="week">Tuesday</option>
-					<option value="month">Wednesday</option>
-					<option value="month">Thursday</option>
-					<option value="month">Friday</option>
-					<option value="month">Saturday</option>
-					<option value="month">Sunday</option>
+					<option value="1">Tuesday</option>
+					<option value="2">Wednesday</option>
+					<option value="3">Thursday</option>
+					<option value="4">Friday</option>
+					<option value="5">Saturday</option>
+					<option value="6">Sunday</option>
                   </select>
 				  
                   </div>
@@ -375,7 +375,7 @@
 					
               </div>
               <!-- /.tab-pane -->
-              <div class="tab-pane active" id="tab_2">
+              <div class="tab-pane" id="tab_2">
                 
 				
 				<div class="form-group" >
@@ -506,7 +506,7 @@
             </div>
             <!-- /.box-body -->
 			<div class="box-footer">
-                <button type="submit" onclick="canceldatastore()" class="btn btn-default">Cancel</button>
+                <button type="submit" onclick="cancelschedule()" class="btn btn-default">Cancel</button>
                 <button type="submit" id="saveit" class="btn btn-info pull-right">Save</button>
               </div>
           </div>
@@ -580,7 +580,39 @@
 	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
 	//var vms_cache = [];
 	
+	function activate(type) {
+		// 0 = simple 
+		// 1 = advaced
+		
+		
+		$("#li_simple").removeAttr('class');
+		$("#li_advanced").removeAttr('class');
+		$("#tab_1").removeAttr('class');
+		$("#tab_2").removeAttr('class');
+		
+		if(type == 1) {
+			$("#li_advanced" ).addClass( "active" );
+		
+			$("#tab_2").addClass('active');
+		
+			$("#tab_1").hide();
+			$("#tab_2").show();
+		
+		}
+		else {
+		
+		$("#li_simple" ).addClass( "active" );
+		$("#tab_1").addClass('class');
+		$("#tab_2").hide();
+			$("#tab_1").show();
+		}
+		//$("#aria-expanded").removeAttr('class');
+
+	}
+	
 	function addschedule() {
+		activate(0);
+		
 		$("#wizardtitle").html("Add Schedule");
 		$("#inputId").val("(null)");
 		$("#schedule_dialog").css('display', 'block');
@@ -598,9 +630,7 @@
 				}
 				
 				var selected_poolid = $("#inputPools option:selected" )[0].value;
-				
-				
-				
+
 				$.get( '/api/xen/vms/summary/' + selected_poolid, function( vms ) {
 					if(typeof vms != "undefined" && vms != null && vms.length > 0){
 						for (var j in vms) {
@@ -612,15 +642,12 @@
 						
 					}
 				});
-			
-				
 			}
 		});
 		
 		$("#saveit").unbind();
 		$("#saveit").click(function(){
-			//saveitbasic();
-			saveitadvanced();
+			saveitbasic();
 		});
 	}
 	
@@ -633,7 +660,53 @@
 			$("#inputAdvancedMinute" ).val(data.minute);
 			$("#inputAdvancedMonth" ).val(data.month);
 			$("#inputAdvancedWeekday" ).val(data.week);
-		
+			
+			if(data.advanced == 0) {
+				activate(0);
+				
+				if(data.day == "*" && data.month == "*" && data.week == "*" && data.hour != "*" && data.minute != "*") {
+					// day
+					$('#inputType option[value="day"]').attr("selected", "selected");
+					 
+					$("#inputSimpleHour" ).val(data.hour);
+					$("#inputSimpleMinute" ).val(data.minute);
+					
+					$("#grp_month").hide();
+					$("#grp_day").hide();
+					$("#grp_minute").show();
+			
+				}
+				if(data.day == "*" && data.month == "*" && data.hour != "*" && data.minute != "*" && data.week != "*") {
+					// week
+					$('#inputType option[value="week"]').attr("selected", "selected");
+
+					$("#inputSimpleHour" ).val(data.hour);
+					$("#inputSimpleMinute" ).val(data.minute);	
+					$('#inputSimpleWeekDay option[value="' + data.week + '"]').attr("selected", "selected");
+					
+					$("#grp_month").hide();
+					$("#grp_day").show();
+					$("#grp_minute").show();
+			
+				}
+				if(data.month == "*" && data.week == "*" && data.hour != "*" && data.minute != "*" && data.day != "*") {
+					// month
+					$('#inputType option[value="month"]').attr("selected", "selected");
+					
+					$("#inputSimpleDay" ).val(data.day);
+					$("#inputSimpleHour" ).val(data.hour);
+					$("#inputSimpleMinute" ).val(data.minute);
+					
+					$("#grp_month").show();
+					$("#grp_day").hide();
+					$("#grp_minute").show();
+					
+				}
+			}
+			else {
+				activate(1);
+			}
+			
 			$("#inputName" ).val(data.name);
 		  
 			$('#inputPools option[value="' + data.pool_id + '"]').attr("selected", "selected");
@@ -670,10 +743,17 @@
 			$("#schedule_dialog").css('display', 'block');
 			
 			$("#saveit").unbind();
+			
+			if(data.advanced == 0) {
 			$("#saveit").click(function(){
-				//saveitbasic();
+				saveitbasic();
+			});
+			}
+			else {
+			$("#saveit").click(function(){
 				saveitadvanced();
 			});
+			}
 		});
 	}
 	
@@ -704,10 +784,24 @@
 		$("#inputAdvancedMonth" ).val('');
 		$("#inputAdvancedWeekday" ).val('');
 		
+		
+		$("#inputSimpleDay" ).val('');
+		$("#inputSimpleHour" ).val('');
+		$("#inputSimpleMinute" ).val('');			
+		
+		$('#inputSimpleWeekDay option:first-child').attr("selected", "selected");
+		
 		$("#inputName" ).val('');
-		$("#inputPools").find('select option:eq(0)').prop('selected', true);
-		$("#inputVMS").find('select option:eq(0)').prop('selected', true);
-		$("#inputDatastore").find('select option:eq(0)').prop('selected', true);
+		
+		$('#inputPools option:first-child').attr("selected", "selected");
+		$('#inputVMS option:first-child').attr("selected", "selected");
+		$('#inputDatastore option:first-child').attr("selected", "selected");
+		
+		$('#inputType option[value="day"]').attr("selected", "selected");
+					
+		$("#grp_month").hide();
+		$("#grp_day").hide();
+		$("#grp_minute").show();
 	}
 
 	function update_system() {
@@ -752,30 +846,30 @@
 		
 		if(inputType == "day") {
 			var day = "*";
-			var hour = $("#inputAdvancedHour" ).val();
-			var minute = $("#inputAdvancedMinute" ).val();
+			var hour = $("#inputSimpleHour" ).val();
+			var minute = $("#inputSimpleMinute" ).val();
 			var month = "*";
 			var weekday = "*";
 		}
 		if(inputType == "week") {
-			var day = $("#inputAdvancedDay" ).val();
-			var hour = $("#inputAdvancedHour" ).val();
-			var minute = $("#inputAdvancedMinute" ).val();
+			var day = "*";
+			var hour = $("#inputSimpleHour" ).val();
+			var minute = $("#inputSimpleMinute" ).val();
 			var month = "*";
-			var weekday = $("#inputAdvancedWeekday" ).val();		
+			var weekday = $("#inputSimpleWeekDay option:selected" )[0].value;		
 		}
 		if(inputType == "month") {
-			var day = $("#inputAdvancedDay" ).val();
-			var hour = $("#inputAdvancedHour" ).val();
-			var minute = $("#inputAdvancedMinute" ).val();
-			var month = $("#inputAdvancedMonth" ).val();
-			var weekday = $("#inputAdvancedWeekday" ).val();		
+			var day = $("#inputSimpleDay" ).val();
+			var hour = $("#inputSimpleHour" ).val();
+			var minute = $("#inputSimpleMinute" ).val();
+			var month = "*";
+			var weekday = "*";		
 		}
 		
 		
 		if(call == '(null)') {
 			jsonData = '{"week": "' + weekday + '","uuid": "' + vmuuid + '","pool_id": ' + poolid + ' ,"name": "' + name + '","hour": "' + hour + '","datastore_id": ' + datastoreid;
-			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'", "advanced": 1}';
+			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'", "advanced": 0}';
 			
 			$.ajax({
 				url: '/api/xen/schedule/',
@@ -792,7 +886,7 @@
 		}
 		else {
 			jsonData = '{"week": "' + weekday + '","uuid": "' + vmuuid + '","pool_id": ' + poolid + ' ,"name": "' + name + '","hour": "' + hour + '","datastore_id": ' + datastoreid;
-			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'", "advanced": 1}';
+			jsonData = jsonData + ',"day": "' + day + '","minute": "' + minute + '","month": "' + month +'", "advanced": 0}';
 			
 			$.ajax({
 				url: '/api/xen/schedule/' + call,
@@ -937,6 +1031,24 @@
 			}
 		});	
 	}
+	
+	function simple_ui(type) {
+		if(type == "day") {
+			$("#grp_month").hide();
+			$("#grp_day").hide();
+			$("#grp_minute").show();
+		}
+		if(type == "week") {
+			$("#grp_month").hide();
+			$("#grp_day").show();
+			$("#grp_minute").show();
+		}
+		if(type == "month") {
+			$("#grp_month").show();
+			$("#grp_day").hide();
+			$("#grp_minute").show();
+		}		
+	}
 
 	$(document).ready(function(){
 		load();
@@ -982,14 +1094,13 @@
 			
 			$("#saveit").unbind();
 			$("#saveit").click(function(){
-				//saveitbasic();
-				saveitadvanced();
+				saveitbasic();
 			});
 		}
 
 		
 		$('#inputType').on('change', function() {
-			alert( this.value );
+			simple_ui(this.value );
 		});
 		
 		$.get( '/api/xen/users/currentuser', function( user ) {

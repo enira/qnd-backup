@@ -8,35 +8,47 @@ The goal of this little project is to provide a free backup for hobbyists and ev
 So any code, updates and changes will be made according my personal preference and needs for the time being.
 
 # Installation
-## Requirements
+
+## Deploy VM package
+A pre defined OVA package can be found at: https://github.com/enira/qnd-backup/releases/download/alpha-3/qnd-alpha-3.ova.gz
+
+## Manual install
+### Requirements
 A simple VM with:
 - 512 MB RAM
 - 1 CPU
 - 6GB HDD: Less will work too, the bare necessities to run your OS is fine
 - Ubuntu 16.04 LTS: Sorry guys, I run 16.04 LTS. I have no intention to support 14.04 LTS (it's three years old now) and Centos... maybe. 
 
-## Ubuntu 16.04 LTS
+### Ubuntu 16.04 LTS
 
-### Installing latest release
+#### Installing latest release
 Installing the server can be done by running:
 ```
 wget -O - https://raw.githubusercontent.com/enira/qnd-backup/master/install/ubuntu-xenial/provision.sh | sudo bash
 ```
 
-### Installing latest version
+#### Installing latest version
 ```
 wget -O - https://raw.githubusercontent.com/enira/qnd-backup/master/install/ubuntu-xenial/latest.sh | sudo bash
 ```
-### Upgrading
+#### Upgrading
 During the alpha phase, there are no upgrades available.
 
 
 # Usage
-```
-sudo service
-```
-## Ubuntu 16.04 LTS
 
+## Ubuntu 16.04 LTS
+Once the service is installed it can be used like a normal service.
+```
+sudo service qnd stop
+```
+```
+sudo service qnd start
+```
+```
+sudo service qnd status
+```
 
 # Notice - Releases
 Any release marked as alpha is unsafe for stable (and or production) use and should be treated as such. They do not contain any validations and are dumb, input is unvalidated. 

@@ -23,7 +23,7 @@ class XenBackup:
 
     backuptasks = []
     restoretasks = []
-    hosts = None            #
+    hosts = None            # hosts
     
     BACKUPROOT = '/media/.qnd'
     _server = None
@@ -121,7 +121,6 @@ class XenBackup:
         """
         return self.get_active_host().get_hosts()
 
-
     def get_attached_disks(self, vms):
         """
         Get all disks attached to a VM
@@ -147,7 +146,6 @@ class XenBackup:
                             result[vm["uuid"]].append(img[1])
 
         return result
-
     
     def run_backups(self):
         """
@@ -322,7 +320,7 @@ class XenBackup:
 
         self.update_pct(task, 0.70, None, 0.20, 'backup', session)
 
-        #        # TODO check if snapshots are oke
+        #        # TODO check if snapshots are ok
 
         # create a snapshot
         try:

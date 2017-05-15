@@ -7,6 +7,7 @@ import threading
 
 from xen.flow import Flow
 
+# enpoint binding
 from api.xen.endpoints.users import ns as xen_users_namespace
 from api.xen.endpoints.pools import ns as xen_pools_namespace
 from api.xen.endpoints.hosts import ns as xen_hosts_namespace
@@ -23,10 +24,14 @@ from api.restplus import api
 from database import db
 import database
 
-app = Flask(__name__)
+# setting logging
 logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'))
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+
+# flask
+app = Flask(__name__)
 
 database.assign(app)
 
@@ -40,7 +45,6 @@ app.config['SQLALCHEMY_POOL_SIZE'] = settings.SQLALCHEMY_POOL_SIZE
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = settings.SQLALCHEMY_MAX_OVERFLOW
 
 db.init_app(app)
-
 
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 api.init_app(blueprint)
@@ -58,9 +62,6 @@ api.add_namespace(xen_backups_namespace)
 
 app.register_blueprint(blueprint)
 
-
-
-
 def routes(app):
     """
     Prints all routes known to the application. Only to be used for debugging
@@ -74,7 +75,7 @@ def reset_db():
 
 def initialize_app():
     """
-    initialize the application
+    Initialize the application
     """
     log.info('Initializing application...')
 
@@ -111,6 +112,7 @@ def main():
     except:
         log.error('That \'s an uncaught error.')
 
+# initialize application
 initialize_app()
 
 if __name__ == "__main__":

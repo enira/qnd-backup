@@ -17,6 +17,9 @@ VERSION = '3'
 """
 
 def assign(app):
+    """
+    Assign app to db context
+    """
     db.app = app
 
 def reset_database(app):

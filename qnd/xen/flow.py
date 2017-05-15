@@ -1,6 +1,5 @@
 import threading
 import datetime
-
 import logging
 import os 
 
@@ -13,7 +12,6 @@ from database import db
 
 from mover import Mover
 from xenbackup import XenBackup
-
 
 class Flow(object):
     """
@@ -70,6 +68,9 @@ class Flow(object):
 
 
     def scan_environment(self, pool_id):
+        """
+        Scan environment for all vms, hosts & disks.
+        """
         obj = {}
         obj["vms"] = self._poolcache[pool_id]["backup"].get_vms()
         obj["hosts"] = self._poolcache[pool_id]["backup"].get_hosts()
@@ -78,7 +79,6 @@ class Flow(object):
         self._envcache[pool_id] = obj
 
     def get_vms(self, pool_id):
-
         """
         Get all VMs for a pool. 
         """
@@ -102,14 +102,23 @@ class Flow(object):
         return vms
 
     def scan_vms(self, pool_id):
+        """
+        Scan vms.
+        """
         vms = self._poolcache[pool_id]["backup"].get_vms()
         self._vmscache[pool_id] = vms
 
     def get_sr(self, pool_id, address):
+        """
+        Scan software repositories.
+        """
         srs = self._poolcache[pool_id]["backup"].get_sr(address)
         return srs
 
     def create_task(self, schedule_id):
+        """
+        Create a backup task.
+        """
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == schedule_id).one()
         print str(datetime.datetime.now()) + '>>' + str(schedule.id)
@@ -123,6 +132,9 @@ class Flow(object):
         session.close()
 
     def initialize_scheduler(self):
+        """
+        Initialize the schedulere. Create all tasks that need to be runned.
+        """
         log = logging.getLogger(__name__)
 
         log.info("Creating sechuler...")
@@ -156,6 +168,9 @@ class Flow(object):
         log.info('Flow initialized')
 
     def schedule_edit(self, id):
+        """
+        Edit a schedule, remove from scheduler and add again.
+        """
         if self._scheduler.get_job(str(id)) != None:
             self._scheduler.remove_job(str(id))
 
@@ -176,6 +191,9 @@ class Flow(object):
                 
 
     def schedule_add(self, id):
+        """
+        Add task to scheduler.
+        """
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == id).one()
         try:
@@ -192,10 +210,16 @@ class Flow(object):
         session.close()
 
     def schedule_delete(self, id):
+        """
+        Delete task from scheduler.
+        """
         if self._scheduler.get_job(str(id)) != None:
             self._scheduler.remove_job(str(id))
 
     def run(self):
+        """
+        Run (main thread)
+        """
         log = logging.getLogger(__name__)
 
         session = db.session
@@ -278,6 +302,9 @@ class Flow(object):
 
 
     def cleanup(self):
+        """
+        Cleanup task
+        """
         log = logging.getLogger(__name__)
 
         # cleanup task
@@ -293,6 +320,9 @@ class Flow(object):
 
 
     def archive(self):
+        """
+        Archiving task
+        """
         # if no lock in place
         
         try:
@@ -342,6 +372,9 @@ class Flow(object):
 
 
     def _internal_get_archive(self, machine, machines, session):
+        """
+        Internal archive function.
+        """
         oldest = None
 
         for b in machines[machine]:

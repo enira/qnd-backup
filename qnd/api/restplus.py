@@ -16,9 +16,12 @@ api = Api(version='alpha-3', title='Quick \'n Dirty XenServer Backup', descripti
 
 @api.errorhandler
 def default_error_handler(e):
+    """
+    Default error handler
+    """
     message = 'An unhandled exception occurred.'
     
-
+    # if debug mode, expand error (always there for alpha releases)
     if settings.FLASK_DEBUG:
         message = "";
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -41,5 +44,8 @@ def default_error_handler(e):
 
 @api.errorhandler(NoResultFound)
 def database_not_found_error_handler(e):
+    """
+    Error datanase result not found.
+    """
     log.warning(traceback.format_exc())
     return {'message': 'A database result was required but none was found.'}, 404

@@ -269,7 +269,7 @@ def create_schedule(data):
 
 def update_schedule(schedule_id, data):
     """
-    Update a schedule
+    Update a schedule.
     """
     schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).one()
 
@@ -303,4 +303,28 @@ def delete_schedule(schedule_id):
     Flow.instance().schedule_delete(schedule.id)
 
 def delete_backup(backup_id):
-    pass
+    """
+    Delete a backup.
+    """
+
+    tasks = session.query(ArchiveTask).filter(ArchiveTask.backup_id == backup_id).all()
+    for task in tasks:
+        task.backup = None
+        session.add(task)
+        session.commit()
+
+    tasks = session.query(BackupTask).filter(BackupTask.backup_id == backup_id).all()
+    for task in tasks:
+        task.backup = None
+        session.add(task)
+        session.commit()
+
+    tasks = session.query(RestoreTask).filter(RestoreTask.backup_id == backup_id).all()
+    for task in tasks:
+        task.backup = None
+        session.add(task)
+        session.commit()  
+        
+    backup = db.session.query(Backup).filter(Backup.id == backup_id).one()
+    session.delete(backup)
+    session.commit()

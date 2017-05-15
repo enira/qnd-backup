@@ -1,7 +1,6 @@
 from xapi import XenAPI
 from urlparse import urlparse
 
-
 class XenBridge:
     """
     Bridge between a server and the host. This class uses SSH to connect to the Xen server.

@@ -32,7 +32,7 @@ class LocalStorageCollection(Resource):
     @api.marshal_list_with(host_sr)
     def get(self, pool_id, host_id):
         """
-        Gets all SR available for a host (based on host address)
+        Gets all SR available for a host (based on host id).
         """
 
         host = db.session.query(Host).filter(Host.id == host_id).one()
@@ -65,7 +65,7 @@ class BackupItem(Resource):
     @api.response(204, 'Backup successfully deleted.')
     def delete(self, id):
         """
-        Deletes a pool.
+        Deletes a backup.
         """
         delete_backup(id)
         return None, 204

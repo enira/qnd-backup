@@ -4,7 +4,7 @@ from flask import request
 from flask_restplus import Resource
 
 from api.xen.business import create_datastore, delete_datastore, update_datastore
-from api.xen.serializers import datastore
+from api.xen.serializers import datastore, datastore_rw
 from api.restplus import api
 
 from database.models import Datastore
@@ -26,10 +26,21 @@ class DatastoreCollection(Resource):
         return datastores
 
     @api.response(201, 'Datastore successfully created.')
-    @api.expect(datastore)
+    @api.expect(datastore_rw)
     def post(self):
         """
         Creates a new datastore.
+        Use this method to create a new datastore.
+        * Send a JSON object with the properties in the request body.
+        ```
+        {
+          "name": "New datastore name",
+          "username": "New datastore username",
+          "password": "New datastore password",
+          "host": "New datastore host",
+          "type": "New datastore type"
+        }
+        ```
         """
         data = request.json
         create_datastore(data)
@@ -47,13 +58,13 @@ class DatastoreItem(Resource):
         """
         return db.session.query(Datastore).filter(Datastore.id == id).one()
     
-    @api.expect(datastore)
+    @api.expect(datastore_rw)
     @api.response(204, 'Datastore successfully updated.')
     def put(self, id):
         """
         Updates a datastore.
         Use this method to change the properties of a datastore.
-        * Send a JSON object with the new name in the request body.
+        * Send a JSON object with the properties in the request body.
         ```
         {
           "name": "New datastore name",

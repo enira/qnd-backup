@@ -4,7 +4,7 @@ from flask import request
 from flask_restplus import Resource
 
 from api.xen.business import create_host, delete_host, update_host
-from api.xen.serializers import host
+from api.xen.serializers import host, host_rw
 from api.restplus import api
 
 from database.models import Host
@@ -27,10 +27,21 @@ class HostCollection(Resource):
         return hosts
 
     @api.response(201, 'Host successfully created.')
-    @api.expect(host)
+    @api.expect(host_rw)
     def post(self):
         """
         Creates a new host.
+        Use this method to change the properties of a host.
+        * Send a JSON object with the new name in the request body.
+        ```
+        {
+          "username": "New host username",
+          "password": "New host password",
+          "address": "New host address",
+          "type": "New host type",
+          "pool_id": "Pool id"
+        }
+        ```
         """
         data = request.json
         create_host(data)
@@ -48,7 +59,7 @@ class HostItem(Resource):
         """
         return db.session.query(Host).filter(Host.id == id).one()
     
-    @api.expect(host)
+    @api.expect(host_rw)
     @api.response(204, 'Host successfully updated.')
     def put(self, id):
         """

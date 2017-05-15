@@ -30,6 +30,18 @@ class ArchiveCollection(Resource):
     def post(self):
         """
         Creates a new archive.
+        Use this method to change the properties of an archive.
+        * Send a JSON object with the new properties in the request body.
+        ```
+        {
+          "name": "Archive name",
+          "source_id": "Source datastore",
+          "target_id": "Target datastore",
+          "encryption_key": "Archive encryption key",
+          "retention": "Retention copies. If source datastore has more backups available than this value. Archive it.",
+          "incremental": "0 = no, 1 = yes (currently unimplemented)",
+        }
+        ```
         """
         data = request.json
         create_archive(data)
@@ -56,6 +68,7 @@ class ArchiveItem(Resource):
         * Send a JSON object with the new properties in the request body.
         ```
         {
+          "name": "Archive name",
           "source_id": "Source datastore",
           "target_id": "Target datastore",
           "encryption_key": "Archive encryption key",

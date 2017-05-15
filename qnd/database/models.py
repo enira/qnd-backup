@@ -4,6 +4,9 @@ import datetime
 from database import db
 
 class User(db.Model):
+    """
+    Username in database; currently not used. Planned.
+    """
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)                                    # id
     username = db.Column(db.String(32), index=True)                                 # the username
@@ -52,7 +55,7 @@ class Host(db.Model):
     type = db.Column(db.String)                                                 # type - not used
 
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # associated pool id
-    pool = db.relationship('Pool', back_populates='hosts', lazy='immediate')                      # associated pool object
+    pool = db.relationship('Pool', back_populates='hosts', lazy='immediate')    # associated pool object
 
 class Datastore(db.Model):
     """
@@ -95,19 +98,19 @@ class Archive(db.Model):
     transferred to the target datastore.
     """
     __tablename__ = 'archives'
-    id = db.Column(db.Integer, primary_key=True)                                # id
-    name = db.Column(db.String)                                                 # the display name
+    id = db.Column(db.Integer, primary_key=True)                                        # id
+    name = db.Column(db.String)                                                         # the display name
 
-    source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
-    source = db.relationship('Datastore', foreign_keys=[source_id], lazy='immediate')             # datastore object  
+    source_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))                   # datastore id
+    source = db.relationship('Datastore', foreign_keys=[source_id], lazy='immediate')   # datastore object  
     
-    target_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))           # datastore id
-    target = db.relationship('Datastore', foreign_keys=[target_id], lazy='immediate')             # datastore object  
+    target_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))                   # datastore id
+    target = db.relationship('Datastore', foreign_keys=[target_id], lazy='immediate')   # datastore object  
 
-    encryption_key = db.Column(db.String)                                       # encryption key 
+    encryption_key = db.Column(db.String)                                               # encryption key: not implemented
 
-    retention = db.Column(db.Integer)                                           # amount of backups to keep before archiving  
-    incremental = db.Column(db.Integer)                                         # not implemented
+    retention = db.Column(db.Integer)                                                   # amount of backups to keep before archiving  
+    incremental = db.Column(db.Integer)                                                 # not implemented
 
 
 class Setting(db.Model):
@@ -164,6 +167,7 @@ class BackupTask(db.Model):
     divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
 
     status = db.Column(db.String)                                               # status of the task
+    
     def pct(self):
         if self.pct1 == None:
             s1 = 0

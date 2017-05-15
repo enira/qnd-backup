@@ -1,11 +1,8 @@
-
-
 import logging
 import os
 import configparser
 
 log = logging.getLogger(__name__)
-
 
 from bridge import Bridge
 
@@ -52,7 +49,9 @@ class Mover:
         session.commit()
 
     def delete_reference(self, session, backup_id):
-
+        """
+        Deleting all reference tasks.
+        """
         tasks = session.query(ArchiveTask).filter(ArchiveTask.backup_id == backup_id).all()
         for task in tasks:
             task.backup = None
@@ -73,7 +72,7 @@ class Mover:
 
     def archive(self, task_id):
         """
-        Archive a VM
+        Archive a VM.
         """
         print 'Archiving'
 

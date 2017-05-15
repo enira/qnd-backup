@@ -1,7 +1,7 @@
 from flask_restplus import fields
 from api.restplus import api
 
-vm_full = api.model('VMFull', {
+vm_full = api.model('vm_full', {
     'name': fields.String(required=True, description='VM name'),
     'uuid': fields.String(required=True, description='VM uuid'),
     'status': fields.String(required=True, description='VM status'),
@@ -13,13 +13,13 @@ vm_full = api.model('VMFull', {
     'disk_virtual': fields.String(required=True, description='Virtual allocated size on disk'),
 })
 
-vm = api.model('VM', {
+vm = api.model('vm', {
     'name': fields.String(required=True, description='VM name'),
     'uuid': fields.String(required=True, description='VM uuid'),
     'status': fields.String(required=True, description='VM status'),
 })
 
-system = api.model('System', {
+system = api.model('system', {
     'cpu_load': fields.Integer(readOnly=True, description='CPU load (in percent)'),
     'cpu_num': fields.Integer(readOnly=True, description='Amount of cores'),
     'cpu_freq': fields.Integer(readOnly=True, description='CPU frequency (in MHz)'),
@@ -38,7 +38,7 @@ pool_rw = api.model('pool_rw', {
     'name': fields.String(required=True, description='Pool name'),
 })
 
-host = api.model('Host', {
+host = api.model('host', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a host'),
     'username': fields.String(required=True, description='Username being used by the host'),
     'password': fields.String(required=True, description='Password being used by the host'),
@@ -47,16 +47,34 @@ host = api.model('Host', {
     'pool_id': fields.Integer(required=True, description='The unique identifier of the associated pool'),
 })
 
-datastore = api.model('Datastore', {
+host_rw = api.model('host_rw', {
+    'username': fields.String(required=True, description='Username being used by the host'),
+    'password': fields.String(required=True, description='Password being used by the host'),
+    'address': fields.String(required=True, description='Host address'),
+    'type': fields.String(required=True, description='Host type (only used internally)'),
+    'pool_id': fields.Integer(required=True, description='The unique identifier of the associated pool'),
+})
+
+
+datastore = api.model('datastore', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a datastore'),
     'name': fields.String(required=True, description='Name being used by the datastore'),
     'username': fields.String(required=True, description='Username being used by the datastore'),
     'password': fields.String(required=True, description='Password being used by the datastore'),
     'host': fields.String(required=True, description='Datastore host address (ip or hostname)'),
-    'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\')'),
+    'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\' & \'smb-archive\')'),
 })
 
-datastore_safe = api.model('Datastore_Safe', {
+datastore_rw = api.model('datastore_rw', {
+    'name': fields.String(required=True, description='Name being used by the datastore'),
+    'username': fields.String(required=True, description='Username being used by the datastore'),
+    'password': fields.String(required=True, description='Password being used by the datastore'),
+    'host': fields.String(required=True, description='Datastore host address (ip or hostname)'),
+    'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\' & \'smb-archive\')'),
+})
+
+
+datastore_safe = api.model('datastore_safe', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a datastore'),
     'name': fields.String(required=True, description='Name being used by the datastore'),
     'host': fields.String(required=True, description='Datastore host address (ip or hostname)'),
@@ -91,7 +109,7 @@ messages = api.model('messages', {
     'tasks_items': fields.List(fields.Nested(tasks_item)),
 })
 
-archive = api.model('ArchiveUpdate', {
+archive = api.model('archive', {
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
     'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),
@@ -100,7 +118,7 @@ archive = api.model('ArchiveUpdate', {
     'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
 })
 
-archive_rw = api.model('Archive', {
+archive_rw = api.model('archive_rw', {
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
     'target_id': fields.Integer(required=True, description='The associated datastore id of the target'),
@@ -109,7 +127,7 @@ archive_rw = api.model('Archive', {
     'incremental': fields.Integer(required=True, description='Incremental policy (0=no, 1=yes)'),
 })
 
-archive_ro = api.model('ArchiveRead', {
+archive_ro = api.model('archive_ro', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of an archive'),
     'name': fields.String(required=True, description='The given display name of an archive'),
     'source_id': fields.Integer(required=True, description='The associated datastore id of the source'),
@@ -164,13 +182,11 @@ schedule_ro = api.model('schedule_ro', {
     'advanced': fields.Integer(required=True, description='Simple or advanced (0=simple, 1=advanced)'),
 })
 
-
-
-backup_safe = api.model('BackupRead', {
+backup_safe = api.model('backup_safe', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a backup'),
     'metafile': fields.String(required=True, description='The metafile name'),
     'backupfile': fields.String(required=True, description='The backupfile name'),
-    'comment': fields.String(required=True, description='comment of the backup'),
+    'comment': fields.String(required=True, description='The comment of the backup'),
     'uuid': fields.String(required=True, description='VM UUID'),
     'vmname': fields.String(required=True, description='VM Name of backed up VM'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
@@ -180,7 +196,7 @@ backup_safe = api.model('BackupRead', {
 })
 
 
-backuptask = api.model('BackupTask', {
+backuptask = api.model('backuptask', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a backup task'),
     'schedule_id': fields.Integer(required=True, description='The associated schedule id'),
     'snapshotname': fields.String(required=True, description='The snapshot name'),
@@ -200,7 +216,7 @@ backuptask = api.model('BackupTask', {
     'status': fields.String(required=True, description='The status of the task'),
 })
 
-backuptask_rw = api.model('BackupTaskRW', {
+backuptask_rw = api.model('backuptask_rw', {
     'pool_id': fields.Integer(required=True, description='The pool id'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
     'host_id': fields.Integer(required=True, description='The host id'),
@@ -214,7 +230,7 @@ backuptask_rw = api.model('BackupTaskRW', {
     'status': fields.String(required=True, description='The status of the task'),
 })
 
-archivetask = api.model('ArchiveTask', {
+archivetask = api.model('archivetask', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
 
     'backup_id': fields.Integer(required=True, description='The backup id'),
@@ -231,7 +247,7 @@ archivetask = api.model('ArchiveTask', {
     'status': fields.String(required=True, description='The status of the task'),
 })
 
-restoretask = api.model('RestoreTask', {
+restoretask = api.model('restoretask', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a task'),
     'backupname': fields.String(required=True, description='The backup name'),
 
@@ -240,7 +256,7 @@ restoretask = api.model('RestoreTask', {
 
     'host_id': fields.Integer(required=True, description='The host id'),
 
-    'sr': fields.String(required=True, description='The SR'),
+    'sr': fields.String(required=True, description='The software repository (SR) where to place the VM'),
 
     'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
@@ -250,11 +266,11 @@ restoretask = api.model('RestoreTask', {
     'status': fields.String(required=True, description='The status of the task'),
 })
 
-restoretask_rw = api.model('RestoreTaskRW', {
+restoretask_rw = api.model('restoretask_rw', {
     'backupname': fields.String(required=True, description='The backup name'),
     'backup_id': fields.Integer(required=True, description='The backup id'),
     'host_id': fields.Integer(required=True, description='The host id'),
-    'sr': fields.String(required=True, description='The SR'),
+    'sr': fields.String(required=True, description='The software repository (SR) where to place the VM'),
     'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),
     'pct1': fields.Integer(required=True, description='Percent complete of task 1'),
@@ -278,7 +294,7 @@ available_backups = api.model('available_backups', {
 })
 
 
-host_sr = api.model('HostSR', {
+host_sr = api.model('host_sr', {
     'name': fields.String(readOnly=True, description='Name of the SR'),
     'sr': fields.String(required=True, description='Xen OpaqueID of the SR'),
 })

@@ -152,6 +152,9 @@ class Mover:
 
 
     def test_host(self, server, username, password):
+        """
+        testing if a host can be connected.
+        """
         test = Bridge(server, username, password)
         result = test.command('echo ...')
 
@@ -162,22 +165,49 @@ class Mover:
         except:
             return False
 
-    def test_datastore(self):
-        return True
-        #TODO
-        # create mount point
-        connection.sudo_command('mkdir -p ' + bckfolder, self._server[2])
+    def test_datastore(self, server, username, password):
+        """
+        Testing if a datastore can be connected.
+        """
 
-        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
+        try:
+            if self._server != None:
+                m = Bridge(self._server[0], self._server[1], self._server[2])
 
-        # check if already mounted
-        result = connection.command('df -h | grep -i ' + bckfolder)
-        if len(result) == 0:
-            # mount smb
-            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
+                folder = self.ARCHIVEROOT + '/test'
 
-        result = connection.command('df -h | grep -i ' + bckfolder)
-        if len(result) == 0:
-            log.error('Could not mount the datastore')
-            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
-            return
+                # create mount point
+                m.sudo_command('mkdir -p ' + folder, self._server[2])
+       
+                # check if already mounted
+                result = m.command('df -h | grep -i ' + folder)
+                if len(result) != 0:
+                    # unmount smb
+                    m.sudo_command('umount ' + folder, self._server[2])
+
+                    result = m.command('df -h | grep -i ' + folder)
+                    if len(result) != 0:
+                        # still mounted, issue
+                        return False
+
+                # mount
+                result = m.sudo_command('mount -t cifs -o username=' + username + ',password=' + password + ' ' + server + ' ' + folder, self._server[2])
+
+                result = m.command('df -h | grep -i ' + folder)
+                if len(result) == 0:
+                    log.error('Could not mount the datastore')
+                    # no datastore mounted
+                    return False
+                else:
+                    # server in datastore
+                    if server in result[0] :
+                        return True
+                    else:
+                        # server not mounted
+                        return False
+
+            # else fail
+            return False
+        except:
+            # error couldn't mount
+            return False

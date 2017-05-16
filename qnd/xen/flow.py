@@ -380,7 +380,7 @@ class Flow(object):
         """
         Test if a datastore is valid.
         """
-        return self._mover.test_datastore()
+        return self._mover.test_datastore(server, username, password)
 
     def _internal_get_archive(self, machine, machines, session):
         """

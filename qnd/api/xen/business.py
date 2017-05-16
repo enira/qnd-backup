@@ -135,7 +135,14 @@ def test_datastore(data):
     """
     Test the datastore
     """
-    return 200
+
+    username = data.get('username')
+    password = data.get('password')
+    server = data.get('host')
+
+    if Flow.instance().test_datastore(server, username, password) == True:
+        return 200
+    return 404
 
 # Tasks
 def create_backup_task(data):

@@ -31,6 +31,21 @@ class TaskCollection(Resource):
     def post(self):
         """
         Creates a new backup task.
+        ```
+        {
+          "status": "The status of the task",
+          "started": "The time the task has been started",
+          "ended": "The time the task has ended",
+          "host_id": "The host id",
+          "divisor": "Division of percentage compared against task 1 & task 2"
+          "uuid": "VM UUID",
+          "sr": "The software repository (SR) where to place the VM",
+          "pool_id": "The pool id",
+          "pct2": "Percent complete of task 2",
+          "pct1": "Percent complete of task 1",
+          "datastore_id": "The datastore id"
+        }
+        ```
         """
         data = request.json
         create_backup_task(data)
@@ -51,7 +66,7 @@ class TaskItem(Resource):
     @api.response(204, 'BackupTask successfully deleted.')
     def delete(self, id):
         """
-        Deletes a task.
+        Deletes a backup task.
         """
         delete_backup_task(id)
         return None, 204
@@ -73,6 +88,20 @@ class TaskCollection(Resource):
     def post(self):
         """
         Creates a new restore task.
+        ```
+        {
+          "status": "The status of the task",
+          "ended": "The time the task has ended",
+          "pct1": "Percent complete of task 1",
+          "backup_id": "The backup id",
+          "backupname": "The backup name",
+          "pct2": "Percent complete of task 2",
+          "sr": "The software repository (SR) where to place the VM",
+          "started": "The time the task has been started",
+          "host_id": "The host id",
+          "divisor": "Division of percentage compared against task 1 & task 2"
+        }
+        ```
         """
         data = request.json
         create_restore_task(data)

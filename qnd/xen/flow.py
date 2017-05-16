@@ -370,6 +370,17 @@ class Flow(object):
         except Exception as e :
             print 'Uh oh, exception: ' + str(e)
 
+    def test_host(self, server, username, password):
+        """
+        Test if a host is valid.
+        """
+        return self._mover.test_host(server, username, password)
+
+    def test_datastore(self, server, username, password):
+        """
+        Test if a datastore is valid.
+        """
+        return self._mover.test_datastore()
 
     def _internal_get_archive(self, machine, machines, session):
         """

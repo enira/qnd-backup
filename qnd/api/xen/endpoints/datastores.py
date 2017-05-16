@@ -3,8 +3,8 @@ import logging
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.business import create_datastore, delete_datastore, update_datastore
-from api.xen.serializers import datastore, datastore_rw
+from api.xen.business import create_datastore, delete_datastore, update_datastore, test_datastore
+from api.xen.serializers import datastore, datastore_rw, datastore_test
 from api.restplus import api
 
 from database.models import Datastore
@@ -13,6 +13,29 @@ from database import db
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/datastore', description='Operations related to datastores')
+
+@ns.route('/test/')
+class DatastoreTest(Resource):
+
+    @api.response(200, 'Datastore connection established.')
+    @api.response(404, 'Datastore connection failed.')
+    @api.expect(datastore_test)
+    def post(self):
+        """
+        Tests a connection to a datastore.
+        * Send a JSON object with the properties in the request body.
+        ```
+        {
+          "username": "Datastore username",
+          "password": "Datastore password",
+          "host": "Datastore host",
+          "type": "Datastore type"
+        }
+        ```
+        """
+        data = request.json
+        code = test_datastore(data)
+        return None, code
 
 @ns.route('/')
 class DatastoreCollection(Resource):

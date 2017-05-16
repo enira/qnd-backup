@@ -55,6 +55,11 @@ host_rw = api.model('host_rw', {
     'pool_id': fields.Integer(required=True, description='The unique identifier of the associated pool'),
 })
 
+host_test = api.model('host_test', {
+    'username': fields.String(required=True, description='Username being used by the host'),
+    'password': fields.String(required=True, description='Password being used by the host'),
+    'address': fields.String(required=True, description='Host address'),
+})
 
 datastore = api.model('datastore', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a datastore'),
@@ -73,6 +78,12 @@ datastore_rw = api.model('datastore_rw', {
     'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\' & \'smb-archive\')'),
 })
 
+datastore_test = api.model('datastore_test', {
+    'username': fields.String(required=True, description='Username being used by the datastore'),
+    'password': fields.String(required=True, description='Password being used by the datastore'),
+    'host': fields.String(required=True, description='Datastore host address (ip or hostname)'),
+    'type': fields.String(required=True, description='Datastore type (Supported values: \'smb\' & \'smb-archive\')'),
+})
 
 datastore_safe = api.model('datastore_safe', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a datastore'),

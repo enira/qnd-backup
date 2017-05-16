@@ -3,8 +3,8 @@ import logging
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.business import create_host, delete_host, update_host
-from api.xen.serializers import host, host_rw
+from api.xen.business import create_host, delete_host, update_host, test_host
+from api.xen.serializers import host, host_rw, host_test
 from api.restplus import api
 
 from database.models import Host
@@ -13,6 +13,29 @@ from database import db
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/host', description='Operations related to hosts')
+
+
+@ns.route('/test/')
+class HostTest(Resource):
+
+    @api.response(200, 'Host connection established.')
+    @api.response(404, 'Host connection failed.')
+    @api.expect(host_test)
+    def post(self):
+        """
+        Tests a connection to a new host.
+        * Send a JSON object with the properties in the request body.
+        ```
+        {
+          "username": "Host username",
+          "password": "Host password",
+          "address": "Host address",
+        }
+        ```
+        """
+        data = request.json
+        code = test_host(data)
+        return None, code
 
 
 @ns.route('/')

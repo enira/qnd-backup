@@ -149,3 +149,35 @@ class Mover:
 
         session.close()
         print 'Archiving done'
+
+
+    def test_host(self, server, username, password):
+        test = Bridge(server, username, password)
+        result = test.command('echo ...')
+
+        try:
+            if result[0] == '...':
+                return True
+            return False
+        except:
+            return False
+
+    def test_datastore(self):
+        return True
+        #TODO
+        # create mount point
+        connection.sudo_command('mkdir -p ' + bckfolder, self._server[2])
+
+        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
+
+        # check if already mounted
+        result = connection.command('df -h | grep -i ' + bckfolder)
+        if len(result) == 0:
+            # mount smb
+            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
+
+        result = connection.command('df -h | grep -i ' + bckfolder)
+        if len(result) == 0:
+            log.error('Could not mount the datastore')
+            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
+            return

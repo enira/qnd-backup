@@ -80,6 +80,18 @@ def delete_host(host_id):
     db.session.delete(host)
     db.session.commit()
 
+def test_host(data):
+    """
+    Test a host
+    """
+    username = data.get('username')
+    password = data.get('password')
+    server = data.get('address')
+
+    if Flow.instance().test_host(server, username, password) == True:
+        return 200
+    return 404
+
 # Datastores 
 def create_datastore(data):
     """
@@ -119,6 +131,11 @@ def delete_datastore(datastore_id):
     db.session.delete(datastore)
     db.session.commit()
 
+def test_datastore(data):
+    """
+    Test the datastore
+    """
+    return 200
 
 # Tasks
 def create_backup_task(data):

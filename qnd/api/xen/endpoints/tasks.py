@@ -36,10 +36,8 @@ class TaskCollection(Resource):
           "status": "The status of the task",
           "started": "The time the task has been started",
           "ended": "The time the task has ended",
-          "host_id": "The host id",
           "divisor": "Division of percentage compared against task 1 & task 2"
           "uuid": "VM UUID",
-          "sr": "The software repository (SR) where to place the VM",
           "pool_id": "The pool id",
           "pct2": "Percent complete of task 2",
           "pct1": "Percent complete of task 1",

@@ -222,6 +222,26 @@
     <section class="content">
 	
 		<div id="messagebox"></div>
+		
+		<!-- modal test host -->
+		
+		
+			<div id="modalhost" class="modal-dialog modal fix_modal" style="position:absolute; height: 186px;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Host validation - </h4>
+              </div>
+              <div class="modal-body">
+                <p id="txtmodalhost"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
 	
 	
 		<!-- Delete modal pools -->
@@ -231,7 +251,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">Ã—</span></button>
+                  <span aria-hidden="true">×</span></button>
                 <h4 class="modal-title">Confirm delete</h4>
               </div>
               <div class="modal-body">
@@ -252,7 +272,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">Ã—</span></button>
+                  <span aria-hidden="true">×</span></button>
                 <h4 class="modal-title">Confirm delete</h4>
               </div>
               <div class="modal-body">
@@ -295,6 +315,7 @@
             <!-- /.box-body -->
 			<div class="box-footer">
                 <button type="submit" onclick="cancelpool()" class="btn btn-default">Cancel</button>
+				
                 <button type="submit" onclick="savepool()" class="btn btn-info pull-right">Save</button>
               </div>
           </div>
@@ -359,7 +380,10 @@
             <!-- /.box-body -->
 			<div class="box-footer">
                 <button type="submit" onclick="cancelhost()" class="btn btn-default">Cancel</button>
+				
                 <button type="submit" onclick="savehost()" class="btn btn-info pull-right">Save</button>
+				
+				<button type="button" onclick="testhost()" id="testdatastorebtn" style="margin-right:15px;" class="btn btn-success pull-right">Test Connection</button>
               </div>
           </div>
 		  </div>
@@ -427,7 +451,7 @@
 
   <footer class="main-footer">
     <div class="pull-right hidden-xs">
-      <b>Version</b> alpha-3
+      <b>Version</b> alpha-4
     </div>
     <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
@@ -454,8 +478,46 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
-	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">Ã—</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
+	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
 
+	function testhost() {
+		var host = $("#hostInputHost" ).val();
+		var username = $("#hostInputUsername" ).val();
+		var password = $("#hostInputPassword" ).val();
+	
+		$("#testdatastorebtn").html('<i class="fa fa-spin fa-fw fa-refresh"></i> Checking...');
+			
+			
+		
+			jsonData = '{"username": "' + username + '", "address": "' + host + '", "password": "' + password + '"}';
+			$.ajax({
+				url: '/api/xen/host/test/',
+				type: "POST",
+				dataType: "json",
+				data: jsonData,
+				contentType: "application/json"
+			}).done(function(data, statusText, xhr){
+			
+				$('html,body').scrollTop(0);
+				
+				
+				$('#modalhost').modal('toggle');
+				$("#modalhost").css("padding-right", "0px");	
+				var status = xhr.status;    
+				if(status == 200) {
+					$("#txtmodalhost").html('<label style="color: #00a65a;"><i class="fa fa-check"></i> Host is valid.</label>');
+					$("#testdatastorebtn").html('Test connection'); 
+		
+				}
+				else if(status == 204) {
+					$("#txtmodalhost").html('<label style="color: #dd4b39;"><i class="fa fa-times-circle-o"></i> Host cannot be contacted.</label>');
+					$("#testdatastorebtn").html('Test connection'); 
+				}
+			});
+
+		
+	}
+	
 	function confirmdeletepool(id, title){
 		$("#deletetxtpool").html("Are you sure you want to delete the pool '" + title + "'?");
 		

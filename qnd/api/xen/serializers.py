@@ -230,8 +230,6 @@ backuptask = api.model('backuptask', {
 backuptask_rw = api.model('backuptask_rw', {
     'pool_id': fields.Integer(required=True, description='The pool id'),
     'datastore_id': fields.Integer(required=True, description='The datastore id'),
-    'host_id': fields.Integer(required=True, description='The host id'),
-    'sr': fields.String(required=True, description='The SR'),
     'uuid': fields.String(required=True, description='VM UUID'),
     'started': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has been started'),
     'ended': fields.DateTime(dt_format='rfc822', required=True, description='The time the task has ended'),

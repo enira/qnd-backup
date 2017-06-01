@@ -12,7 +12,7 @@ logging.config.fileConfig(os.path.abspath(os.path.join(os.path.dirname( __file__
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-api = Api(version='alpha-3', title='Quick \'n Dirty XenServer Backup', description='Quick \'n Dirty XenServer Backup API')
+api = Api(version='alpha-4', title='Quick \'n Dirty XenServer Backup', description='Quick \'n Dirty XenServer Backup API')
 
 @api.errorhandler
 def default_error_handler(e):

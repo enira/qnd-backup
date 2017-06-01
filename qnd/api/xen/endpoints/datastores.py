@@ -18,7 +18,7 @@ ns = api.namespace('xen/datastore', description='Operations related to datastore
 class DatastoreTest(Resource):
 
     @api.response(200, 'Datastore connection established.')
-    @api.response(404, 'Datastore connection failed.')
+    @api.response(204, 'Datastore connection failed.')
     @api.expect(datastore_test)
     def post(self):
         """

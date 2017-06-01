@@ -90,7 +90,7 @@ def test_host(data):
 
     if Flow.instance().test_host(server, username, password) == True:
         return 200
-    return 404
+    return 204
 
 # Datastores 
 def create_datastore(data):
@@ -142,7 +142,7 @@ def test_datastore(data):
 
     if Flow.instance().test_datastore(server, username, password) == True:
         return 200
-    return 404
+    return 204
 
 # Tasks
 def create_backup_task(data):

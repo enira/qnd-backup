@@ -19,7 +19,7 @@ ns = api.namespace('xen/host', description='Operations related to hosts')
 class HostTest(Resource):
 
     @api.response(200, 'Host connection established.')
-    @api.response(404, 'Host connection failed.')
+    @api.response(204, 'Host connection failed.')
     @api.expect(host_test)
     def post(self):
         """

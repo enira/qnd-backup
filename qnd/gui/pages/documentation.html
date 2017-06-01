@@ -245,15 +245,15 @@
             </div>
             <div class="box-body no-padding">
               <ul class="nav nav-pills nav-stacked">
-                <li><a href="#"><i class="fa fa-inbox"></i> Quickstart</a></li>
-                <li><a href="#"><i class="fa fa-envelope-o"></i> Pools</a></li>
-                <li><a href="#"><i class="fa fa-file-text-o"></i> Datastores</a></li>
-                <li><a href="#"><i class="fa fa-filter"></i> Backup</a></li>
-                <li><a href="#"><i class="fa fa-trash-o"></i> Schedules</a></li>
-				<li><a href="#"><i class="fa fa-trash-o"></i> Restore</a></li>
-				<li><a href="#"><i class="fa fa-trash-o"></i> Archives</a></li>
-				<li><a href="#"><i class="fa fa-trash-o"></i> Settings</a></li>
-				<li><a onclick="show_tab('doc_about')"><i class="fa fa-info"></i> About</a></li>
+                <li><a onclick="show_tab('doc_quickstart', 'Quickstart')"><i class="fa fa-inbox"></i> Quickstart</a></li>
+                <li><a onclick="show_tab('doc_pools', 'Pools')"><i class="fa fa-envelope-o"></i> Pools</a></li>
+                <li><a onclick="show_tab('doc_datastores', 'Datastores')"><i class="fa fa-file-text-o"></i> Datastores</a></li>
+                <li><a onclick="show_tab('doc_backup', 'Backup')"><i class="fa fa-filter"></i> Backup</a></li>
+                <li><a onclick="show_tab('doc_schedules', 'Schedules')"><i class="fa fa-trash-o"></i> Schedules</a></li>
+				<li><a onclick="show_tab('doc_restore', 'Restore')"><i class="fa fa-trash-o"></i> Restore</a></li>
+				<li><a onclick="show_tab('doc_archives', 'Archives')"><i class="fa fa-archive"></i> Archives</a></li>
+				<li><a onclick="show_tab('doc_settings', 'Settings')"><i class="fa fa-cogs"></i> Settings</a></li>
+				<li><a onclick="show_tab('doc_about', 'About')"><i class="fa fa-info"></i> About</a></li>
               </ul>
             </div>
             <!-- /.box-body -->
@@ -266,7 +266,7 @@
         <div class="col-md-9">
           <div class="box box-primary">
             <div class="box-header with-border">
-              <h3 class="box-title">Documentation - General</h3>
+              <h3 id="doctitle" class="box-title">Documentation - Quickstart</h3>
             </div>
             <!-- /.box-header -->
             <div class="box-body">
@@ -276,13 +276,61 @@
 
               </div>
 			  
-              <div id="doc_about" style="display:none" class="form-group">
-			  
-			  
-				<p>This software is entirely written for free in my spare time. If you like to donate, I am a huge collector of BTC and ETH.</p>
+			  <div id="doc_pools" style="display:none" class="form-group">
 				
-				<p>BTC: 1JPaMVsL7YbDiykYHVicB9zEPRqyit45YL</p>
-				<p>ETH: 0x0f92b1621c387663ab2592923235b560687c8491</p>
+
+              </div>
+			  
+			  <div id="doc_datastores" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+			  <div id="doc_backup" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+			  <div id="doc_schedules" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+			  <div id="doc_restore" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+			  <div id="doc_archives" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+			  <div id="doc_settings" style="display:none" class="form-group">
+				
+
+              </div>
+			  
+              <div id="doc_about" style="display:none" class="form-group">
+			  <h4>About</h4>
+			  <p>Version: alpha-4</p>
+			  <p>Author: Enira</p>
+				<h4>Donations</h4>
+				<p>If you like to support me, the best way would be to send some donations. 
+				    All donations are 
+					used for acquiring test hardware and keeping my home lab running. 
+					Without my home lab this hugely advanced backup script would never existed.
+					If you like to donate, I am a huge collector of BTC and ETH.</p>
+					<table>
+					<tr><td width="150px">BTC</td><td>1JPaMVsL7YbDiykYHVicB9zEPRqyit45YL</td></tr>
+					<tr><td></td><td align="center"><img src="btc.png" /></td></tr>
+					
+					<tr><td>ETH</td><td>0x0f92b1621c387663ab2592923235b560687c8491</td></tr>
+					<tr><td></td><td align="center"><img src="eth.png" /></td></tr>
+					
+					</table>
+				
+				<h4>License information</h4>
               </div>
 			  
 			  
@@ -315,7 +363,7 @@
     <div class="pull-right hidden-xs">
       <b>Version</b> alpha-4
     </div>
-    <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+    <strong>Copyright &copy; 2017 <a href="https://github.com/enira/qnd-backup">Enira</a>, Template design: Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
     reserved.
   </footer>
 
@@ -341,11 +389,13 @@
 <script src="../plugins/fullcalendar/fullcalendar.min.js"></script>
 <!-- Page specific script -->
 <script>
-	function show_tab(tabid) {
+	function show_tab(tabid, doctitle) {
 		// hide other
 		
+		$("#doctitle").html('Documentation - ' + doctitle);
+		
 		$('.form-group').each(function () {
-			$("#" + this.id ).show();
+			$("#" + this.id ).hide();
 		});
 		
 		// show 

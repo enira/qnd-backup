@@ -57,3 +57,7 @@ During the alpha phase of the project basic functionality is being gathered and 
 Beta versions are stable for use, however they can contain issues and "undocumented features" (bugs). 
 
 You can see in the milestones what I have planned for each release: https://github.com/enira/qnd-backup/milestones
+
+# License
+Current license is: Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)
+https://creativecommons.org/licenses/by-nd/4.0/

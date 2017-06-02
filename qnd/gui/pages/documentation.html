@@ -313,24 +313,43 @@
 			  
               <div id="doc_about" style="display:none" class="form-group">
 			  <h4>About</h4>
-			  <p>Version: alpha-4</p>
-			  <p>Author: Enira</p>
+			  <div class="box-body">
+			  <dl class="dl-horizontal">
+			  <dt>Version</dt>
+						<dd>alpha-4</dd>
+						<dt>Author</dt>
+						<dd>Enira</dd>
+			  </dl>
+			  </div>
+			  
 				<h4>Donations</h4>
 				<p>If you like to support me, the best way would be to send some donations. 
 				    All donations are 
 					used for acquiring test hardware and keeping my home lab running. 
 					Without my home lab this hugely advanced backup script would never existed.
 					If you like to donate, I am a huge collector of BTC and ETH.</p>
-					<table>
-					<tr><td width="150px">BTC</td><td>1JPaMVsL7YbDiykYHVicB9zEPRqyit45YL</td></tr>
-					<tr><td></td><td align="center"><img src="btc.png" /></td></tr>
 					
-					<tr><td>ETH</td><td>0x0f92b1621c387663ab2592923235b560687c8491</td></tr>
-					<tr><td></td><td align="center"><img src="eth.png" /></td></tr>
 					
-					</table>
-				
+					
+					<div class="box-body">
+					  <dl class="dl-horizontal">
+						<dt>BTC</dt>
+						<dd>1JPaMVsL7YbDiykYHVicB9zEPRqyit45YL<br /><img src="btc.png" /></dd>
+						<dt>ETH</dt>
+						<dd>0x0f92b1621c387663ab2592923235b560687c8491<br /><img src="eth.png" /></dd>
+						
+					  </dl>
+					</div>
 				<h4>License information</h4>
+				<p id="licensegui"></p>
+				
+				
+				<p id="licensegui"></p>
+				
+				
+				<script>
+				$( "#licensegui" ).load( "/gui/files/LICENSE-GUI" );
+				</script>
               </div>
 			  
 			  

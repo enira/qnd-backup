@@ -5,15 +5,15 @@ import logging.config
 
 db = SQLAlchemy()
 
-VERSION = '3'
+VERSION = '4'
 
 """
     DB VERSIONS:
     ------------
     1       alpha-1(-fix)           deprecated: no upgrade possible (alpha)
     2       alpha-2                 deprecated: no upgrade possible (alpha)
-    3       alpha-3                 current
-    3       alpha-4                 current
+    3       alpha-3                 deprecated: no upgrade possible (alpha)
+    4       alpha-4                 current
 
 """
 

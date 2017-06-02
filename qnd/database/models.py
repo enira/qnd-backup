@@ -156,15 +156,16 @@ class BackupTask(db.Model):
     backup = db.relationship('Backup', lazy='immediate')                        # backup object
 
     uuid = db.Column(db.String)                                                 # uuid of VM to backup
+    backupname = db.Column(db.String)                                           # temporary backup name
     datastore_id = db.Column(db.Integer, db.ForeignKey('datastores.id'))        # datastore id
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
 
     started = db.Column(db.DateTime, default=datetime.datetime.utcnow)          # start time
     ended = db.Column(db.DateTime)                                              # end time
 
-    pct1 = db.Column(db.Integer)                                                # first percentage          (0 to 1)
-    pct2 = db.Column(db.Integer)                                                # second percentage         (0 to 1)
-    divisor = db.Column(db.Integer)                                             # division of percentage    (0 to 1)
+    pct1 = db.Column(db.Float)                                                # first percentage          (0 to 1)
+    pct2 = db.Column(db.Float)                                                # second percentage         (0 to 1)
+    divisor = db.Column(db.Float)                                             # division of percentage    (0 to 1)
 
     status = db.Column(db.String)                                               # status of the task
     
@@ -203,9 +204,9 @@ class ArchiveTask(db.Model):
     backup = db.relationship('Backup', lazy='immediate')                            # task object
 
 
-    pct1 = db.Column(db.Integer)                                                    # first percentage          (0 to 1)
-    pct2 = db.Column(db.Integer)                                                    # second percentage         (0 to 1)
-    divisor = db.Column(db.Integer)                                                 # division of percentage    (0 to 1)
+    pct1 = db.Column(db.Float)                                                    # first percentage          (0 to 1)
+    pct2 = db.Column(db.Float)                                                    # second percentage         (0 to 1)
+    divisor = db.Column(db.Float)                                                 # division of percentage    (0 to 1)
 
     status = db.Column(db.String)                                                   # status of the task
     def pct(self):
@@ -242,9 +243,9 @@ class RestoreTask(db.Model):
     host_id = db.Column(db.Integer)                                                 # host id to restore to
     sr = db.Column(db.String)                                                       # sr to upload disk to
 
-    pct1 = db.Column(db.Integer)                                                    # first percentage          (0 to 1)
-    pct2 = db.Column(db.Integer)                                                    # second percentage         (0 to 1)
-    divisor = db.Column(db.Integer)                                                 # division of percentage    (0 to 1)
+    pct1 = db.Column(db.Float)                                                    # first percentage          (0 to 1)
+    pct2 = db.Column(db.Float)                                                    # second percentage         (0 to 1)
+    divisor = db.Column(db.Float)                                                 # division of percentage    (0 to 1)
 
     status = db.Column(db.String)                                                   # status of the task
     def pct(self):

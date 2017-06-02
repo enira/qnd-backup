@@ -8,7 +8,7 @@ apt-get update
 apt-get -y upgrade
 
 # install all needed packages
-apt-get -y install python python-pip build-essential libssl-dev libffi-dev python-dev git nginx unzip
+apt-get -y install python python-pip build-essential libssl-dev libffi-dev python-dev git nginx unzip wget
 
 # install postgres
 apt-get -y install postgresql postgresql-contrib

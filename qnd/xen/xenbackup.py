@@ -9,6 +9,8 @@ from xenbridge import XenBridge
 from database import db
 from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool, Host
 
+from xen.types import MessageType
+
 import logging
 import os
 log = logging.getLogger(__name__)
@@ -28,10 +30,13 @@ class XenBackup:
     BACKUPROOT = '/media/.qnd'
     _server = None
 
-    def __init__(self, servers, pool_name, pool_id):
+    _flow = None
+
+    def __init__(self, flow, servers, pool_name, pool_id):
         """
         Initialize the servers, copy all db info to workable XenBridge objects
         """
+        self._flow = flow
         self.servers = []
         # create the server objects
         for server in servers:
@@ -79,7 +84,6 @@ class XenBackup:
 
         # return just an active host
         return hosts[0][1]['address']
-
 
     def get_active_host(self):
         """
@@ -190,12 +194,12 @@ class XenBackup:
         # make folder name
         resfolder = self.BACKUPROOT + '/ds-' + str(task.backup.datastore_id)
 
-        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
+        self.update_pct(task, 0, 0, 0.20, 'discovery', session, taskid)
 
         # create mount point
         connection.sudo_command('mkdir -p ' + resfolder, self._server[2])
 
-        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
+        self.update_pct(task, 0.40, 0, 0.20, 'mount', session, taskid)
 
         # check if already mounted
         result = connection.command('df -h | grep -i ' + resfolder)
@@ -206,7 +210,7 @@ class XenBackup:
         result = connection.command('df -h | grep -i ' + resfolder)
         if len(result) == 0:
             log.error('Could not mount the datastore')
-            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
+            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session, taskid)
             return
 
         # upload file to server
@@ -232,15 +236,16 @@ class XenBackup:
         # rename the imported disk task.backupname
         self.get_active_host().set_disk_names(vm[1]['VBDs'], task.backupname)
 
-    def update_pct(self, task, pct1, pct2, divisor, status, session):
+    def update_pct(self, task, pct1, pct2, divisor, status, session, id):
         """
         Update percentages for a given task
         """
 
-        task.pct1 = 0
+        task.pct1 = pct1
         if pct2 != None:
-            task.pct2 = 0
-        task.divisor = 0.20
+            task.pct2 = pct2
+        task.divisor = divisor
+
         # isinstance
         if isinstance(task, BackupTask): 
             task.status = 'backup_' + status
@@ -248,21 +253,26 @@ class XenBackup:
             task.status = 'restore_' + status
         session.add(task)
         session.commit()
+
+        self._flow.edit_message(id, '{' + task.status + '}', str(int(round(task.pct() *100,0))) , None)
         
     def backup_smb(self, task_id):
         """
         Backup a VM to a SMB fileshare
         """
+        
         session = db.session
         task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
         datastore = session.query(Datastore).filter(Datastore.id == task.datastore_id).one()
         pool = session.query(Pool).filter(Pool.id == task.pool_id).one()
         uuid = task.uuid
 
+        taskid = self._flow.add_message(MessageType.TASK, 'Backup job starting...' , 0, None)
+
         # make folder name
         bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
 
-        self.update_pct(task, 0, 0, 0.20, 'discovery', session)
+        self.update_pct(task, 0, 0, 0.20, 'discovery', session, taskid)
 
         # search the VM
         vms = self.get_vms()
@@ -275,25 +285,25 @@ class XenBackup:
 
         if tobackup == None:
             log.error('VM not found')
-            self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session)
+            self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session, taskid)
             return
 
-        self.update_pct(task, 0.10, 0, 0.20, 'discovery', session)
+        self.update_pct(task, 0.10, 0, 0.20, 'discovery', session, taskid)
 
         # search which host we can use
         backuphost = self.get_native_host(tobackup[1]["resident_on"], hosts)
 
-        self.update_pct(task, 0.20, 0, 0.20, 'discovery', session)
+        self.update_pct(task, 0.20, 0, 0.20, 'discovery', session, taskid)
 
         # start backing up: create a connection
         connection = Bridge(self._server[0], self._server[1], self._server[2])
 
-        self.update_pct(task, 0.30, 0, 0.20, 'mount', session)
+        self.update_pct(task, 0.30, 0, 0.20, 'mount', session, taskid)
 
         # create mount point
         connection.sudo_command('mkdir -p ' + bckfolder, self._server[2])
 
-        self.update_pct(task, 0.40, 0, 0.20, 'mount', session)
+        self.update_pct(task, 0.40, 0, 0.20, 'mount', session, taskid)
 
         # check if already mounted
         result = connection.command('df -h | grep -i ' + bckfolder)
@@ -304,10 +314,10 @@ class XenBackup:
         result = connection.command('df -h | grep -i ' + bckfolder)
         if len(result) == 0:
             log.error('Could not mount the datastore')
-            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session)
+            self.update_pct(task, 1, 1, 0.20, 'failed_mount', session, taskid)
             return
 
-        self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session)
+        self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session, taskid)
 
         log.info("Backing up: " + tobackup[1]["name_label"] + "(" + tobackup[1]["uuid"] + ")")
 
@@ -318,7 +328,7 @@ class XenBackup:
         if backup_name.startswith("."):
             backup_name = backup_name[1:]
 
-        self.update_pct(task, 0.70, None, 0.20, 'backup', session)
+        self.update_pct(task, 0.70, None, 0.20, 'backup', session, taskid)
 
         #        # TODO check if snapshots are ok
 
@@ -330,11 +340,11 @@ class XenBackup:
             
             if e.details[0] == 'SR_BACKEND_FAILURE_109':
                 # snapshot chain too long
-                self.update_pct(task, 1, 1, 0.20, 'failed_snapshot_chain', session)
+                self.update_pct(task, 1, 1, 0.20, 'failed_snapshot_chain', session, taskid)
                 return
 
 
-        self.update_pct(task, 0.80, None, 0.20, 'export', session)
+        self.update_pct(task, 0.80, None, 0.20, 'export', session, taskid)
 
         ####
 
@@ -346,18 +356,18 @@ class XenBackup:
         taskref = self.get_active_host().create_task(dlsession, 
                                            'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
 
-        result = connection.sudo_command('curl https://' + backuphost + '/export?session_id=' + dlsession._session + '\\&ref=' + snapshot + ' -o ' + bckfolder + '/' + backup_name +' --insecure', self._server[2])
+        result = connection.sudo_command('wget \'https://' + backuphost + '/export?session_id=' + dlsession._session + '&ref=' + snapshot + '\' --no-check-certificate -O ' + bckfolder + '/' + backup_name, self._server[2])
         
         self.get_active_host().remove_task(dlsession, taskref)
 
         dlsession.close()
 
-        self.update_pct(task, 0.80, None, 0.20, 'cleanup', session)
+        self.update_pct(task, 0.80, None, 0.20, 'cleanup', session, taskid)
 
         # remove snapshot
         self.get_active_host().remove_snapshot(snapshot)      
 
-        self.update_pct(task, 0.90, None, 0.20, 'closing', session)
+        self.update_pct(task, 0.90, None, 0.20, 'closing', session, taskid)
 
         # create backup object as done
         backup = Backup(metafile=meta_name, 
@@ -379,7 +389,11 @@ class XenBackup:
         session.add(task)
         session.commit()
         
-        self.update_pct(task, 1, 1, 0.20, 'done', session)
+        self.update_pct(task, 1, 1, 0.20, 'done', session, taskid)
+
+        self._flow.remove_message(taskid)
+
+        self._flow.add_message(MessageType.MESSAGE, 'Backup completed' ,'Completed backup for ' + tobackup[1]["name_label"] + ':' + backup_name, '0')
 
         session.close()
         

@@ -13,6 +13,8 @@ from database import db
 from mover import Mover
 from xenbackup import XenBackup
 
+from xen.types import MessageType
+
 class Flow(object):
     """
     Internal flow of the application.
@@ -35,6 +37,9 @@ class Flow(object):
     _envcache = {}
     _scheduler = None
     _mover = Mover()
+
+    messages = []
+    messageid = 1000
 
     def get_environment(self, pool_id):
         """
@@ -77,6 +82,38 @@ class Flow(object):
         obj["disks"] = self._poolcache[pool_id]["backup"].get_attached_disks(obj["vms"])
 
         self._envcache[pool_id] = obj
+
+    def add_message(self, type, a, b, c):
+        """
+        Add a message
+        """
+        self.messageid = self.messageid + 1
+        self.messages.append([self.messageid, type, a, b, c])
+        return self.messageid
+    
+    def edit_message(self, id, a, b, c):
+        """
+        Edit a message
+        """
+        for message in self.messages:
+            if message[0] == id:
+                self.messages.remove(message)
+                
+                message = [id, message[1], a, b, c]
+
+                self.messages.append(message)
+                break
+        
+
+    def remove_message(self, id):
+        """
+        Remove a message
+        """
+        for message in self.messages:
+            if message[0] == id:
+                self.messages.remove(message)
+                break
+        
 
     def get_vms(self, pool_id):
         """
@@ -269,7 +306,7 @@ class Flow(object):
 
                 log.info("Initialized a pool with " + str(len(self._poolcache[pool.id]["hosts"])) + " hosts")
 
-                self._poolcache[pool.id]["backup"] = XenBackup(localhosts, pool.name, pool.id)
+                self._poolcache[pool.id]["backup"] = XenBackup(self.instance(), localhosts, pool.name, pool.id)
 
                 log.info("Created a pool with " + str(len(self._poolcache[pool.id]["hosts"])) + " hosts")
 
@@ -299,6 +336,46 @@ class Flow(object):
         for pool in self._poolcache:
             self._poolcache[pool]["backup"].run_backups()
             self._poolcache[pool]["backup"].run_restores()
+
+    def cleanup_start(self):
+        """
+        Cleanup backup, restore and archive tasks 
+        """
+        session = db.session
+
+        # possible states
+        #   discovery, mount, snapshot, backup, export, cleanup, closing
+        #   failed_find_vm, failed_mount, failed_snapshot_chain                 failed are final
+        #   submitted
+        #   done
+
+        tasks = session.query(BackupTask).filter(~BackupTask.status.contains('failed')).all()
+        for task in tasks:
+            if task.status == 'backup_discovery':
+                task.status = 'backup_pending'
+                session.add(task)
+                session.commit()
+            if task.status == 'backup_submitted':
+                task.status = 'backup_pending'
+                session.add(task)
+                session.commit()
+            if task.status == 'backup_mount':
+                task.status = 'backup_pending'
+                session.add(task)
+                session.commit()
+            
+
+        tasks = db.session.query(RestoreTask).all()
+        #for task in tasks:
+            
+
+        tasks = db.session.query(ArchiveTask).all()
+        #for task in tasks:
+            
+        
+            
+
+
 
 
     def cleanup(self):

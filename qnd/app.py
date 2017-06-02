@@ -82,6 +82,9 @@ def initialize_app():
     # check database version and mirate if needed
     database.check_version(app)
 
+    # cleanup
+    Flow.instance().cleanup_start()
+
     # initialize the scheduler
     Flow.instance().initialize_scheduler()
 

@@ -5,7 +5,7 @@
     <ProjectGuid>b4b7a730-0ca8-4585-bd78-3aa4e7492b4e</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>app.py</StartupFile>
+    <StartupFile>reset_db.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -81,6 +81,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xen\mover.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="xen\types.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="xen\xenbackup.py">

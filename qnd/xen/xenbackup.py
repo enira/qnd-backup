@@ -286,6 +286,10 @@ class XenBackup:
         if tobackup == None:
             log.error('VM not found')
             self.update_pct(task, 1, 1, 0.20, 'failed_find_vm', session, taskid)
+
+            self._flow.remove_message(taskid)
+            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to find VM with uuid: ' + uuid, '0')
+
             return
 
         self.update_pct(task, 0.10, 0, 0.20, 'discovery', session, taskid)
@@ -315,6 +319,10 @@ class XenBackup:
         if len(result) == 0:
             log.error('Could not mount the datastore')
             self.update_pct(task, 1, 1, 0.20, 'failed_mount', session, taskid)
+
+            self._flow.remove_message(taskid)
+            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to mount datastore ' + datastore.name, '0')
+
             return
 
         self.update_pct(task, 0.50, 0, 0.20, 'snapshot', session, taskid)
@@ -341,6 +349,10 @@ class XenBackup:
             if e.details[0] == 'SR_BACKEND_FAILURE_109':
                 # snapshot chain too long
                 self.update_pct(task, 1, 1, 0.20, 'failed_snapshot_chain', session, taskid)
+
+                self._flow.remove_message(taskid)
+                self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to create a snapshot for vm: ' + tobackup[1]["name_label"] , '0')
+
                 return
 
 

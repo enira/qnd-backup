@@ -52,10 +52,10 @@
 				<li class="dropdown messages-menu">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						<i class="fa fa-envelope-o"></i>
-						<span id="num_messages" class="label label-success">X</span>
+						<span id="num_messages" style="display:none" class="label label-success">X</span>
 					</a>
 					<ul class="dropdown-menu">
-						<li class="header" id="label_messages">XXXX</li>
+						<li class="header" id="label_messages"></li>
 						<li>
 							<!-- inner menu: contains the actual data -->
 							<ul class="menu" id="messages_total">
@@ -69,10 +69,10 @@
 				<li class="dropdown notifications-menu">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						<i class="fa fa-bell-o"></i>
-						<span id="num_notifications" class="label label-warning">X</span>
+						<span id="num_notifications" style="display:none" class="label label-warning">X</span>
 					</a>
 					<ul class="dropdown-menu">
-						<li id="label_notifications" class="header">XXXX</li>
+						<li id="label_notifications" class="header"></li>
 						<li>
 							<!-- inner menu: contains the actual data -->
 							<ul class="menu" id="notifications_total">
@@ -87,10 +87,10 @@
 				<li class="dropdown tasks-menu">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						<i class="fa fa-flag-o"></i>
-						<span id="num_tasks" class="label label-danger">X</span>
+						<span id="num_tasks" style="display:none" class="label label-danger">X</span>
 					</a>
 					<ul class="dropdown-menu">
-						<li id="label_tasks" class="header">XXXX</li>
+						<li id="label_tasks" class="header"></li>
 						<li>
 							<!-- inner menu: contains the actual data -->
 							<ul class="menu" id="tasks_total">
@@ -619,6 +619,11 @@
 			var msg_struct = '<li><a href="#"><h4 style="margin: 0 0 0 0">$FROM$<small><i class="fa fa-clock-o"></i>$TIME$</small></h4><p style="margin: 0 0 0 0">$TEXT$</p></a></li>';
 		
 			$("#num_messages").html(messages.messages);
+			
+			if(messages.messages > 0) {
+				$("#num_messages").show();
+			}
+			
 			$("#label_messages").html('You have ' + messages.messages + ' messages');
 			
 			for(var i=0; i<messages.messages_items.length; i++) {
@@ -631,19 +636,27 @@
 			$("#num_notifications").html(messages.notifications);
 			$("#label_notifications").html('You have ' + messages.notifications + ' notifications');
 			
+			if(messages.notifications > 0) {
+				$("#num_notifications").show();
+			}
+			
 			for(var i=0; i<messages.notifications_items.length; i++) {
 				var not = messages.notifications_items[i];
 				$("#notifications_total").append(notifications_struct.replace('$ICON$', not.icon).replace('$TEXT$', not.message));
 			}
 			
-			var tasks_struct = '<li><a href="#"><h3>$TITLE$<small class="pull-right">$PCT$%</small></h3><div class="progress xs"><div class="progress-bar progress-bar-aqua" style="width: $PCT$%" role="progressbar" aria-valuenow="$PCT$" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">$PCT$% Complete</span></div></div></a></li>';
+			var tasks_struct = '<li><a href="#"><h3>$TITLE$<small class="pull-right">$PCT$%</small></h3><div class="progress xs"><div class="progress-bar progress-bar-primary progress-bar-striped" style="width: $PCT$%" role="progressbar" aria-valuenow="$PCT$" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">$PCT$% Complete</span></div></div></a></li>';
 			
 			$("#num_tasks").html(messages.tasks);
 			$("#label_tasks").html('You have ' + messages.tasks + ' tasks');
 			
+			if(messages.tasks > 0) {
+				$("#num_tasks").show();
+			}
+			
 			for(var i=0; i<messages.tasks_items.length; i++) {
 				var task = messages.tasks_items[i];
-				$("#tasks_total").append(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent));
+				$("#tasks_total").append(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent).replace('$PCT$', task.percent).replace('$PCT$', task.percent));
 			}
 		});
 		

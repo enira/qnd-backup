@@ -245,12 +245,12 @@
             </div>
             <div class="box-body no-padding">
               <ul class="nav nav-pills nav-stacked">
-                <li><a onclick="show_tab('doc_quickstart', 'Quickstart')"><i class="fa fa-inbox"></i> Quickstart</a></li>
-                <li><a onclick="show_tab('doc_pools', 'Pools')"><i class="fa fa-envelope-o"></i> Pools</a></li>
-                <li><a onclick="show_tab('doc_datastores', 'Datastores')"><i class="fa fa-file-text-o"></i> Datastores</a></li>
-                <li><a onclick="show_tab('doc_backup', 'Backup')"><i class="fa fa-filter"></i> Backup</a></li>
-                <li><a onclick="show_tab('doc_schedules', 'Schedules')"><i class="fa fa-trash-o"></i> Schedules</a></li>
-				<li><a onclick="show_tab('doc_restore', 'Restore')"><i class="fa fa-trash-o"></i> Restore</a></li>
+                <li><a onclick="show_tab('doc_quickstart', 'Quickstart')"><i class="fa fa-power-off"></i> Quickstart</a></li>
+                <li><a onclick="show_tab('doc_pools', 'Pools')"><i class="fa fa-server"></i> Pools</a></li>
+                <li><a onclick="show_tab('doc_datastores', 'Datastores')"><i class="fa fa-database"></i> Datastores</a></li>
+                <li><a onclick="show_tab('doc_backup', 'Backup')"><i class="fa fa-server"></i> Backup</a></li>
+                <li><a onclick="show_tab('doc_schedules', 'Schedules')"><i class="fa fa-tasks"></i> Schedules</a></li>
+				<li><a onclick="show_tab('doc_restore', 'Restore')"><i class="fa fa-life-bouy"></i> Restore</a></li>
 				<li><a onclick="show_tab('doc_archives', 'Archives')"><i class="fa fa-archive"></i> Archives</a></li>
 				<li><a onclick="show_tab('doc_settings', 'Settings')"><i class="fa fa-cogs"></i> Settings</a></li>
 				<li><a onclick="show_tab('doc_about', 'About')"><i class="fa fa-info"></i> About</a></li>
@@ -272,43 +272,56 @@
             <div class="box-body">
               
 			  <div id="doc_quickstart" class="form-group">
+				<h4>Step 1 - Add a pool</h4>
 				
+				<h4>Step 2 - Add a datastore</h4>
+				
+				<h4>Step 3 - Backup a VM</h4>
 
               </div>
 			  
 			  <div id="doc_pools" style="display:none" class="form-group">
-				
+					<h4>Adding a pool</h4>
+					<h4>Deleting a pool</h4>
+					<h4>Editing a pool</h4>
 
               </div>
 			  
 			  <div id="doc_datastores" style="display:none" class="form-group">
-				
+					<h4>Adding a datastore</h4>
+					<h4>Deleting a datastore</h4>
+					<h4>Editing a datastore</h4>
 
               </div>
 			  
 			  <div id="doc_backup" style="display:none" class="form-group">
-				
-
+					<h4>Creating a backup</h4>
+					
+					
               </div>
 			  
 			  <div id="doc_schedules" style="display:none" class="form-group">
-				
+					<h4>Adding a schedule</h4>
+					<h4>Deleting a schedule</h4>
+					<h4>Editing a schedule</h4>
 
               </div>
 			  
 			  <div id="doc_restore" style="display:none" class="form-group">
-				
-
+					<h4>Restoring a VM</h4>
+					
               </div>
 			  
 			  <div id="doc_archives" style="display:none" class="form-group">
 				
-
+					<h4>Adding an archive</h4>
+					<h4>Deleting an archive</h4>
+					<h4>Editing an archive</h4>
               </div>
 			  
 			  <div id="doc_settings" style="display:none" class="form-group">
 				
-
+					<p>Unimplemented</p>
               </div>
 			  
               <div id="doc_about" style="display:none" class="form-group">
@@ -341,15 +354,17 @@
 					  </dl>
 					</div>
 				<h4>License information</h4>
-				<p id="licensegui"></p>
-				
-				
-				<p id="licensegui"></p>
-				
-				
-				<script>
-				$( "#licensegui" ).load( "/gui/files/LICENSE-GUI" );
-				</script>
+					<p>License Quick 'n Dirty Backup</p>
+					<p>
+					<textarea id="licenseqnd"rows="8" style="width:100%">
+					</textarea>
+					</p>
+					<p></p>
+					<p>License LTE Admin Template</p>
+					<p>
+					<textarea id="licensegui" rows="8" style="width:100%">
+					</textarea>
+					</p>
               </div>
 			  
 			  
@@ -504,11 +519,17 @@
 				var task = messages.tasks_items[i];
 				$("#tasks_total").append(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent).replace('$PCT$', task.percent).replace('$PCT$', task.percent));
 			}
+		});	
+		
 		update_system();
 		
 		$(".sidebar-toggle").click(function(){
 			toggle();
 		});
+		
+		$( "#licensegui" ).load( "/gui/files/LICENSE-GUI" );
+		
+		$( "#licenseqnd" ).load( "/gui/files/LICENSE-QND" );
 	});
 </script>
 </body>

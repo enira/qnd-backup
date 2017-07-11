@@ -28,6 +28,18 @@ system = api.model('system', {
     'ram_pct': fields.Integer(readOnly=True, description='RAM used (in percent)'),
 })
 
+substat = api.model('substat', {
+    'object': fields.String(required=True, description='Pool name'),
+    'date': fields.String(required=True, description='Pool name'),
+})
+
+stats = api.model('stats', {
+    'restore_pass': fields.Nested(substat),
+    'restore_failed': fields.Nested(substat),
+    'backup_pass': fields.Nested(substat),
+    'backup_failed': fields.Nested(substat),
+})
+
 
 pool = api.model('pool', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a pool'),

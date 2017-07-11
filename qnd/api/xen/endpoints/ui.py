@@ -6,7 +6,7 @@ import copy
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.serializers import system, messages
+from api.xen.serializers import system, messages, stats
 from api.restplus import api
 
 from xen.flow import Flow
@@ -87,6 +87,28 @@ class MessageItem(Resource):
                                  "messages_items": uimessages,
                                  "notifications_items": uinotifications,
                                  "tasks_items": uitasks,
+                                })()
+
+        return obj
+
+@ns.route('/stats/<string:start>/<string:end>')
+@api.response(404, 'Statistics not found.')
+class SystemItem(Resource):
+
+    @api.marshal_with(stats)
+    def get(self, start, end):
+        """
+        Returns backup and restore stats.
+        """
+        
+
+
+        # object date
+
+        obj = type('',(object,),{"restore_pass": len(uimessages),
+                                 "restore_failed": len(uinotifications),
+                                 "backup_pass": len(uitasks),
+                                 "backup_failed": uimessages,
                                 })()
 
         return obj

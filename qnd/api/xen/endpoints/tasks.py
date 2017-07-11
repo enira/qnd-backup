@@ -4,7 +4,7 @@ import os
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.business import create_backup_task, delete_backup_task, create_restore_task, delete_restore_task, validate_backup_task
+from api.xen.business import create_backup_task, delete_backup_task, create_restore_task, delete_restore_task, validate_restore_task
 from api.xen.serializers import backuptask, backuptask_rw, archivetask, restoretask, restoretask_rw
 from api.restplus import api
 
@@ -50,11 +50,11 @@ class TaskCollection(Resource):
         return None, 201
 
 
-@ns.route('/validate')
+@ns.route('/validate/')
 class TaskCollection(Resource):
 
     @api.response(200, 'Validates a BackupTask.')
-    @api.expect(backuptask_rw)
+    @api.expect(restoretask)
     def post(self):
         """
         Validates a new backup task.
@@ -73,8 +73,7 @@ class TaskCollection(Resource):
         ```
         """
         data = request.json
-        validate_backup_task(data)
-        return None, 200
+        return validate_restore_task(data), 200
 
     
 @ns.route('/backup/<int:id>')

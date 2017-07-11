@@ -148,8 +148,24 @@ def test_datastore(data):
     return 204
 
 # Validation
-def validate_backup_task(data):
-    pass
+def validate_restore_task(data):
+    backupname = data.get('backupname')
+    backup_id = data.get('backup_id')
+    backup = db.session.query(Backup).filter(Backup.id == backup_id).one()
+    host_id = data.get('host_id')
+
+    # validate 
+    #if Flow.instance()
+
+    vms = Flow.instance().get_vms(host_id)
+
+    errors = []
+
+    for vm in vms:
+        if vm[1]["name_label"] == backupname:
+            errors.append("vmname_duplicate")
+
+    return errors
 
 # Tasks
 def create_backup_task(data):

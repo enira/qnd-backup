@@ -1,6 +1,9 @@
 from xapi import XenAPI
 from urlparse import urlparse
 
+import logging.config
+log = logging.getLogger(__name__)
+
 class XenBridge:
     """
     Bridge between a server and the host. This class uses SSH to connect to the Xen server.

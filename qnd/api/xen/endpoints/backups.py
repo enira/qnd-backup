@@ -1,5 +1,3 @@
-import logging
-
 from flask import request
 from flask_restplus import Resource
 
@@ -11,6 +9,7 @@ from database.models import Backup, Host
 from database import db
 from xen.flow import Flow
 
+import logging.config
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/backups', description='Operations related to backups')

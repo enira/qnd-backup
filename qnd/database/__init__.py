@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 
 import logging.config
+log = logging.getLogger(__name__)
 
 db = SQLAlchemy()
 
@@ -27,7 +28,6 @@ def reset_database(app):
     """
     Resets the database
     """
-    log = logging.getLogger(__name__)
 
     from database.models import User, Pool, Host, Datastore, BackupTask, ArchiveTask, RestoreTask, Backup, Archive, Schedule, Setting
     log.info('Creating database')
@@ -43,7 +43,6 @@ def check_version(app):
     """
     Reads the version from the database and checks if the database needs to be updated
     """
-    log = logging.getLogger(__name__)
 
     from database.models import Setting
     

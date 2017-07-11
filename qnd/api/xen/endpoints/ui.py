@@ -1,4 +1,3 @@
-import logging
 import psutil
 from sys import platform
 
@@ -13,6 +12,7 @@ from api.restplus import api
 from xen.flow import Flow
 from xen.types import MessageType
 
+import logging.config
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/ui', description='Operations related to ui')

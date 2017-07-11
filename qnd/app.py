@@ -1,4 +1,4 @@
-import logging.config
+
 
 import os
 from flask import Flask, Blueprint, request, send_from_directory, redirect
@@ -25,10 +25,10 @@ from database import db
 import database
 
 # setting logging
-logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'))
+import logging.config
+logging.config.fileConfig(os.path.join(os.path.dirname(os.path.realpath(__file__)),'logging.conf'), disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
 
 # flask
 app = Flask(__name__)

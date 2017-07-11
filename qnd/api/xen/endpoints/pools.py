@@ -1,5 +1,3 @@
-import logging
-
 from flask import request
 from flask_restplus import Resource
 
@@ -10,10 +8,10 @@ from api.restplus import api
 from database.models import Pool
 from database import db
 
+import logging.config
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/pool', description='Operations related to pools')
-
 
 @ns.route('/')
 class PoolCollection(Resource):

@@ -1,4 +1,3 @@
-import logging
 import traceback
 import os
 import sys
@@ -7,10 +6,8 @@ from flask_restplus import Api
 import settings
 from sqlalchemy.orm.exc import NoResultFound
 
-logging.config.fileConfig(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'logging.conf')))
-
+import logging.config
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 api = Api(version='alpha-4', title='Quick \'n Dirty XenServer Backup', description='Quick \'n Dirty XenServer Backup API')
 

@@ -3,6 +3,9 @@ from database.models import Pool, Host, Datastore, RestoreTask, BackupTask, Arch
 
 from xen.flow import Flow
 
+import logging.config
+log = logging.getLogger(__name__)
+
 # Pools
 def create_pool(data):
     """
@@ -143,6 +146,10 @@ def test_datastore(data):
     if Flow.instance().test_datastore(server, username, password) == True:
         return 200
     return 204
+
+# Validation
+def validate_backup_task(data):
+    pass
 
 # Tasks
 def create_backup_task(data):

@@ -1,7 +1,7 @@
-import logging
 import os
 import configparser
 
+import logging.config
 log = logging.getLogger(__name__)
 
 from bridge import Bridge

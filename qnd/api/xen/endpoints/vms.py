@@ -1,4 +1,3 @@
-import logging
 import os
 
 from flask import request
@@ -8,6 +7,7 @@ from api.xen.serializers import vm, vm_full
 from api.restplus import api
 from xen.flow import Flow
 
+import logging.config
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/vms', description='Operations related to vms')

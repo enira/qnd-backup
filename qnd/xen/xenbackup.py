@@ -11,8 +11,8 @@ from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datast
 
 from xen.types import MessageType
 
-import logging
 import os
+import logging.config
 log = logging.getLogger(__name__)
 
 class XenBackup:

@@ -4,6 +4,7 @@ import logging
 import os 
 
 import logging.config
+log = logging.getLogger(__name__)
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -16,6 +17,8 @@ from xenbackup import XenBackup
 from xen.types import MessageType
 
 class Flow(object):
+    log = None
+
     """
     Internal flow of the application.
     """
@@ -172,9 +175,9 @@ class Flow(object):
         """
         Initialize the schedulere. Create all tasks that need to be runned.
         """
-        log = logging.getLogger(__name__)
+        #log = logging.getLogger(__name__)
 
-        log.info("Creating sechuler...")
+        log.info("Creating scheduler...")
         # initialize the scheduler
         session = db.session()
         self._scheduler = BackgroundScheduler()
@@ -257,7 +260,7 @@ class Flow(object):
         """
         Run (main thread)
         """
-        log = logging.getLogger(__name__)
+        #log = logging.getLogger(__name__)
 
         session = db.session
         # create a xenbackup for each xen master
@@ -373,16 +376,13 @@ class Flow(object):
         #for task in tasks:
             
         
-            
-
-
 
 
     def cleanup(self):
         """
         Cleanup task
         """
-        log = logging.getLogger(__name__)
+        #log = logging.getLogger(__name__)
 
         # cleanup task
         session = db.session

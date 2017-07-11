@@ -1,5 +1,3 @@
-import logging
-
 from flask import request
 from flask_restplus import Resource
 
@@ -10,6 +8,7 @@ from api.restplus import api
 from database.models import Host
 from database import db
 
+import logging.config
 log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/host', description='Operations related to hosts')

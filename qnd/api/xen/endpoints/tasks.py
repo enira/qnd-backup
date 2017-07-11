@@ -4,14 +4,14 @@ import os
 from flask import request
 from flask_restplus import Resource
 
-from api.xen.business import create_backup_task, delete_backup_task, create_restore_task, delete_restore_task
+from api.xen.business import create_backup_task, delete_backup_task, create_restore_task, delete_restore_task, validate_backup_task
 from api.xen.serializers import backuptask, backuptask_rw, archivetask, restoretask, restoretask_rw
 from api.restplus import api
 
 from database.models import BackupTask, ArchiveTask, RestoreTask
 from database import db
 
-log = logging.getLogger(__name__)
+#log = logging.getLogger(__name__)
 
 ns = api.namespace('xen/task', description='Operations related to tasks')
 
@@ -48,6 +48,33 @@ class TaskCollection(Resource):
         data = request.json
         create_backup_task(data)
         return None, 201
+
+
+@ns.route('/validate')
+class TaskCollection(Resource):
+
+    @api.response(200, 'Validates a BackupTask.')
+    @api.expect(backuptask_rw)
+    def post(self):
+        """
+        Validates a new backup task.
+        ```
+        {
+          "status": "The status of the task",
+          "started": "The time the task has been started",
+          "ended": "The time the task has ended",
+          "divisor": "Division of percentage compared against task 1 & task 2"
+          "uuid": "VM UUID",
+          "pool_id": "The pool id",
+          "pct2": "Percent complete of task 2",
+          "pct1": "Percent complete of task 1",
+          "datastore_id": "The datastore id"
+        }
+        ```
+        """
+        data = request.json
+        validate_backup_task(data)
+        return None, 200
 
     
 @ns.route('/backup/<int:id>')

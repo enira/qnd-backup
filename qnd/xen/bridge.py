@@ -1,5 +1,7 @@
 import paramiko
-import logging
+
+import logging.config
+log = logging.getLogger(__name__)
 
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 

@@ -49,12 +49,21 @@ class VmsFullCollection(Resource):
                     if vm["affinity"] == host[0]:
                         hostlabel = host[1]["hostname"] + ' (' + host[1]["address"] + ')'
 
+            
+
             disks = env['disks'][vm["uuid"]]
             disk_used = 0
             disk_virtual = 0
             for disk in disks:
                 disk_used = disk_used + int(disk['physical_utilisation'])
                 disk_virtual = disk_virtual + int(disk['virtual_size'])
+
+            # exceptional case; can't find the host
+            if hostlabel == '':
+                if len(disks) > 0:
+                    host = Flow.instance().get_host_by_sr(pool_id, disks[0]['SR'])
+                    if host != None:
+                        hostlabel = host["hostname"] + ' (' + host["address"] + ')'
 
             # create object
             obj = type('',(object,),{"name": vm["name_label"], 

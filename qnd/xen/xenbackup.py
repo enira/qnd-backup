@@ -108,6 +108,12 @@ class XenBackup:
         if self.poolmaster == None:
             log.warning('Performance degraded, pool master not in pool.')
 
+    def get_host_by_sr(self, sr):
+        """
+        Get a host based on SR. 
+        """
+        return self.get_active_host().get_host_by_sr(sr)
+
     def get_sr(self, address):
         """
         Get all SR for a host

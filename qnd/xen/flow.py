@@ -74,6 +74,11 @@ class Flow(object):
 
         return obj
 
+    def get_host_by_sr(self, pool_id, sr):
+        """
+        Get a host based on SR. 
+        """
+        return self._poolcache[pool_id]["backup"].get_host_by_sr(sr)
 
     def scan_environment(self, pool_id):
         """

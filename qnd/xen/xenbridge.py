@@ -115,6 +115,27 @@ class XenBridge:
 
         return hosts
 
+    def get_host_by_sr(self, sr):
+        """
+        Get a host based on a SR
+        """
+        session = self.create_session()
+        all =  session.xenapi.host.get_all()
+        found = None
+        for host in all:
+            record = session.xenapi.host.get_record(host)
+
+            # get the underlying SR of al PBDs
+            for pbd in record['PBDs']:
+                record_pbd = session.xenapi.PBD.get_record(pbd)
+                if record_pbd['SR'] == sr:
+                    found = record
+                    break
+
+        session.logout()
+
+        return found
+
     def get_block_devices(self):
         """
         Get all block devices

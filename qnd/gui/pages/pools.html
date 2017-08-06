@@ -562,6 +562,8 @@
 			$("#inputIdpool").val(data.id);
 			
 			$("#pool_dialog").css('display', 'block');
+			
+			$(window).scrollTop(0);
 		});
 	}
 	
@@ -576,6 +578,8 @@
 			$("#hostInputPool").val(data.pool_id);
 			
 			$("#host_dialog").css('display', 'block');
+			
+			$(window).scrollTop(0);
 		});
 	}
 	
@@ -583,12 +587,16 @@
 		$("#wizardtitlepool").html("Add Pool");
 		$("#inputIdpool").val("(null)");
 		$("#pool_dialog").css('display', 'block');
+		
+		$(window).scrollTop(0);
 	}
 	
 	function addhost() {
 		$("#wizardtitlehost").html("Add Host");
 		$("#inputIdhost").val("(null)");
 		$("#host_dialog").css('display', 'block');
+		
+		$(window).scrollTop(0);
 	}
 	
 	function cancelhost() {
@@ -620,6 +628,7 @@
 		      var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Host \'' + host + '\' created.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		
 		}
@@ -636,6 +645,7 @@
 		      var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Host \'' + host + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		}
 	}
@@ -662,6 +672,7 @@
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Pool \'' + name + '\' added.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		}
 		else {
@@ -677,6 +688,7 @@
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Pool \'' + name + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		}
 	}

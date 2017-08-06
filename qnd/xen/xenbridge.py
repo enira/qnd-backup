@@ -179,6 +179,13 @@ class XenBridge:
         """
         session = self.create_session()
 
+        # delete the underlying VDI
+        vm = session.xenapi.VM.get_record(ref)
+        for vdb in vm['VBDs']:
+            record = session.xenapi.VBD.get_record(vdb)
+            if record['type'] != 'CD':
+                session.xenapi.VDI.destroy(record['VDI'])
+
         session.xenapi.VM.destroy(ref)
 
         session.logout()

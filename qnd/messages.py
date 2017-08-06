@@ -19,5 +19,11 @@ BACKUP_REMOVE_SNAPSHOT = 'Removing snapshot'
 BACKUP_CLOSE = 'Closing backup'
 BACKUP_DONE = 'Backup Done'
 
+BACKUP_NOTIFICATION_FAILED_1 = 'Backup failed'
+BACKUP_NOTIFICATION_FAILED_2 = 'Failed to create a snapshot for VM \'$BACKUPNAME\''
+
+BACKUP_MESSAGE_COMPLETE_1 = 'Backup done.'
+BACKUP_MESSAGE_COMPLETE_2 = 'Backup of VM \'$BACKUPNAME\' completed.'
+
 def time():
     return datetime.datetime.now().strftime('%H:%M:%S %Y-%m-%d')

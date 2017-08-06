@@ -252,7 +252,7 @@ class XenBackup:
         session.add(task)
         session.commit()
 
-        self._flow.edit_message(id, '{' + task.status + '}', str(int(round(task.pct() *100,0))) , None)
+        self._flow.edit_message(id, task.status, str(int(round(task.pct() *100,0))) , None)
         
     def backup_smb(self, task_id):
         """
@@ -350,7 +350,7 @@ class XenBackup:
                 self.update_pct(task, 1, 1, 0.20, messages.BACKUP_FAILED_SNAPSHOT_CHAIN, session, taskid)
 
                 self._flow.remove_message(taskid)
-                self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to create a snapshot for vm: ' + tobackup[1]["name_label"] , '0')
+                self._flow.add_message(MessageType.NOTIFICATION, messages.BACKUP_NOTIFICATION_FAILED_1 , messages.BACKUP_NOTIFICATION_FAILED_2.replace('$BACKUPNAME', tobackup[1]["name_label"]), messages.time())
 
                 return
 
@@ -405,7 +405,7 @@ class XenBackup:
 
         self._flow.remove_message(taskid)
 
-        self._flow.add_message(MessageType.MESSAGE, 'Backup \'' +  tobackup[1]["name_label"] + '\'' ,'Created backup file: ' + backup_name, datetime.datetime.now().strftime('%H:%M:%S %Y-%m-%d'))
+        self._flow.add_message(MessageType.MESSAGE, messages.BACKUP_MESSAGE_COMPLETE_1, messages.BACKUP_MESSAGE_COMPLETE_2.replace('$BACKUPNAME', tobackup[1]["name_label"]), messages.time())
 
         session.close()
         

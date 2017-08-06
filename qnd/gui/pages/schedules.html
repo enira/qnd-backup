@@ -649,6 +649,8 @@
 		$("#saveit").click(function(){
 			saveitbasic();
 		});
+		
+		$(window).scrollTop(0);
 	}
 	
 	function editschedule(id) {
@@ -754,6 +756,8 @@
 				saveitadvanced();
 			});
 			}
+			
+			$(window).scrollTop(0);
 		});
 	}
 	
@@ -882,6 +886,7 @@
 				var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' added.')
 				$("#messagebox").html(msg);
 				load();
+				$(window).scrollTop(0);
 			});
 		}
 		else {
@@ -899,6 +904,7 @@
 				var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' changed.')
 				$("#messagebox").html(msg);
 				load();
+				$(window).scrollTop(0);
 			});
 		}	
 	}
@@ -932,6 +938,7 @@
 				var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' added.')
 				$("#messagebox").html(msg);
 				load();
+				$(window).scrollTop(0);
 			});
 		}
 		else {
@@ -949,6 +956,7 @@
 				var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Schedule \'' + name + '\' changed.')
 				$("#messagebox").html(msg);
 				load();
+				$(window).scrollTop(0);
 			});
 		}
 	}

@@ -59,6 +59,9 @@
     <Compile Include="api\xen\serializers.py" />
     <Compile Include="api\xen\__init__.py" />
     <Compile Include="api\__init__.py" />
+    <Compile Include="messages.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="reset_db.py">
       <SubType>Code</SubType>
     </Compile>

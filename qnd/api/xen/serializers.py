@@ -29,8 +29,8 @@ system = api.model('system', {
 })
 
 substat = api.model('substat', {
-    'object': fields.String(required=True, description='Pool name'),
-    'date': fields.String(required=True, description='Pool name'),
+    'object': fields.String(required=True, description='Object'),
+    'date': fields.String(required=True, description='Date'),
 })
 
 stats = api.model('stats', {

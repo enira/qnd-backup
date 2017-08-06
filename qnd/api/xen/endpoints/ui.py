@@ -12,6 +12,9 @@ from api.restplus import api
 from xen.flow import Flow
 from xen.types import MessageType
 
+from database.models import BackupTask, ArchiveTask, RestoreTask
+from database import db
+
 import logging.config
 log = logging.getLogger(__name__)
 
@@ -68,8 +71,8 @@ class MessageItem(Resource):
                 uitasks.append(uitask)
             if task[1] == MessageType.MESSAGE:
                 uimessage = type('',(object,),{"from": task[2],
-                                 "time": task[3],
-                                 "message": task[4],
+                                 "time": task[4],
+                                 "message": task[3],
                                 })()
 
                 uimessages.append(uimessage)
@@ -100,15 +103,45 @@ class SystemItem(Resource):
         """
         Returns backup and restore stats.
         """
+
+        backups = db.session.query(BackupTask).filter(BackupTask.started >= start + ' 00:00:01').filter(BackupTask.started <= end + ' 23:59:59').all()
+        restores = db.session.query(RestoreTask).filter(RestoreTask.started >= start  + ' 00:00:01').filter(RestoreTask.started <= end + ' 23:59:59').all()
+        # TODO
+        #archives = db.session.query(ArchiveTask).filter(ArchiveTask.started >= start).filter(ArchiveTask.started <= end).all()
+        
+        restore_pass = []
+        restore_failed  = []
+        backup_pass = []
+        backup_failed = []
+
+        for backup in backups:
+            if backup.status == "backup_done":
+                bo = type('',(object,),{"object": backup.backupname, "date": backup.ended})()
+                backup_pass.append(bo)
+            else:
+                bo = type('',(object,),{"object": backup.backupname, "date": backup.started})()
+                backup_failed.append(bo)
+
+        for restore in restores:
+            if backup.status == "restore_done":
+                bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
+                restore_pass.append(ro)
+            else:
+                bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
+                restore_failed.append(ro)
+
+        # TODO
+        #for archive in archives:
+
         
 
 
         # object date
 
-        obj = type('',(object,),{"restore_pass": len(uimessages),
-                                 "restore_failed": len(uinotifications),
-                                 "backup_pass": len(uitasks),
-                                 "backup_failed": uimessages,
+        obj = type('',(object,),{"restore_pass": restore_pass,
+                                 "restore_failed": restore_failed,
+                                 "backup_pass": backup_pass,
+                                 "backup_failed": backup_failed,
                                 })()
 
         return obj

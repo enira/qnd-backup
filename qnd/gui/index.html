@@ -239,20 +239,47 @@
           <div class="box">
             <div class="box-header with-border">
               <h3 class="box-title">Backup Report</h3>
-
-              
             </div>
             <!-- /.box-header -->
             <div class="box-body">
               <div class="row">
                 <div class="col-md-12">
                   <p class="text-center">
-                    <strong id="backuptitle">Backups for: 1 Jan, 2014 - 30 Jul, 2014</strong>
+                    <strong id="backuptitle"></strong>
                   </p>
 
                   <div class="chart">
                     <!-- Sales Chart Canvas -->
                     <canvas id="backupChart" style="height: 180px; width: 859px;" height="180" width="859"></canvas>
+                  </div>
+                  <!-- /.chart-responsive -->
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+            </div>
+            <!-- ./box-body -->
+          </div>
+          <!-- /.box -->
+        </div>
+		
+		
+	<div class="col-md-12">
+          <div class="box">
+            <div class="box-header with-border">
+              <h3 class="box-title">Restore Report</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <p class="text-center">
+                    <strong id="restoretitle"></strong>
+                  </p>
+
+                  <div class="chart">
+                    <!-- Sales Chart Canvas -->
+                    <canvas id="restoreChart" style="height: 180px; width: 859px;" height="180" width="859"></canvas>
                   </div>
                   <!-- /.chart-responsive -->
                 </div>
@@ -355,6 +382,7 @@
 		
 		$.get( '/api/xen/ui/messages', function( messages ) {
 			var msg_struct = '<li><a href="#"><h4 style="margin: 0 0 0 0">$FROM$<small><i class="fa fa-clock-o"></i>$TIME$</small></h4><p style="margin: 0 0 0 0">$TEXT$</p></a></li>';
+			var msg_struct_dashboard = '<div class="callout" style="padding: 2px 30px 2px 15px;"><h5>$FROM$</h5><p>$TEXT$</p></div>';
 		
 			$("#num_messages").html(messages.messages);
 			
@@ -372,7 +400,7 @@
 				$("#messages_total").append(msg_struct.replace('$FROM$', msg.from).replace('$TIME$', msg.title).replace('$TEXT$', msg.message));
 				
 				//dashboard
-				$( "#string_messages" ).after(msg_struct.replace('$FROM$', msg.from).replace('$TIME$', msg.title).replace('$TEXT$', msg.message));
+				$( "#string_messages" ).after(msg_struct_dashboard.replace('$FROM$', msg.from).replace('$TIME$', msg.title).replace('$TEXT$', msg.message));
 			}
 			
 			var notifications_struct = '<li><a href="#"><i class="$ICON$"></i>$TEXT$</a></li>';
@@ -396,7 +424,9 @@
 			}
 			
 			var tasks_struct = '<li><a href="#"><h3>$TITLE$<small class="pull-right">$PCT$%</small></h3><div class="progress xs"><div class="progress-bar progress-bar-primary progress-bar-striped" style="width: $PCT$%" role="progressbar" aria-valuenow="$PCT$" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">$PCT$% Complete</span></div></div></a></li>';
-			
+			var tasks_struct_dashboard = '<div class="callout" style="padding: 2px 30px 2px 15px;"><h5>$TITLE$: $PCT$%</h5></div>';
+		
+		
 			$("#num_tasks").html(messages.tasks);
 			$("#label_tasks").html('You have ' + messages.tasks + ' tasks');
 			
@@ -412,7 +442,7 @@
 				$("#tasks_total").append(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent).replace('$PCT$', task.percent).replace('$PCT$', task.percent));
 				
 				//dashboard
-				$( "#string_tasks" ).after(tasks_struct.replace('$TITLE$', task.title).replace('$PCT$', task.percent).replace('$PCT$', task.percent).replace('$PCT$', task.percent));
+				$( "#string_tasks" ).after(tasks_struct_dashboard.replace('$TITLE$', task.title).replace('$PCT$', task.percent).replace('$PCT$', task.percent).replace('$PCT$', task.percent));
 			}
 		});
 		
@@ -449,5 +479,207 @@
 <script src="dist/js/pages/dashboard.js"></script> -->
 <!-- AdminLTE for demo purposes 
 <script src="dist/js/demo.js"></script>-->
+
+<!-- ChartJS -->
+<script src="plugins/chartjs/Chart.js"></script>
+
+<script>
+	var start = moment().subtract(1, 'months'); // or...
+	var end = moment();
+
+	var copy = moment().subtract(1, 'months');
+	var days = [];
+	var day_labels = [];
+	for(var i=0; i<end.diff(start, 'days'); i++) {
+		copy.add(1, 'days');
+		days.push([copy.format('DD MMMM'), copy.format('YYYY-MM-DD')]);
+		day_labels.push(copy.format('DD MMMM'));
+	}
+
+	var strstart = start.format('YYYY-MM-DD');
+	var strend = end.format('YYYY-MM-DD');
+  
+	$.get( '/api/xen/ui/stats/' + strstart + "/" + strend , function( stats ) {
+		var backupChartCanvas = $('#backupChart').get(0).getContext('2d');
+		var backupChart = new Chart(backupChartCanvas);
+		
+		var restoreChartCanvas = $('#restoreChart').get(0).getContext('2d');
+		var restoreChart = new Chart(restoreChartCanvas);
+		
+		// generate the datasets
+		var counted_pass = [];
+		var counted_failed = [];
+		var counted_r_pass = [];
+		var counted_r_failed = [];
+		
+		for (var i = 0; i < days.length; i++) {
+			//Do something
+			var count = 0;
+			for (var j = 0; j < stats['backup_pass'].length; j++) {
+				if(stats['backup_pass'][j]['date'].startsWith(days[i][1])) {
+					count = count + 1;
+				}
+			}
+			counted_pass.push(count);
+			
+			
+			count = 0;
+			for (var j = 0; j < stats['backup_failed'].length; j++) {
+				if(stats['backup_failed'][j]['date'].startsWith(days[i][1])) {
+					count = count + 1;
+				}
+			}
+			counted_failed.push(count);
+			
+			
+			count = 0;
+			for (var j = 0; j < stats['restore_pass'].length; j++) {
+				if(stats['restore_pass'][j]['date'].startsWith(days[i][1])) {
+					count = count + 1;
+				}
+			}
+			counted_r_pass.push(count);
+			
+			count = 0;
+			for (var j = 0; j < stats['restore_failed'].length; j++) {
+				if(stats['restore_failed'][j]['date'].startsWith(days[i][1])) {
+					count = count + 1;
+				}
+			}
+			counted_r_failed.push(count);
+		}
+		 
+
+		var backupChartData = {
+			labels  : day_labels,
+			datasets: [
+			  {
+				label               : 'Backups Passed',
+				fillColor           : 'rgb(0,166,90)',
+				strokeColor         : 'rgb(0,166,90)',
+				pointColor          : 'rgb(0,166,90)',
+				pointStrokeColor    : '#00a65a',
+				pointHighlightFill  : '#fff',
+				pointHighlightStroke: 'rgb(220,220,220)',
+				data                : counted_pass
+			  },
+			  
+			  {
+				label               : 'Backups Failed',
+				fillColor           : 'rgb(221,75,57)',
+				strokeColor         : 'rgb(221,75,57)',
+				pointColor          : 'rgb(221,75,57)',
+				pointStrokeColor    : '#dd4b39',
+				pointHighlightFill  : '#fff',
+				pointHighlightStroke: 'rgb(220,220,220)',
+				data                : counted_failed
+			  },
+			]
+		};
+		
+		var restoreChartData = {
+			labels  : day_labels,
+			datasets: [
+			  {
+				label               : 'Backups Passed',
+				fillColor           : 'rgb(0,166,90)',
+				strokeColor         : 'rgb(0,166,90)',
+				pointColor          : 'rgb(0,166,90)',
+				pointStrokeColor    : '#00a65a',
+				pointHighlightFill  : '#fff',
+				pointHighlightStroke: 'rgb(220,220,220)',
+				data                : counted_r_pass
+			  },
+			  
+			  {
+				label               : 'Backups Failed',
+				fillColor           : 'rgb(221,75,57)',
+				strokeColor         : 'rgb(221,75,57)',
+				pointColor          : 'rgb(221,75,57)',
+				pointStrokeColor    : '#dd4b39',
+				pointHighlightFill  : '#fff',
+				pointHighlightStroke: 'rgb(220,220,220)',
+				data                : counted_r_failed
+			  },
+			]
+		};
+		
+		
+		
+		
+		
+		var chartOptions = {
+			// Boolean - If we should show the scale at all
+			showScale               : true,
+			// Boolean - Whether grid lines are shown across the chart
+			scaleShowGridLines      : false,
+			// String - Colour of the grid lines
+			scaleGridLineColor      : 'rgba(0,0,0,.05)',
+			// Number - Width of the grid lines
+			scaleGridLineWidth      : 1,
+			// Boolean - Whether to show horizontal lines (except X axis)
+			scaleShowHorizontalLines: true,
+			// Boolean - Whether to show vertical lines (except Y axis)
+			scaleShowVerticalLines  : true,
+			// Boolean - Whether the line is curved between points
+			bezierCurve             : true,
+			// Number - Tension of the bezier curve between points
+			bezierCurveTension      : 0.3,
+			// Boolean - Whether to show a dot for each point
+			pointDot                : false,
+			// Number - Radius of each point dot in pixels
+			pointDotRadius          : 4,
+			// Number - Pixel width of point dot stroke
+			pointDotStrokeWidth     : 1,
+			// Number - amount extra to add to the radius to cater for hit detection outside the drawn point
+			pointHitDetectionRadius : 20,
+			// Boolean - Whether to show a stroke for datasets
+			datasetStroke           : true,
+			// Number - Pixel width of dataset stroke
+			datasetStrokeWidth      : 2,
+			// Boolean - Whether to fill the dataset with a color
+			datasetFill             : true,
+			// String - A legend template
+			//legendTemplate          : '<ul class=\'<%=name.toLowerCase()%>-legend\'><% for (var i=0; i<datasets.length; i++){%><li><span style=\'background-color:<%=datasets[i].lineColor%>\'></span><%=datasets[i].label%></li><%}%></ul>',
+			// Boolean - whether to maintain the starting aspect ratio or not when responsive, if set to false, will take up entire container
+			maintainAspectRatio     : true,
+			// Boolean - whether to make the chart responsive to window resizing
+			responsive              : true,
+			
+			scales: {
+			  yAxes: [{
+				stacked: true,
+				ticks: {
+				  beginAtZero: true
+				}
+			  }],
+			  xAxes: [{
+				stacked: true,
+				ticks: {
+				  beginAtZero: true
+				}
+			  }]
+
+			}
+	
+		};
+
+		// Create the line chart
+		backupChart.Bar(backupChartData, chartOptions);
+		restoreChart.Bar(restoreChartData, chartOptions);
+		
+	});
+  
+
+        
+  
+  
+  
+  
+  
+  
+  
+</script>
+
 </body>
 </html>

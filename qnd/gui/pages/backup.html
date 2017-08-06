@@ -344,8 +344,9 @@
 		$("#backupbutton").unbind();
 		$("#backupbutton").bind( "click", function() {
 			doit(vmname);
+			$(window).scrollTop(0);
 		});
-
+		$(window).scrollTop(0);
 	}	
 	function doit(name) {
 		var ds = $( "#backup_datastore option:selected" )[0].value;

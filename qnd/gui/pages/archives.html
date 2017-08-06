@@ -387,6 +387,7 @@
 		$("#wizardtitle").html("Add Archive");
 		$("#inputId").val("(null)");
 		$("#archives_dialog").css('display', 'block');
+		$(window).scrollTop(0);
 	}
 	
 	function editarchive(id) {
@@ -402,6 +403,7 @@
 			$("#inputId").val(data.id);
 			
 			$("#archives_dialog").css('display', 'block');
+			$(window).scrollTop(0);
 		});
 	}
 	
@@ -460,6 +462,7 @@
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + name + '\' added.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		}
 		else {
@@ -476,6 +479,7 @@
 			  var msg = successmsg.replace('$TITLE$', 'Success').replace('$TEXT$', 'Archive \'' + name + '\' changed.')
 			  $("#messagebox").html(msg);
 			  load();
+			  $(window).scrollTop(0);
 			});
 		}
 		

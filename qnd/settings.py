@@ -21,11 +21,13 @@ SQLALCHEMY_MAX_OVERFLOW	= 0
 SESSION_TYPE = 'filesystem'
 
 def secret_key():
-    if os.path.isfile('.session'):
-        file = open(".session", "r")
+    cwd = os.path.dirname(os.path.realpath(__file__))
+
+    if os.path.isfile(os.path.join(cwd,'.session')):
+        file = open(os.path.join(cwd,'.session'), "r")
         return file.read() 
     else:
-        file = open(".session","w")
+        file = open(os.path.join(cwd,'.session'),"w")
         key = str(uuid.uuid4())
         file.write(key)
         file.close()

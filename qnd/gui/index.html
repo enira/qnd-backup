@@ -259,7 +259,7 @@
 				  <table class="table table-condensed" id="backuptable" style="display:none">
                 <tbody id="backuptablebody"><tr>
                   <th style="width: 10px">Status</th>
-                  <th>Date</th>
+                  <th style="width: 200px">Date</th>
                   <th>Comment</th>
                 </tr>
                 
@@ -305,7 +305,7 @@
 				  <table class="table table-condensed" id="restoretable" style="display:none">
                 <tbody id="restoretablebody"><tr>
                   <th style="width: 10px">Status</th>
-                  <th>Date</th>
+                  <th style="width: 200px">Date</th>
                   <th>Comment</th>
                 </tr>
                 
@@ -522,6 +522,10 @@
 <script src="plugins/chartjs/Chart.js"></script>
 
 <script>
+	function split_date(str) {
+		return str.split(".")[0];
+	}
+
 	var start = moment().subtract(1, 'months'); // or...
 	var end = moment();
 
@@ -553,28 +557,23 @@
 		var backups_list = [];
 		
 		for (var j = 0; j < stats['backup_pass'].length; j++) {
-			backups_list.push({date: stats['backup_pass'][j]['date'],obj:stats['backup_pass'][j]});
+			backups_list.push({icon: '<i class="fa fa-check" style="color: #00a65a;"></i>', date: stats['backup_pass'][j]['date'],obj:stats['backup_pass'][j]["object"]});
 		}
 		for (var j = 0; j < stats['backup_failed'].length; j++) {
-			backups_list.push({date: stats['backup_failed'][j]['date'],obj:stats['backup_failed'][j]});
+			backups_list.push({icon: '<i class="fa fa-times-circle-o" style="color: #dd4b39;"></i>', date: stats['backup_failed'][j]['date'],obj:stats['backup_failed'][j]["object"]});
 		}
 		
 		var restore_list = [];
 		
 		for (var j = 0; j < stats['restore_pass'].length; j++) {
-			restore_list.push({date: stats['restore_pass'][j]['date'],obj:stats['restore_pass'][j]});
+			restore_list.push({icon: '<i class="has-success fa fa-check" style="color: #00a65a;"></i>', date: stats['restore_pass'][j]['date'], obj:stats['restore_pass'][j]["object"]});
 		}
 		for (var j = 0; j < stats['restore_failed'].length; j++) {
-			restore_list.push({date: stats['restore_failed'][j]['date'],obj:stats['restore_failed'][j]});
+			restore_list.push({icon: '<i class="fa fa-times-circle-o" style="color: #dd4b39;"></i>', date: stats['restore_failed'][j]['date'],obj:stats['restore_failed'][j]["object"]});
 		}
 		
-		for (var i =0; i < backups_list.length; i++) {
-			$("#backuptablebody").append('<tr><td></td><td>' + backups_list[i]["date"] + '</td><td>' + backups_list[i]["object"] + '<td></tr>');
-		}
 		
-		for (var i =0; i < backups_list.length; i++) {
-			$("#restoretablebody").append('<tr><td></td><td>' + backups_list["date"] + '</td><td>' + backups_list["object"] + '<td></tr>');
-		}
+		
 		
 		for (var i = 0; i < days.length; i++) {
 			//Do something
@@ -634,13 +633,25 @@
 		}
 		else {
 			$("#backuptable").show();
+			for (var i =0; i < backups_list.length; i++) {
+				$("#backuptablebody").append('<tr><td>' + backups_list[i]["icon"] + '</td><td>' + split_date(backups_list[i]["date"]) + '</td><td>' + backups_list[i]["obj"] + '<td></tr>');
+			}
+			
 		}
 		if(restore_list.length == 0) {
 			$("#restoretable").hide();
 		}
 		else {
 			$("#restoretable").show();
+			
+			for (var i =0; i < restore_list.length; i++) {
+				$("#restoretablebody").append('<tr><td>' + restore_list[i]["icon"] + '</td><td>' + split_date(restore_list["date"]) + '</td><td>' + restore_list["obj"] + '<td></tr>');
+			}
 		}
+		
+		
+		
+		
 
 		var backupChartData = {
 			labels  : day_labels,

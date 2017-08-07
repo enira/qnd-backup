@@ -116,17 +116,23 @@ class SystemItem(Resource):
 
         for backup in backups:
             if backup.status == "backup_done":
-                bo = type('',(object,),{"object": backup.backupname, "date": backup.ended})()
+                if backup.backupname == None:
+                    str = 'VM: ' + backup.backup.vmname + '. ' + backup.backup.comment
+                else:
+                    str = 'VM: ' + backup.backup.vmname + ' snapshot: ' + backup.backupname +'. ' + backup.backup.comment
+                bo = type('',(object,),{"object": str, "date": backup.ended})()
                 backup_pass.append(bo)
             else:
-                bo = type('',(object,),{"object": backup.backupname, "date": backup.started})()
+                bo = type('',(object,),{"object": 'Failed: '+ backup.backupname +'. ', "date": backup.started})()
                 backup_failed.append(bo)
 
         for restore in restores:
             if backup.status == "restore_done":
+                # TODO
                 bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
                 restore_pass.append(ro)
             else:
+                # TODO
                 bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
                 restore_failed.append(ro)
 

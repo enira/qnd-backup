@@ -251,7 +251,23 @@
                   <div class="chart">
                     <!-- Sales Chart Canvas -->
                     <canvas id="backupChart" style="height: 180px; width: 859px;" height="180" width="859"></canvas>
+					
                   </div>
+				  
+				  
+				  
+				  <table class="table table-condensed" id="backuptable" style="display:none">
+                <tbody id="backuptablebody"><tr>
+                  <th style="width: 10px">Status</th>
+                  <th>Date</th>
+                  <th>Comment</th>
+                </tr>
+                
+              </tbody></table>
+				  
+				  
+				  
+				  
                   <!-- /.chart-responsive -->
                 </div>
                 <!-- /.col -->
@@ -281,6 +297,27 @@
                     <!-- Sales Chart Canvas -->
                     <canvas id="restoreChart" style="height: 180px; width: 859px;" height="180" width="859"></canvas>
                   </div>
+				  
+				  
+				  
+				  
+				    
+				  <table class="table table-condensed" id="restoretable" style="display:none">
+                <tbody id="restoretablebody"><tr>
+                  <th style="width: 10px">Status</th>
+                  <th>Date</th>
+                  <th>Comment</th>
+                </tr>
+                
+              </tbody></table>
+				  
+				  
+				  
+				  
+				  
+				  
+				  
+				  
                   <!-- /.chart-responsive -->
                 </div>
                 <!-- /.col -->
@@ -513,6 +550,32 @@
 		var counted_r_pass = [];
 		var counted_r_failed = [];
 		
+		var backups_list = [];
+		
+		for (var j = 0; j < stats['backup_pass'].length; j++) {
+			backups_list.push({date: stats['backup_pass'][j]['date'],obj:stats['backup_pass'][j]});
+		}
+		for (var j = 0; j < stats['backup_failed'].length; j++) {
+			backups_list.push({date: stats['backup_failed'][j]['date'],obj:stats['backup_failed'][j]});
+		}
+		
+		var restore_list = [];
+		
+		for (var j = 0; j < stats['restore_pass'].length; j++) {
+			restore_list.push({date: stats['restore_pass'][j]['date'],obj:stats['restore_pass'][j]});
+		}
+		for (var j = 0; j < stats['restore_failed'].length; j++) {
+			restore_list.push({date: stats['restore_failed'][j]['date'],obj:stats['restore_failed'][j]});
+		}
+		
+		for (var i =0; i < backups_list.length; i++) {
+			$("#backuptablebody").append('<tr><td></td><td>' + backups_list[i]["date"] + '</td><td>' + backups_list[i]["object"] + '<td></tr>');
+		}
+		
+		for (var i =0; i < backups_list.length; i++) {
+			$("#restoretablebody").append('<tr><td></td><td>' + backups_list["date"] + '</td><td>' + backups_list["object"] + '<td></tr>');
+		}
+		
 		for (var i = 0; i < days.length; i++) {
 			//Do something
 			var count = 0;
@@ -549,7 +612,35 @@
 			}
 			counted_r_failed.push(count);
 		}
+		
+		
+		// var 
+		
+
+		backups_list.sort(function(a,b){
+			var c = new Date(a.date);
+			var d = new Date(b.date);
+			return d-c;
+		});
+		restore_list.sort(function(a,b){
+			var c = new Date(a.date);
+			var d = new Date(b.date);
+			return d-c;
+		});
 		 
+		 
+		if(backups_list.length == 0) {
+			$("#backuptable").hide();
+		}
+		else {
+			$("#backuptable").show();
+		}
+		if(restore_list.length == 0) {
+			$("#restoretable").hide();
+		}
+		else {
+			$("#restoretable").show();
+		}
 
 		var backupChartData = {
 			labels  : day_labels,

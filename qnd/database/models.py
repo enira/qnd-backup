@@ -43,6 +43,9 @@ class Pool(db.Model):
     name = db.Column(db.String)                                                 # name of the pool
     hosts = db.relationship('Host')                                             # associated hosts
 
+    def __str__(self):
+        return self.name
+
 class Host(db.Model):
     """
     A host is associated with a pool and contains credentials of one XenServer.
@@ -57,6 +60,9 @@ class Host(db.Model):
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # associated pool id
     pool = db.relationship('Pool', back_populates='hosts', lazy='immediate')    # associated pool object
 
+    def __str__(self):
+        return self.address
+
 class Datastore(db.Model):
     """
     A datastore object
@@ -70,6 +76,8 @@ class Datastore(db.Model):
     type = db.Column(db.String)                                                 # only supported type at the moment: smb
     arguments = db.Column(db.String)                                            # unsupported
 
+    def __str__(self):
+        return self.name
 
 class Schedule(db.Model):
     """
@@ -142,6 +150,9 @@ class Backup(db.Model):
     datastore = db.relationship('Datastore', lazy='immediate')                  # datastore object  
     pool_id = db.Column(db.Integer, db.ForeignKey('pools.id'))                  # pool id
     pool = db.relationship('Pool', lazy='immediate')                            # pool object
+
+    def __str__(self):
+        return self.snapshotname
 
 
 class BackupTask(db.Model):

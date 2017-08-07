@@ -1,3 +1,5 @@
+import os.path
+import uuid
 
 # Flask settings
 FLASK_SERVER_NAME = '0.0.0.0:80'
@@ -15,3 +17,16 @@ SQLALCHEMY_DATABASE_URI = 'postgres://qnd:quickndirty@localhost/qnd'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_POOL_SIZE = 5
 SQLALCHEMY_MAX_OVERFLOW	= 0
+
+SESSION_TYPE = 'filesystem'
+
+def secret_key():
+    if os.path.isfile('.session'):
+        file = open(".session", "r")
+        return file.read() 
+    else:
+        file = open(".session","w")
+        key = str(uuid.uuid4())
+        file.write(key)
+        file.close()
+        return key

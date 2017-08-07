@@ -2,6 +2,8 @@
 
 import os
 from flask import Flask, Blueprint, request, send_from_directory, redirect
+from flask_admin import Admin
+
 import settings
 import threading
 
@@ -32,8 +34,12 @@ log.setLevel(logging.DEBUG)
 
 # flask
 app = Flask(__name__)
+# flask admin
+admin = Admin(app, name='qnd', template_mode='bootstrap3')
 
 database.assign(app)
+
+app.secret_key = settings.secret_key()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = settings.SQLALCHEMY_TRACK_MODIFICATIONS
@@ -43,6 +49,8 @@ app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
 app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
 app.config['SQLALCHEMY_POOL_SIZE'] = settings.SQLALCHEMY_POOL_SIZE
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = settings.SQLALCHEMY_MAX_OVERFLOW
+app.config['SESSION_TYPE'] = settings.SESSION_TYPE
+
 
 db.init_app(app)
 
@@ -71,7 +79,7 @@ def routes(app):
 
 def reset_db():
     database.reset_database(app) 
-    database.check_version(app)
+    database.check_version(app, admin)
 
 def initialize_app():
     """
@@ -80,7 +88,7 @@ def initialize_app():
     log.info('Initializing application...')
 
     # check database version and mirate if needed
-    database.check_version(app)
+    database.check_version(app, admin)
 
     # cleanup
     Flow.instance().cleanup_start()

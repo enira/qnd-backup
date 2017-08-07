@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
+from flask_admin.contrib.sqla import ModelView
 
 import logging.config
 log = logging.getLogger(__name__)
@@ -17,6 +18,17 @@ VERSION = '4'
     4       alpha-4                 current
 
 """
+
+class CustomModelView(ModelView):
+    def __init__(self, model, session, name=None, category=None, endpoint=None, url=None, **kwargs):
+        for k, v in kwargs.iteritems():
+            setattr(self, k, v)
+
+        super(CustomModelView, self).__init__(model, session, name=name, category=category, endpoint=endpoint, url=url)
+
+    def is_accessible(self):
+        # Logic
+        return True
 
 def assign(app):
     """
@@ -39,12 +51,12 @@ def reset_database(app):
     # create again
     db.create_all(app=app)
 
-def check_version(app):
+def check_version(app, admin):
     """
     Reads the version from the database and checks if the database needs to be updated
     """
 
-    from database.models import Setting
+    from database.models import User, Pool, Host, Datastore, BackupTask, ArchiveTask, RestoreTask, Backup, Archive, Schedule, Setting
     
     session = db.session
 
@@ -89,6 +101,21 @@ def check_version(app):
             log.error('Database version 1 & 2 are deprecated, no upgrade possible!')
             print 'Database version 1 & 2 are deprecated, no upgrade possible!'
             exit()
+
+    # sql admin
+    # , , , , , , , , , , 
+    admin.add_view(CustomModelView(Pool, db.session))
+    admin.add_view(CustomModelView(Host, db.session))
+    admin.add_view(CustomModelView(Datastore, db.session))
+    admin.add_view(CustomModelView(User, db.session))
+    admin.add_view(CustomModelView(Setting, db.session, column_list=['key', 'value'], form_columns = ['key', 'value']))
+    admin.add_view(CustomModelView(Backup, db.session))
+    admin.add_view(CustomModelView(Archive, db.session))
+    admin.add_view(CustomModelView(Schedule, db.session))
+    admin.add_view(CustomModelView(BackupTask, db.session))
+    admin.add_view(CustomModelView(ArchiveTask, db.session))
+    admin.add_view(CustomModelView(RestoreTask, db.session))
+
 
 
     

@@ -271,3 +271,5 @@ qnd/db.sqlite
 qnd/uuid
 
 qnd/config.ini
+
+qnd/.session

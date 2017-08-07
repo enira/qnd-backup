@@ -91,7 +91,9 @@ class XenBackup:
         Return an active host
         """
         if self.poolmaster == None:
-            return self.servers[0]
+            if len(self.servers) > 1:
+                return self.servers[0]
+            return None
         else:
             return self.poolmaster
     

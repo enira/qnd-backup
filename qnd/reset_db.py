@@ -29,6 +29,6 @@ if __name__ == "__main__":
     Can be runned with 'python reset_db.py'
     """
     database.reset_database(app) 
-    database.check_version(app)
+    database.check_version(app, None)
     exit()
  

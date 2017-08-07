@@ -38,6 +38,9 @@ systemctl restart nginx
 # on boot 
 systemctl enable nginx
 
+# chown folder
+chown -R qnd:qnd /opt/qndbackup/qnd/
+
 # create a log folder for the service 
 mkdir -p /var/log/qnd/
 chown qnd:qnd /var/log/qnd/

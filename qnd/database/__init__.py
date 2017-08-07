@@ -102,19 +102,19 @@ def check_version(app, admin):
             print 'Database version 1 & 2 are deprecated, no upgrade possible!'
             exit()
 
-    # sql admin
-    # , , , , , , , , , , 
-    admin.add_view(CustomModelView(Pool, db.session))
-    admin.add_view(CustomModelView(Host, db.session))
-    admin.add_view(CustomModelView(Datastore, db.session))
-    admin.add_view(CustomModelView(User, db.session))
-    admin.add_view(CustomModelView(Setting, db.session, column_list=['key', 'value'], form_columns = ['key', 'value']))
-    admin.add_view(CustomModelView(Backup, db.session))
-    admin.add_view(CustomModelView(Archive, db.session))
-    admin.add_view(CustomModelView(Schedule, db.session))
-    admin.add_view(CustomModelView(BackupTask, db.session))
-    admin.add_view(CustomModelView(ArchiveTask, db.session))
-    admin.add_view(CustomModelView(RestoreTask, db.session))
+    if admin != None:
+        # sql admin
+        admin.add_view(CustomModelView(Pool, db.session))
+        admin.add_view(CustomModelView(Host, db.session))
+        admin.add_view(CustomModelView(Datastore, db.session))
+        admin.add_view(CustomModelView(User, db.session))
+        admin.add_view(CustomModelView(Setting, db.session, column_list=['key', 'value'], form_columns = ['key', 'value']))
+        admin.add_view(CustomModelView(Backup, db.session))
+        admin.add_view(CustomModelView(Archive, db.session))
+        admin.add_view(CustomModelView(Schedule, db.session))
+        admin.add_view(CustomModelView(BackupTask, db.session))
+        admin.add_view(CustomModelView(ArchiveTask, db.session))
+        admin.add_view(CustomModelView(RestoreTask, db.session))
 
 
 

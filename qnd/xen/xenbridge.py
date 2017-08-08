@@ -181,6 +181,17 @@ class XenBridge:
         """
         session.xenapi.task.destroy(ref)
 
+    def get_task(self, taskref):
+        """
+        Get all SR for a host
+        """
+        session = self.create_session()
+
+        task = session.xenapi.task.get_record(taskref)
+
+        session.logout()
+        return task
+
     def create_snapshot(self, ref, name):
         """
         Create an exportable snapshot

@@ -24,6 +24,8 @@ class XenBackup:
     servers = []            # all servers
     poolmaster = None       # poolmaster
 
+    pool_id = None           # current poolid
+
     backuptasks = []
     restoretasks = []
     hosts = None            # hosts
@@ -39,6 +41,7 @@ class XenBackup:
         """
         self._flow = flow
         self.servers = []
+        self.pool_id = pool_id
         # create the server objects
         for server in servers:
             self.servers.append(XenBridge(server.id, server.address, server.username, server.password))
@@ -121,6 +124,12 @@ class XenBackup:
         Get all SR for a host
         """
         return self.get_active_host().get_sr(address)
+
+    def get_task(self, taskref):
+        """
+        Get all SR for a host
+        """
+        return self.get_active_host().get_task(taskref)
 
     def get_vms(self):   
         """
@@ -222,13 +231,19 @@ class XenBackup:
             self.update_pct(task, 1, 1, 0.20, messages.RESTORE_FAILED_MOUNT, session, taskid)
             return
 
+
+        self.update_pct(task, 0.60, 0, 0.20, messages.RESTORE_COPY, session, taskid)
+
+
         # download the xva TODO: connect on task
         dlsession = self.get_active_host().create_session()
 
         taskref = self.get_active_host().create_task(dlsession, 
                                            'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task.backup.backupfile + '.')
 
-        result = connection.sudo_command('curl -T ' + resfolder + '/' + task.backup.backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '\\&sr=' + task.sr + ' --insecure', self._server[2])
+        self._flow.task_submit(self.pool_id, task.id, taskref)
+
+        result = connection.sudo_command('curl -T ' + resfolder + '/' + task.backup.backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '&sr=' + task.sr + '&task_id=' + taskref + ' --insecure', self._server[2])
         
         self.get_active_host().remove_task(dlsession, taskref)
 
@@ -375,7 +390,9 @@ class XenBackup:
         taskref = self.get_active_host().create_task(dlsession, 
                                            'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
 
-        result = connection.sudo_command('wget \'https://' + backuphost + '/export?session_id=' + dlsession._session + '&ref=' + snapshot + '\' --no-check-certificate -O ' + bckfolder + '/' + backup_name, self._server[2])
+        self._flow.task_submit(self.pool_id, task.id, taskref)
+
+        result = connection.sudo_command('wget \'https://' + backuphost + '/export?session_id=' + dlsession._session + '&task_id=' + taskref +'&ref=' + snapshot + '\' --no-check-certificate -O ' + bckfolder + '/' + backup_name, self._server[2])
         
         self.get_active_host().remove_task(dlsession, taskref)
 

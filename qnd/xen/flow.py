@@ -44,6 +44,8 @@ class Flow(object):
     messages = []
     messageid = 1000
 
+    _tasks = []
+
     def get_environment(self, pool_id):
         """
         Get all environment for a pool. 
@@ -206,6 +208,7 @@ class Flow(object):
         self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.task, 'cron', minute='*', second='15', id='task_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
@@ -344,6 +347,24 @@ class Flow(object):
         for pool in self._poolcache:
             self._poolcache[pool]["backup"].run_backups()
             self._poolcache[pool]["backup"].run_restores()
+
+
+    def task_submit(self, pool_id, taskid, taskref):
+        """
+        Submit a task to follow up
+        """
+        self._tasks.append({'pool': pool_id, 'task_db':taskid, 'task_xen': taskref})
+
+    def task(self):
+        """
+        Check up on tasks
+        """
+        for task in self._tasks:
+
+            task = self._poolcache[task["pool"]]["backup"].get_task(task["task_xen"])
+
+            pass
+
 
     def cleanup_start(self):
         """

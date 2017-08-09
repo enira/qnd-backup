@@ -9,7 +9,7 @@ This piece of software does a few things:
 If you want to install this piece of software, there are three options. One is to deploy a VM package, this is the most stable version you can have. It's pre-tested in my environment.
 This backup software is tested on XenServer 7.0 at the moment. There are plans to upgrade my cluster to 7.1 in the near future. It might work on XenServer 6.5 but I guess the 7.x line would be best. 
 
-##Requirements
+## Requirements
 This 'advanced script' isn't demanding on requirements. A simple VM with:
 - 512 MB RAM
 - 1 CPU
@@ -27,12 +27,13 @@ wget -O - https://raw.githubusercontent.com/enira/qnd-backup/master/install/ubun
 ```
 
 ## Method 3 - Installing latest version
-This method is prone to bugs, undocumented features and can potentially break things. However you will always be running the latest version.
+This method is prone to bugs, undocumented features and can can potentially break things. However you will always be running the latest version.
 ```
 wget -O - https://raw.githubusercontent.com/enira/qnd-backup/master/install/ubuntu-xenial/latest.sh | sudo bash
 ```
 # Upgrading
-During the alpha phase, there will be no upgrades available. 
+During the alpha phase, there will be no upgrades available.  The database itself is prone to quite a lot of changes. 
+If you want to keep your settings, yo ucan dump the PostreSQL database inside the VM and restore it on a new system. However there is no guarantee that the database version hasn't changed.
 
 
 # Usage
@@ -63,7 +64,7 @@ https://creativecommons.org/licenses/by-nd/4.0/
 # Small Q & A
 ## Why did you made this piece of software?
 So yeah, how did this all start? Sometimes Xen goes... you know bad. I've had my fair share of difficulties with the platform. When Migrating from 6.5 to 7.0 I lost quite a few VMs that where running fine.
-A few backup scripts and some Python code later it took off from there. I just love writing Python code. This Git repository is my way of producting something whil gaining maturity with the platform, language and releases at the same time.
+A few backup scripts and some Python code later it took off from there. I just love writing Python code. This Git repository is my way of producting something while gaining maturity with the platform, language and releases at the same time.
 
 ## Why such a restrictive license?
 This is the first project I am releasing ever. That's why I am putting this rather restrictive license on it. Because I do not have any experience with this part of releasing software. Perhaps a less restrictive license would be fine as well.

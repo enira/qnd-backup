@@ -189,7 +189,7 @@ class BackupTask(db.Model):
         if self.pct2 == None:
             s2 = 0
         else:
-            s2 = self.pct1
+            s2 = self.pct2
 
         if self.divisor == None:
             d = 1

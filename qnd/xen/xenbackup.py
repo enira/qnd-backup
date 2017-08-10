@@ -241,7 +241,7 @@ class XenBackup:
         taskref = self.get_active_host().create_task(dlsession, 
                                            'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task.backup.backupfile + '.')
 
-        self._flow.task_submit(self.pool_id, task.id, taskref)
+        self._flow.task_submit(self.pool_id, 'restore', task.id, taskref, taskid)
 
         result = connection.sudo_command('curl -T ' + resfolder + '/' + task.backup.backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '&sr=' + task.sr + '&task_id=' + taskref + ' --insecure', self._server[2])
         
@@ -266,11 +266,6 @@ class XenBackup:
             task.pct2 = pct2
         task.divisor = divisor
 
-        # isinstance
-        #if isinstance(task, BackupTask): 
-        #    task.status = 'backup_' + status
-        #if isinstance(task, RestoreTask):
-        #    task.status = 'restore_' + status
         task.status = status
         session.add(task)
         session.commit()
@@ -389,8 +384,9 @@ class XenBackup:
 
         taskref = self.get_active_host().create_task(dlsession, 
                                            'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
-
-        self._flow.task_submit(self.pool_id, task.id, taskref)
+        
+        # pool_id, type, taskid, taskref, messageid
+        self._flow.task_submit(self.pool_id, 'backup', task.id, taskref, taskid)
 
         result = connection.sudo_command('wget \'https://' + backuphost + '/export?session_id=' + dlsession._session + '&task_id=' + taskref +'&ref=' + snapshot + '\' --no-check-certificate -O ' + bckfolder + '/' + backup_name, self._server[2])
         
@@ -398,12 +394,12 @@ class XenBackup:
 
         dlsession.close()
 
-        self.update_pct(task, 0.80, None, 0.20, messages.BACKUP_REMOVE_SNAPSHOT, session, taskid)
+        self.update_pct(task, 0.80, 1.0, 0.20, messages.BACKUP_REMOVE_SNAPSHOT, session, taskid)
 
         # remove snapshot
         self.get_active_host().remove_snapshot(snapshot)      
 
-        self.update_pct(task, 0.90, None, 0.20, messages.BACKUP_CLOSE, session, taskid)
+        self.update_pct(task, 0.90, 1.0, 0.20, messages.BACKUP_CLOSE, session, taskid)
 
         # create backup object as done
         backup = Backup(metafile=meta_name, 

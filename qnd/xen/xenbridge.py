@@ -62,7 +62,7 @@ class XenBridge:
 
     def get_sr(self, address):
         """
-        Get all SRs for a hostid (based on an Ip address)
+        Get all SRs for a hostid (based on an IP address)
         """
         session = self.create_session()
 

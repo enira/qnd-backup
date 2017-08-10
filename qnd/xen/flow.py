@@ -208,7 +208,7 @@ class Flow(object):
         self._scheduler.add_job(self.archive, 'cron', minute='*', second='30', id='archive_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.run, 'cron', minute='*', id='run_job', max_instances=1, coalesce=True)
         self._scheduler.add_job(self.cleanup, 'cron', minute='*', second='45', id='cleanup_job', max_instances=1, coalesce=True)
-        self._scheduler.add_job(self.task, 'cron', minute='*', second='15', id='task_job', max_instances=1, coalesce=True)
+        self._scheduler.add_job(self.task, 'cron', minute='*', second='*/5', id='task_job', max_instances=1, coalesce=True)
 
         session.close()
         self._scheduler.start()
@@ -349,21 +349,33 @@ class Flow(object):
             self._poolcache[pool]["backup"].run_restores()
 
 
-    def task_submit(self, pool_id, taskid, taskref):
+    def task_submit(self, pool_id, type, taskid, taskref, messageid):
         """
         Submit a task to follow up
         """
-        self._tasks.append({'pool': pool_id, 'task_db':taskid, 'task_xen': taskref})
+        self._tasks.append({'pool': pool_id, 'type': type, 'task_db_id':taskid, 'task_xen_id': taskref, 'message_id': messageid})
 
     def task(self):
         """
         Check up on tasks
         """
+        session = db.session
         for task in self._tasks:
 
-            task = self._poolcache[task["pool"]]["backup"].get_task(task["task_xen"])
+            xtask = self._poolcache[task["pool"]]["backup"].get_task(task["task_xen_id"])
 
-            pass
+            dbtask = None
+            if task["type"] == 'backup':
+                dbtask = session.query(BackupTask).filter(BackupTask.id == task["task_db_id"]).one()
+            
+            dbtask.pct2 = xtask["progress"]
+
+            session.add(dbtask)
+            session.commit()
+
+            self.edit_message(task["message_id"], dbtask.status, str(int(round(dbtask.pct() * 100,0))) , None)
+            
+        session.close()
 
 
     def cleanup_start(self):
@@ -401,6 +413,7 @@ class Flow(object):
         tasks = db.session.query(ArchiveTask).all()
         #for task in tasks:
             
+        session.close()
         
 
 

@@ -127,7 +127,7 @@ class SystemItem(Resource):
                     bo = type('',(object,),{"object": 'Failed: '+ backup.backupname +'. ', "date": backup.started})()
                     backup_failed.append(bo)
             except Exception as e:
-                log.error(str(e))
+                log.error(repr(e))
 
         for restore in restores:
             try:
@@ -140,7 +140,7 @@ class SystemItem(Resource):
                     bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
                     restore_failed.append(ro)
             except Exception as e:
-                log.error(str(e))
+                log.error(repr(e))
 
         # TODO
         #for archive in archives:

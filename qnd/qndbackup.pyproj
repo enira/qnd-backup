@@ -101,6 +101,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="gui\.gitignore" />
+    <Content Include="gui\.jshintrc" />
+    <Content Include="gui\build\less\.csslintrc" />
     <Content Include="logging.conf">
       <SubType>Code</SubType>
     </Content>
@@ -111,6 +114,9 @@
     <Folder Include="api\xen\" />
     <Folder Include="api\xen\endpoints\" />
     <Folder Include="database\" />
+    <Folder Include="gui\" />
+    <Folder Include="gui\build\" />
+    <Folder Include="gui\build\less\" />
     <Folder Include="xapi\" />
     <Folder Include="xapi\" />
     <Folder Include="xen\" />

@@ -355,7 +355,7 @@
 			
 				<!-- -->
 			
-			<div class="row" id="restore_dialog">
+			<div class="row" id="restore_intro">
         <div class="col-xs-12" >
 		<div class="box">
             <div class="box-header with-border">
@@ -495,7 +495,10 @@
 <!-- Page specific script -->
 <script>
 	var successmsg = '<div class="row"><div class="col-xs-12" ><div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button><h4><i class="icon fa fa-check"></i> $TITLE$</h4>$TEXT$</div></div></div>';  
-
+	
+	/** 
+	 * Update function, updates the CPU and RAM load.
+	 */
 	function update_system() {
 		$.get('/api/xen/ui/system', function( stats ) {
 			$("#cpu_load").attr("aria-valuenow", stats.cpu_load);
@@ -510,6 +513,9 @@
 		});
 	}
 	
+	/** 
+	 * Toggles the CPU & RAM labels when going to collapsed menu on the left;
+	 */
 	function toggle() {
 		if($("#label_cpu").css('display') === 'none' ) {
 			$("#label_cpu").css('display', 'block');
@@ -517,7 +523,6 @@
 		else {
 			$("#label_cpu").css('display', 'none');
 		}
-		
 		if($("#label_ram").css('display') === 'none' ) {
 			$("#label_ram").css('display', 'block');
 		}
@@ -527,6 +532,7 @@
 	}
 	
 	function load() {
+		// Load all the pools
 		$.get( '/api/xen/pool/', function( pool ) {
 			if(typeof pool != "undefined" && pool != null && pool.length > 0){	
 				for (var i = 0; i < pool.length; i++) {
@@ -536,7 +542,14 @@
 						}));
 				}
 			}
+			else {
+				// No restores for a pool show message
+				$("#restore_intro").css('display', 'none');
+				$("#empty_placeholder").html("No backups found...");
+					
+			}
 		});
+		
 		
 		// load datastores
 		$.get( '/api/xen/datastore/', function( data ) {
@@ -566,7 +579,7 @@
 		
 		jsonData = '{"status": "restore_pending", "ended": "", "pct1": 0, "backup_id": ' + backupid + ', "backupname": "' + backupname + '", "pct2": 0, "sr": "' + srId + '", "started": "", "host_id": ' + hostId + ', "divisor": 0}';
 		
-		//alert(jsonData);
+
 		
 			$.ajax({
 				url: '/api/xen/task/validate/',
@@ -619,7 +632,7 @@
 		$.get('/api/xen/backups/' + backupid, function( data ) {
 			if(typeof data != "undefined" && data != null){
 				$("#restore_dialog").css('display', 'block');
-				//alert(data);
+
 				
 				$("#wizardrestoretitle").html("Restoring VM - " + data.vmname);
 				$("#text_vmname").html(data.vmname);

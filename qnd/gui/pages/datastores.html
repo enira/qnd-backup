@@ -415,6 +415,9 @@
 
 	
 	function testdatastore() {
+		// Sanitize slashes 
+		$('#inputHost').val($('#inputHost').val().replace(/\\/g,"/"));
+
 		var username = $("#inputUsername" ).val();
 		var password = $("#inputPassword" ).val();
 		var host = $("#inputHost" ).val();
@@ -509,6 +512,9 @@
 	}
 	
 	function saveit() {
+		// Sanitize slashes 
+		$('#inputHost').val($('#inputHost').val().replace(/\\/g,"/"));
+	
 		var call = $("#inputId" ).val();
 		
 		var type = $("#inputType option:selected" )[0].value;

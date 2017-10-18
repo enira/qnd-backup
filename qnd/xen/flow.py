@@ -390,28 +390,40 @@ class Flow(object):
         #   submitted
         #   done
 
-        tasks = session.query(BackupTask).filter(~BackupTask.status.contains('failed')).all()
+        tasks = session.query(BackupTask).filter(~BackupTask.status.contains('FAILED')).all()
         for task in tasks:
-            if task.status == 'backup_discovery':
-                task.status = 'backup_pending'
+            if task.status == 'BACKUP_DISCOVERY':
+                task.status = 'BACKUP_PENDING'
                 session.add(task)
                 session.commit()
-            if task.status == 'backup_submitted':
-                task.status = 'backup_pending'
+            elif task.status == 'BACKUP_SUBMITTED':
+                task.status = 'BACKUP_PENDING'
                 session.add(task)
                 session.commit()
-            if task.status == 'backup_mount':
-                task.status = 'backup_pending'
+            elif task.status == 'BACKUP_MOUNT':
+                task.status = 'BACKUP_PENDING'
+                session.add(task)
+                session.commit()
+            else:
+                task.status = 'BACKUP_FAILED_ORPHAN'
                 session.add(task)
                 session.commit()
             
 
-        tasks = db.session.query(RestoreTask).all()
-        #for task in tasks:
-            
+        # TODO
+        tasks = session.query(RestoreTask).filter(~RestoreTask.status.contains('FAILED')).all()
+        for task in tasks:
+            task.status = 'RESTORE_FAILED_ORPHAN'
+            session.add(task)
+            session.commit()
 
-        tasks = db.session.query(ArchiveTask).all()
-        #for task in tasks:
+
+        # TODO
+        tasks = session.query(ArchiveTask).filter(~ArchiveTask.status.contains('FAILED')).all()
+        for task in tasks:
+            task.status = 'ARCHIVE_FAILED_ORPHAN'
+            session.add(task)
+            session.commit()
             
         session.close()
         

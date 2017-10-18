@@ -1116,8 +1116,8 @@
 		});
 		
 		$.get( '/api/xen/ui/messages', function( messages ) {
-			var msg_struct = '<li><a href="#"><h4 style="margin: 0 0 0 0">$FROM$<small><i class="fa fa-clock-o"></i>$TIME$</small></h4><p style="margin: 0 0 0 0">$TEXT$</p></a></li>';
-		
+			var msg_struct = '<li><a href="#"><h4 style="margin: 0 0 0 0">$FROM$<small><i class="fa fa-clock-o"></i>&nbsp;&nbsp;$TIME$</small></h4><p style="margin: 0 0 0 0">$TEXT$</p></a></li>';
+			
 			$("#num_messages").html(messages.messages);
 			
 			if(messages.messages > 0) {
@@ -1128,7 +1128,7 @@
 			
 			for(var i=0; i<messages.messages_items.length; i++) {
 				var msg = messages.messages_items[i];
-				$("#messages_total").append(msg_struct.replace('$FROM$', msg.from).replace('$TIME$', msg.title).replace('$TEXT$', msg.message));
+				$("#messages_total").append(msg_struct.replace('$FROM$', msg.from).replace('$TIME$', msg.time).replace('$TEXT$', msg.message));
 			}
 			
 			var notifications_struct = '<li><a href="#"><i class="$ICON$"></i>$TEXT$</a></li>';

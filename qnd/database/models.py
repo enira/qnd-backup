@@ -178,6 +178,7 @@ class BackupTask(db.Model):
     pct2 = db.Column(db.Float)                                                # second percentage         (0 to 1)
     divisor = db.Column(db.Float)                                             # division of percentage    (0 to 1)
 
+    message = db.Column(db.String)                                                   # status of the task
     status = db.Column(db.String)                                               # status of the task
     
     def pct(self):
@@ -219,6 +220,7 @@ class ArchiveTask(db.Model):
     pct2 = db.Column(db.Float)                                                    # second percentage         (0 to 1)
     divisor = db.Column(db.Float)                                                 # division of percentage    (0 to 1)
 
+    message = db.Column(db.String)                                                   # status of the task
     status = db.Column(db.String)                                                   # status of the task
     def pct(self):
         if self.pct1 == None:
@@ -258,6 +260,7 @@ class RestoreTask(db.Model):
     pct2 = db.Column(db.Float)                                                    # second percentage         (0 to 1)
     divisor = db.Column(db.Float)                                                 # division of percentage    (0 to 1)
 
+    message = db.Column(db.String)                                                   # status of the task
     status = db.Column(db.String)                                                   # status of the task
     def pct(self):
         if self.pct1 == None:

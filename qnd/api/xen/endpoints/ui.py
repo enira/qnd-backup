@@ -124,8 +124,12 @@ class SystemItem(Resource):
                     bo = type('',(object,),{"object": str, "date": backup.ended})()
                     backup_pass.append(bo)
                 else:
-                    bo = type('',(object,),{"object": 'Failed: '+ backup.backupname +'. ', "date": backup.started})()
-                    backup_failed.append(bo)
+                    if backup.status == "backup_pending":
+                        # if pending backup: don't count it towards failed
+                        pass
+                    else:
+                        bo = type('',(object,),{"object": 'Failed: '+ backup.backupname +'. ', "date": backup.started})()
+                        backup_failed.append(bo)
             except Exception as e:
                 log.error(repr(e))
 

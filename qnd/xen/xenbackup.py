@@ -9,7 +9,7 @@ from xenbridge import XenBridge
 from database import db
 from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool, Host
 
-from xen.types import MessageType
+from xen.types import MessageType, TaskType
 
 import messages
 import os
@@ -205,90 +205,144 @@ class XenBackup:
         session = db.session
         task = session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
         host = session.query(Host).filter(Host.id == task.host_id).one()
+        datastore = session.query(Datastore).filter(Datastore.id == task.backup.datastore_id).one()
+
+        # variables
+        backup_ds_id = task.backup.datastore_id
+        ds_username = datastore.username
+        ds_password = datastore.password
+        ds_host = datastore.host
+        task_backupfile = task.backup.backupfile
+        task_sr = task.sr
+        task_snapshot = task.backup.snapshotname
+        task_backupname = task.backupname
+
+        session.close()
+
+
+        taskid = self._flow.add_message(MessageType.TASK, messages.RESTORE_START , messages.time(), None)
 
         # start backing up: create a connection
         connection = Bridge(self._server[0], self._server[1], self._server[2])
 
         # make folder name
-        resfolder = self.BACKUPROOT + '/ds-' + str(task.backup.datastore_id)
+        resfolder = self.BACKUPROOT + '/ds-' + str(backup_ds_id)
 
-        self.update_pct(task, 0, 0, 0.20, messages.RESTORE_DISCOVERY, session, taskid)
+        self.update_pct(TaskType.RESTORE, task_id, 0, 0, 0.20, 'RESTORE_DISCOVERY', messages.RESTORE_DISCOVERY, taskid)
 
         # create mount point
         connection.sudo_command('mkdir -p ' + resfolder, self._server[2])
 
-        self.update_pct(task, 0.40, 0, 0.20, messages.RESTORE_MOUNT, session, taskid)
+        self.update_pct(TaskType.RESTORE, task_id, 0.40, 0, 0.20, 'RESTORE_MOUNT', messages.RESTORE_MOUNT, taskid)
+
+        
+        # check if wrong mounted
+        result = connection.command('df -h | grep -i ' + ds_host)
+        if len(result) != 0:
+            split = result[0].split(' ')
+            if split[len(split) - 1] != resfolder:
+                result = connection.sudo_command('umount '+ split[len(split) - 1], self._server[2])
 
         # check if already mounted
         result = connection.command('df -h | grep -i ' + resfolder)
         if len(result) == 0:
             # mount smb
-            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + resfolder, self._server[2])
+            result = connection.sudo_command('mount -t cifs -o username=' + ds_username + ',password=' + ds_password + ' ' + ds_host + ' ' + resfolder, self._server[2])
+        else:
+            # if we have a wrong mount
+            if ds_host != result[0].split(' ')[0]:
+                # unmount
+                result = connection.sudo_command('umount '+ resfolder, self._server[2])
+                result = connection.sudo_command('mount -t cifs -o username=' + ds_username + ',password=' + ds_password + ' ' + ds_host + ' ' + resfolder, self._server[2])
+        
 
         result = connection.command('df -h | grep -i ' + resfolder)
         if len(result) == 0:
             log.error('Could not mount the datastore')
-            self.update_pct(task, 1, 1, 0.20, messages.RESTORE_FAILED_MOUNT, session, taskid)
+            self.update_pct(TaskType.RESTORE, task_id, 1, 1, 0.20, 'RESTORE_FAILED_MOUNT', messages.RESTORE_FAILED_MOUNT, taskid)
             return
 
 
-        self.update_pct(task, 0.60, 0, 0.20, messages.RESTORE_COPY, session, taskid)
+        self.update_pct(TaskType.RESTORE, task_id, 0.60, 0, 0.20, 'RESTORE_COPY', messages.RESTORE_COPY, taskid)
 
 
         # download the xva TODO: connect on task
         dlsession = self.get_active_host().create_session()
 
         taskref = self.get_active_host().create_task(dlsession, 
-                                           'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task.backup.backupfile + '.')
+                                           'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task_backupfile + '.')
 
-        self._flow.task_submit(self.pool_id, 'restore', task.id, taskref, taskid)
+        self._flow.task_submit(self.pool_id, 'restore', task_id, taskref, taskid)
 
-        result = connection.sudo_command('curl -T ' + resfolder + '/' + task.backup.backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '&sr=' + task.sr + '&task_id=' + taskref + ' --insecure', self._server[2])
+        result = connection.sudo_command('curl -k -T ' + resfolder + '/' + task_backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '&sr=' + task_sr + '&task_id=' + taskref, self._server[2])
         
         self.get_active_host().remove_task(dlsession, taskref)
 
         dlsession.close()
 
         # rename the imported vm task.backup.snapshotname => task.backupname
-        vm = self.get_active_host().get_vm_by_name(task.backup.snapshotname)
-        self.get_active_host().set_vm_name(vm[0], task.backupname)
+        vm = self.get_active_host().get_vm_by_name(task_snapshot)
+        self.get_active_host().set_vm_name(vm[0], task_backupname)
         
         # rename the imported disk task.backupname
-        self.get_active_host().set_disk_names(vm[1]['VBDs'], task.backupname)
+        self.get_active_host().set_disk_names(vm[1]['VBDs'], task_backupname)
 
-    def update_pct(self, task, pct1, pct2, divisor, status, session, id):
+
+
+
+    def update_pct(self, type, task_id, pct1, pct2, divisor, status, message, id):
         """
         Update percentages for a given task
         """
+        session = db.session
+        if type == TaskType.BACKUP:
+            task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
+        if type == TaskType.RESTORE:
+            task = session.query(RestoreTask).filter(RestoreTask.id == task_id).one()
 
         task.pct1 = pct1
         if pct2 != None:
             task.pct2 = pct2
         task.divisor = divisor
 
+        task.message = message
         task.status = status
         session.add(task)
         session.commit()
 
-        self._flow.edit_message(id, task.status, str(int(round(task.pct() *100,0))) , None)
+        self._flow.edit_message(id, message, str(int(round(task.pct() *100,0))) , None)
+
+        session.close()
+
         
     def backup_smb(self, task_id):
         """
         Backup a VM to a SMB fileshare
         """
         
+        # open a session to the database
         session = db.session
+
+        # get all required objects from the database
         task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
         datastore = session.query(Datastore).filter(Datastore.id == task.datastore_id).one()
         pool = session.query(Pool).filter(Pool.id == task.pool_id).one()
-        uuid = task.uuid
 
-        taskid = self._flow.add_message(MessageType.TASK, 'Backup job starting...' , messages.time(), None)
+        # variables
+        task_datastore_id = task.datastore_id
+        uuid = task.uuid
+        ds_username = datastore.username
+        ds_password = datastore.password
+        ds_host = datastore.host
+
+        # close database session again
+        session.close()
+
+        taskid = self._flow.add_message(MessageType.TASK, messages.BACKUP_START , messages.time(), None)
 
         # make folder name
-        bckfolder = self.BACKUPROOT + '/ds-' + str(task.datastore_id)
-
-        self.update_pct(task, 0, 0, 0.20,  messages.BACKUP_DISCOVERY, session, taskid)
+        bckfolder = self.BACKUPROOT + '/ds-' + str(task_datastore_id)
+        self.update_pct(TaskType.BACKUP, task_id, 0, 0, 0.20, 'BACKUP_DISCOVERY', messages.BACKUP_DISCOVERY, taskid)
 
         # search the VM
         vms = self.get_vms()
@@ -299,63 +353,80 @@ class XenBackup:
                 tobackup = vm
                 break
 
+        # if we didn't found the backup VM
         if tobackup == None:
-            log.error('VM not found')
-            self.update_pct(task, 1, 1, 0.20, messages.BACKUP_FAILED_FIND_VM, session, taskid)
+            log.error('VM not found: ' + uuid)
+            self.update_pct(TaskType.BACKUP, task_id, 1, 1, 0.20, 'BACKUP_FAILED_FIND_VM', messages.BACKUP_FAILED_FIND_VM, taskid)
 
             self._flow.remove_message(taskid)
-            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to find VM with uuid: ' + uuid, messages.time())
+            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,messages.BACKUP_VM_NOT_FOUND + uuid, messages.time())
 
             return
 
-        self.update_pct(task, 0.10, 0, 0.20, messages.BACKUP_FIND_HOST, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.10, 0, 0.20, 'BACKUP_FIND_HOST', messages.BACKUP_FIND_HOST, taskid)
 
         # search which host we can use
         backuphost = self.get_native_host(tobackup[1]["resident_on"], hosts)
 
-        self.update_pct(task, 0.20, 0, 0.20, messages.BACKUP_CONNECTING_HOST, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.20, 0, 0.20, 'BACKUP_CONNECTING_HOST', messages.BACKUP_CONNECTING_HOST, taskid)
 
         # start backing up: create a connection
         connection = Bridge(self._server[0], self._server[1], self._server[2])
 
-        self.update_pct(task, 0.30, 0, 0.20, messages.BACKUP_CHECK_MOUNT, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.30, 0, 0.20, 'BACKUP_CHECK_MOUNT', messages.BACKUP_CHECK_MOUNT, taskid)
 
         # create mount point
         connection.sudo_command('mkdir -p ' + bckfolder, self._server[2])
 
-        self.update_pct(task, 0.40, 0, 0.20, messages.BACKUP_MOUNT, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.40, 0, 0.20, 'BACKUP_MOUNT', messages.BACKUP_MOUNT, taskid)
+
+        # check if wrong mounted
+        result = connection.command('df -h | grep -i ' + ds_host)
+        if len(result) != 0:
+            split = result[0].split(' ')
+            if split[len(split) - 1] != bckfolder:
+                result = connection.sudo_command('umount '+ split[len(split) - 1], self._server[2])
 
         # check if already mounted
         result = connection.command('df -h | grep -i ' + bckfolder)
         if len(result) == 0:
             # mount smb
-            result = connection.sudo_command('mount -t cifs -o username=' + datastore.username + ',password=' + datastore.password + ' ' + datastore.host + ' ' + bckfolder, self._server[2])
-
+            result = connection.sudo_command('mount -t cifs -o username=' + ds_username + ',password=' + ds_password + ' ' + ds_host + ' ' + bckfolder, self._server[2])
+        else:
+            # if we have a wrong mount
+            if ds_host != result[0].split(' ')[0]:
+                # unmount
+                result = connection.sudo_command('umount '+ bckfolder, self._server[2])
+                result = connection.sudo_command('mount -t cifs -o username=' + ds_username + ',password=' + ds_password + ' ' + ds_host + ' ' + bckfolder, self._server[2])
+        
+        
         result = connection.command('df -h | grep -i ' + bckfolder)
         if len(result) == 0:
             log.error('Could not mount the datastore')
-            self.update_pct(task, 1, 1, 0.20, messages.BACKUP_FAILED_MOUNT, session, taskid)
+            self.update_pct(TaskType.BACKUP, task_id, 1, 1, 0.20, 'BACKUP_FAILED_MOUNT', messages.BACKUP_FAILED_MOUNT + datastore.name, taskid)
 
             self._flow.remove_message(taskid)
-            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' ,'Failed to mount datastore ' + datastore.name, messages.time())
+            self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' , messages.BACKUP_FAILED_MOUNT + datastore.name, messages.time())
 
             return
 
-        self.update_pct(task, 0.50, 0, 0.20, messages.BACKUP_CREATE_SNAPSHOT, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.50, 0, 0.20, 'BACKUP_CREATE_SNAPSHOT', messages.BACKUP_CREATE_SNAPSHOT, taskid)
 
         log.info("Backing up: " + tobackup[1]["name_label"] + "(" + tobackup[1]["uuid"] + ")")
 
         # creating names
         snapshot_label = tobackup[1]["name_label"] + "." + datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
         backup_name = tobackup[1]["name_label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".xva"
-        task.backupname = snapshot_label 
         meta_name = tobackup[1]["name_label"] + "-" + datetime.datetime.now().strftime("%Y-%m-%d.%H%M%S") + ".meta"
         if backup_name.startswith("."):
             backup_name = backup_name[1:]
 
-        self.update_pct(task, 0.70, None, 0.20, messages.BACKUP_BACKUP, session, taskid)
+        session = db.session
+        task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
+        task.backupname = snapshot_label 
+        session.close()
 
-        #        # TODO check if snapshots are ok
+        self.update_pct(TaskType.BACKUP, task_id, 0.70, None, 0.20, 'BACKUP_BACKUP', messages.BACKUP_BACKUP, taskid)
 
         # create a snapshot
         try:
@@ -365,7 +436,7 @@ class XenBackup:
             
             if e.details[0] == 'SR_BACKEND_FAILURE_109':
                 # snapshot chain too long
-                self.update_pct(task, 1, 1, 0.20, messages.BACKUP_FAILED_SNAPSHOT_CHAIN, session, taskid)
+                self.update_pct(TaskType.BACKUP, task_id, 1, 1, 0.20, 'BACKUP_FAILED_SNAPSHOT_CHAIN', messages.BACKUP_FAILED_SNAPSHOT_CHAIN, taskid)
 
                 self._flow.remove_message(taskid)
                 self._flow.add_message(MessageType.NOTIFICATION, messages.BACKUP_NOTIFICATION_FAILED_1 , messages.BACKUP_NOTIFICATION_FAILED_2.replace('$BACKUPNAME', tobackup[1]["name_label"]), messages.time())
@@ -373,11 +444,10 @@ class XenBackup:
                 return
 
 
-        self.update_pct(task, 0.80, None, 0.20, messages.BACKUP_EXPORT, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.80, None, 0.20, 'BACKUP_EXPORT', messages.BACKUP_EXPORT, taskid)
 
         ####
-
-        #http://xapi-project.github.io/xen-api/classes/task.html
+        # http://xapi-project.github.io/xen-api/classes/task.html
 
         # download the xva TODO: connect on task
         dlsession = self.get_active_host().create_session()
@@ -386,7 +456,7 @@ class XenBackup:
                                            'Exporting backup of machine' + tobackup[1]["name_label"] + '. Downloading file ' + backup_name + '.')
         
         # pool_id, type, taskid, taskref, messageid
-        self._flow.task_submit(self.pool_id, 'backup', task.id, taskref, taskid)
+        self._flow.task_submit(self.pool_id, 'backup', task_id, taskref, taskid)
 
         result = connection.sudo_command('wget \'https://' + backuphost + '/export?session_id=' + dlsession._session + '&task_id=' + taskref +'&ref=' + snapshot + '\' --no-check-certificate -O ' + bckfolder + '/' + backup_name, self._server[2])
         
@@ -394,12 +464,20 @@ class XenBackup:
 
         dlsession.close()
 
-        self.update_pct(task, 0.80, 1.0, 0.20, messages.BACKUP_REMOVE_SNAPSHOT, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.80, 1.0, 0.20, 'BACKUP_REMOVE_SNAPSHOT', messages.BACKUP_REMOVE_SNAPSHOT, taskid)
 
         # remove snapshot
         self.get_active_host().remove_snapshot(snapshot)      
 
-        self.update_pct(task, 0.90, 1.0, 0.20, messages.BACKUP_CLOSE, session, taskid)
+        self.update_pct(TaskType.BACKUP, task_id, 0.90, 1.0, 0.20, 'BACKUP_CLOSE', messages.BACKUP_CLOSE, taskid)
+
+        # open a session to the database
+        session = db.session
+
+        # get all required objects from the database
+        task = session.query(BackupTask).filter(BackupTask.id == task_id).one()
+        datastore = session.query(Datastore).filter(Datastore.id == task.datastore_id).one()
+        pool = session.query(Pool).filter(Pool.id == task.pool_id).one()
 
         # create backup object as done
         backup = Backup(metafile=meta_name, 
@@ -422,11 +500,10 @@ class XenBackup:
         session.add(task)
         session.commit()
         
-        self.update_pct(task, 1, 1, 0.20, messages.BACKUP_DONE, session, taskid)
-
         self._flow.remove_message(taskid)
-
         self._flow.add_message(MessageType.MESSAGE, messages.BACKUP_MESSAGE_COMPLETE_1, messages.BACKUP_MESSAGE_COMPLETE_2.replace('$BACKUPNAME', tobackup[1]["name_label"]), messages.time())
 
         session.close()
         
+        self.update_pct(TaskType.BACKUP, task_id, 1, 1, 0.20, 'BACKUP_DONE', messages.BACKUP_DONE, taskid)
+

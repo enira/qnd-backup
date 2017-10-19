@@ -655,6 +655,8 @@
 				$("#wizardrestoretitle").html("Restoring VM - " + data.vmname);
 				$("#text_vmname").html(data.vmname);
 				$("#text_snapshotname").html(data.snapshotname);
+				$("#text_created").html(data.created.split("-")[0]);
+				$("#text_comment").html(data.comment);
 				$("#inputIdPool").val(data.pool.id);
 				$("#inputIdBackup" ).val(backupid);
 				

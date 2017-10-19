@@ -367,6 +367,8 @@ class Flow(object):
             dbtask = None
             if task["type"] == 'backup':
                 dbtask = session.query(BackupTask).filter(BackupTask.id == task["task_db_id"]).one()
+            if task["type"] == 'restore':
+                dbtask = session.query(RestoreTask).filter(RestoreTask.id == task["task_db_id"]).one()
             
             dbtask.pct2 = xtask["progress"]
 

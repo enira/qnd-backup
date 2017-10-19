@@ -273,8 +273,8 @@ class XenBackup:
                                            'Importing backup of machine' + task.backup.vmname + '. Importing file ' + task_backupfile + '.')
 
         self._flow.task_submit(self.pool_id, 'restore', task_id, taskref, taskid)
-
-        result = connection.sudo_command('curl -k -T ' + resfolder + '/' + task_backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session + '&sr=' + task_sr + '&task_id=' + taskref, self._server[2])
+        cmd = 'curl -k -T ' + resfolder + '/' + task_backupfile + ' https://' + host.address + '/import?session_id=' + dlsession._session.replace(':','\\:') + '&sr=' + task_sr.replace(':','\\:') + '&task_id=' + taskref.replace(':','\\:')
+        result = connection.command(cmd)
         
         self.get_active_host().remove_task(dlsession, taskref)
 

@@ -174,7 +174,7 @@ def create_backup_task(data):
     """
     pool_id = data.get('pool_id')
     datastore_id = data.get('datastore_id')
-    status = data.get('status')
+    status = data.get('status').upper()
     divisor = data.get('divisor')
     pct1 = data.get('pct1')
     pct2 = data.get('pct2')

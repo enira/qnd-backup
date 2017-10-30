@@ -116,7 +116,7 @@ class SystemItem(Resource):
 
         for backup in backups:
             try:
-                if backup.status == "backup_done":
+                if backup.status == "BACKUP_DONE":
                     if backup.backupname == None:
                         str = 'VM: ' + backup.backup.vmname + '. ' + backup.backup.comment
                     else:
@@ -124,27 +124,29 @@ class SystemItem(Resource):
                     bo = type('',(object,),{"object": str, "date": backup.ended})()
                     backup_pass.append(bo)
                 else:
-                    if backup.status == "backup_pending":
-                        # if pending backup: don't count it towards failed
-                        pass
-                    else:
+                    if 'failed' in backup.status or 'FAILED' in backup.status:
                         name = ""
-                        if backup.backupname != None:
-                            name = backup.backupname
+                        
+                        if backup.backup != None:
+                            name = backup.backup.vmname
+
                         bo = type('',(object,),{"object": 'Failed: '+ name +'. ', "date": backup.started})()
                         backup_failed.append(bo)
+                    else:
+                        # if pending backup: don't count it towards failed
+                        pass
             except Exception as e:
                 log.error(repr(e))
 
         for restore in restores:
             try:
-                if backup.status == "restore_done":
+                if backup.status == "RESTORE_DONE":
                     # TODO
-                    bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
+                    ro = type('',(object,),{"object": restore.backupname, "date": restore.started})()
                     restore_pass.append(ro)
                 else:
                     # TODO
-                    bo = type('',(object,),{"object": restore.backupname, "date": restore.started})()
+                    ro = type('',(object,),{"object": restore.backupname, "date": restore.started})()
                     restore_failed.append(ro)
             except Exception as e:
                 log.error(repr(e))

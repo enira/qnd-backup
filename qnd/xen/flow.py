@@ -60,7 +60,6 @@ class Flow(object):
             obj["disks"] = []
             return obj
 
-
         # there is a pool, check if we have cached vms
         if pool_id not in self._envcache:
             obj["vms"] = self._poolcache[pool_id]["backup"].get_vms()
@@ -170,7 +169,7 @@ class Flow(object):
         schedule = session.query(Schedule).filter(Schedule.id == schedule_id).one()
         print str(datetime.datetime.now()) + '>>' + str(schedule.id)
 
-        task = BackupTask(status='backup_pending', pct1=0, pct2=0, pool_id=schedule.pool.id, datastore_id=schedule.datastore.id, uuid=schedule.uuid)
+        task = BackupTask(status='BACKUP_PENDING', pct1=0, pct2=0, pool_id=schedule.pool.id, datastore_id=schedule.datastore.id, uuid=schedule.uuid)
         try:
             session.add(task)
             session.commit()
@@ -194,12 +193,18 @@ class Flow(object):
         for schedule in schedules:
             log.info('Adding schedule: ' + schedule.name + ' with id ' + str(schedule.id))
             try:
+                day = schedule.day
+                hour = schedule.hour
+                minute = schedule.minute
+                month = schedule.month
+                week = schedule.week
+
                 self._scheduler.add_job(self.create_task, 'cron', [int(schedule.id)], 
-                                    day=schedule.day, 
-                                    hour=schedule.hour, 
-                                    minute=schedule.minute, 
-                                    month=schedule.month,
-                                    day_of_week=schedule.week,
+                                    day=day, 
+                                    hour=hour, 
+                                    minute=minute, 
+                                    month=month,
+                                    day_of_week=week,
                                     id=str(schedule.id))
             except:
                 log.error('Issue on schedule: ' + schedule.name + ' with id ' + str(schedule.id))
@@ -324,7 +329,7 @@ class Flow(object):
                 self._poolcache[pool.id]["backup"].discover()
 
         # submit all backup tasks
-        tasks = session.query(BackupTask).filter(BackupTask.status == 'backup_pending').all()
+        tasks = session.query(BackupTask).filter(BackupTask.status == 'BACKUP_PENDING').all()
         for task in tasks:
             type =  session.query(Datastore).filter(Datastore.id == task.datastore_id).one().type
             self._poolcache[task.pool_id]["backup"].backuptasks.append([task.id, type])
@@ -361,22 +366,28 @@ class Flow(object):
         """
         session = db.session
         for task in self._tasks:
+            try:
+                xtask = self._poolcache[task["pool"]]["backup"].get_task(task["task_xen_id"])
 
-            xtask = self._poolcache[task["pool"]]["backup"].get_task(task["task_xen_id"])
-
-            dbtask = None
-            if task["type"] == 'backup':
-                dbtask = session.query(BackupTask).filter(BackupTask.id == task["task_db_id"]).one()
-            if task["type"] == 'restore':
-                dbtask = session.query(RestoreTask).filter(RestoreTask.id == task["task_db_id"]).one()
+                dbtask = None
+                if task["type"] == 'backup':
+                    dbtask = session.query(BackupTask).filter(BackupTask.id == task["task_db_id"]).one()
+                if task["type"] == 'restore':
+                    dbtask = session.query(RestoreTask).filter(RestoreTask.id == task["task_db_id"]).one()
             
-            dbtask.pct2 = xtask["progress"]
+                dbtask.pct2 = xtask["progress"]
 
-            session.add(dbtask)
-            session.commit()
+                session.add(dbtask)
+                session.commit()
 
-            self.edit_message(task["message_id"], dbtask.status, str(int(round(dbtask.pct() * 100,0))) , None)
-            
+                self.edit_message(task["message_id"], dbtask.status, str(int(round(dbtask.pct() * 100,0))) , None)
+            except Exception, e:
+                # if the task is invalid
+                if e.details[0] == 'HANDLE_INVALID':
+                    self._tasks.remove(task)
+                else:
+                    raise
+
         session.close()
 
 
@@ -406,11 +417,12 @@ class Flow(object):
                 task.status = 'BACKUP_PENDING'
                 session.add(task)
                 session.commit()
+            elif task.status == 'BACKUP_DONE':
+                pass
             else:
                 task.status = 'BACKUP_FAILED_ORPHAN'
                 session.add(task)
                 session.commit()
-            
 
         # TODO
         tasks = session.query(RestoreTask).filter(~RestoreTask.status.contains('FAILED')).all()
@@ -490,7 +502,7 @@ class Flow(object):
 
                         toarchive = self._internal_get_archive(machine, machines, session)
 
-                        committask = ArchiveTask(archive=archive, backup=toarchive, status='archive_pending')
+                        committask = ArchiveTask(archive=archive, backup=toarchive, status='ARCHIVE_PENDING')
                         session.add(committask)
                         session.commit()
 

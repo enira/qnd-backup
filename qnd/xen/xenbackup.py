@@ -335,6 +335,7 @@ class XenBackup:
         ds_password = datastore.password
         ds_host = datastore.host
 
+
         # close database session again
         session.close()
 
@@ -364,6 +365,29 @@ class XenBackup:
             return
 
         self.update_pct(TaskType.BACKUP, task_id, 0.10, 0, 0.20, 'BACKUP_FIND_HOST', messages.BACKUP_FIND_HOST, taskid)
+
+        session = db.session
+        # create backup object
+        datastore = session.query(Datastore).filter(Datastore.id == task.datastore_id).one()
+        pool = session.query(Pool).filter(Pool.id == task.pool_id).one()
+
+        backup = Backup(metafile='', 
+                        backupfile='', 
+                        snapshotname='',
+                        comment='Backup started at: ' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+                        uuid=uuid,
+                        vmname=tobackup[1]["name_label"],
+                        datastore=datastore,
+                        pool=pool)
+
+        session.add(backup)
+        session.commit()
+
+        task.backup = backup
+        session.add(task)
+        session.commit()
+
+        session.close()
 
         # search which host we can use
         backuphost = self.get_native_host(tobackup[1]["resident_on"], hosts)
@@ -494,7 +518,6 @@ class XenBackup:
 
         # update the task
         task.ended = datetime.datetime.now()
-        task.backup = backup
         task.backupname = snapshot_label 
 
         session.add(task)

@@ -449,7 +449,7 @@
 		var jsonData = '';
 		
 		if(call == '(null)') {
-			jsonData = '{ "name": "' + name + '", "target_id": "' + target_id + '", "encryption_key": "todo", "incremental": 0, "source_id": "' + source_id + '", "retention": ' + retention + '}';
+			jsonData = '{ "name": "' + name + '", "target_id": ' + target_id + ', "encryption_key": "todo", "incremental": 0, "source_id": ' + source_id + ', "retention": ' + retention + '}';
 		
 			$.ajax({
 				url: '/api/xen/archive/',
@@ -466,7 +466,7 @@
 			});
 		}
 		else {
-			jsonData = '{ "name": "' + name + '", "target_id": "' + target_id + '", "encryption_key": "todo", "incremental": 0, "source_id": "' + source_id + '", "retention": ' + retention + '}';
+			jsonData = '{ "name": "' + name + '", "target_id": ' + target_id + ', "encryption_key": "todo", "incremental": 0, "source_id": ' + source_id + ', "retention": ' + retention + '}';
 		
 			$.ajax({
 				url: '/api/xen/archive/' + call,

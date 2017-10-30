@@ -6,6 +6,8 @@ log = logging.getLogger(__name__)
 
 from bridge import Bridge
 
+from xen.types import MessageType, TaskType
+
 from database import db
 from database.models import BackupTask, ArchiveTask, RestoreTask, Backup
 
@@ -35,18 +37,29 @@ class Mover:
                 exit()
 
 
-    def update_pct(self, task, pct1, pct2, divisor, status, session):
+
+    #ef update_pct(self, task, pct1, pct2, divisor, status, session)
+    def update_pct(self, type, task_id, pct1, pct2, divisor, status, message, id):
         """
         Update percentages for a given task
         """
+        session = db.session
+        if type == TaskType.ARCHIVE:
+            task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id).one()
 
-        task.pct1 = 0
+        task.pct1 = pct1
         if pct2 != None:
-            task.pct2 = 0
-        task.divisor = 0.20
-        task.status = 'archive_' + status
+            task.pct2 = pct2
+        task.divisor = divisor
+
+        task.message = message
+        task.status = status
         session.add(task)
         session.commit()
+
+        self._flow.edit_message(id, message, str(int(round(task.pct() *100,0))) , None)
+
+        session.close()
 
     def delete_reference(self, session, backup_id):
         """
@@ -79,42 +92,105 @@ class Mover:
         session = db.session
         # get backup object 
         task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id).one()
+        taskid = task.id 
 
-        # folders
-        sid = self.ARCHIVEROOT + '/a-' + str(task.archive.source.id)
-        tid = self.ARCHIVEROOT + '/a-' + str(task.archive.target.id)
+        fromds = self.ARCHIVEROOT + '/ds-' + str(task.archive.source.id)
+        tods = self.ARCHIVEROOT + '/ds-' + str(task.archive.target.id)
 
-        self.update_pct(task, 0.10, 0, 0.20, 'connecting', session)
+        from_host = task.archive.source.host
+        to_host = task.archive.target.host
+
+        from_ds_username = task.archive.source.username
+        from_ds_password = task.archive.source.password
+        from_ds_host = task.archive.source.host
+        from_name = task.archive.source.name
+
+        to_ds_username = task.archive.target.username
+        to_ds_password = task.archive.target.password
+        to_ds_host = task.archive.target.host
+        to_name = task.archive.target.name
+
+        session.close
+
+        self.update_pct(TaskType.ARCHIVE, task_id, 0.10, 0, 0.20, 'ARCHIVE_CONNECTING', messages.ARCHIVE_CONNECTING, taskid)
 
         if self._server != None:
-            m = Bridge(self._server[0], self._server[1], self._server[2])
+            connection = Bridge(self._server[0], self._server[1], self._server[2])
 
-            self.update_pct(task, 0.10, 0, 0.20, 'mounting', session)
+            self.update_pct(TaskType.ARCHIVE, task_id, 0.10, 0, 0.20, 'ARCHIVE_MOUNT', messages.ARCHIVE_MOUNT, taskid)
 
-            m.sudo_command('mkdir -p ' + sid, self._server[2])
-            if m.is_connected() == False:
-                # error trying to connect to data mover
-                session.delete(task)
-                session.commit()
-                return
-            m.sudo_command('mkdir -p ' + tid, self._server[2])
+            # create mount points
+            connection.sudo_command('mkdir -p ' + fromds, self._server[2])
+            connection.sudo_command('mkdir -p ' + tods, self._server[2])
 
-            result = m.sudo_command('mount -t cifs -o username=' + task.archive.source.username + ',password=' + task.archive.source.password + ' ' + task.archive.source.host + ' ' + sid, self._server[2])
-            result = m.sudo_command('mount -t cifs -o username=' + task.archive.target.username + ',password=' + task.archive.target.password + ' ' + task.archive.target.host + ' ' + tid, self._server[2])
+            self.update_pct(TaskType.ARCHIVE, task_id, 0.40, 0, 0.20, 'ARCHIVE_MOUNT', messages.ARCHIVE_MOUNT, taskid)
 
-            result = m.command('df -h | grep -i ' + sid)
+            # check if wrong mounted
+            result = connection.command('df -h | grep -i ' + to_host)
+            if len(result) != 0:
+                split = result[0].split(' ')
+                if split[len(split) - 1] != fromds:
+                    result = connection.sudo_command('umount '+ split[len(split) - 1], self._server[2])
+
+            result = connection.command('df -h | grep -i ' + from_host)
+            if len(result) != 0:
+                split = result[0].split(' ')
+                if split[len(split) - 1] != tods:
+                    result = connection.sudo_command('umount '+ split[len(split) - 1], self._server[2])
+
+
+            # check if already mounted
+            result = connection.command('df -h | grep -i ' + fromds)
+            if len(result) == 0:
+                # mount smb
+                result = connection.sudo_command('mount -t cifs -o username=' + from_ds_username + ',password=' + from_ds_password + ' ' + from_ds_host + ' ' + fromds, self._server[2])
+            else:
+                # if we have a wrong mount
+                if ds_host != result[0].split(' ')[0]:
+                    # unmount
+                    result = connection.sudo_command('umount '+ fromds, self._server[2])
+                    result = connection.sudo_command('mount -t cifs -o username=' + from_ds_username + ',password=' + from_ds_password + ' ' + from_ds_host + ' ' + fromds, self._server[2])
+            
+            result = connection.command('df -h | grep -i ' + tods)
+            if len(result) == 0:
+                # mount smb
+                result = connection.sudo_command('mount -t cifs -o username=' + to_ds_username + ',password=' + to_ds_password + ' ' + to_ds_host + ' ' + tods, self._server[2])
+            else:
+                # if we have a wrong mount
+                if ds_host != result[0].split(' ')[0]:
+                    # unmount
+                    result = connection.sudo_command('umount '+ tods, self._server[2])
+                    result = connection.sudo_command('mount -t cifs -o username=' + to_ds_username + ',password=' + to_ds_password + ' ' + to_ds_host + ' ' + tods, self._server[2])
+        
+        
+
+            result = connection.command('df -h | grep -i ' + tods)
             if len(result) == 0:
                 log.error('Could not mount the datastore')
-                self.update_pct(task, 0.10, 0, 0.20, 'failed_mount', session)
-                return
-            result = m.command('df -h | grep -i ' + tid)
-            if len(result) == 0:
-                log.error('Could not mount the datastore')
-                self.update_pct(task, 0.10, 0, 0.20, 'failed_mount', session)
+                self.update_pct(TaskType.ARCHIVE, task_id, 1, 1, 0.20, 'ARCHIVE_FAILED_MOUNT', messages.ARCHIVE_FAILED_MOUNT + to_name, taskid)
+
+                self._flow.remove_message(taskid)
+                self._flow.add_message(MessageType.NOTIFICATION, 'Archive failed' , messages.ARCHIVE_FAILED_MOUNT + to_name, messages.time())
+
                 return
 
+            result = connection.command('df -h | grep -i ' + fromds)
+            if len(result) == 0:
+                log.error('Could not mount the datastore')
+                self.update_pct(TaskType.ARCHIVE, task_id, 1, 1, 0.20, 'ARCHIVE_FAILED_MOUNT', messages.ARCHIVE_FAILED_MOUNT + from_name, taskid)
+
+                self._flow.remove_message(taskid)
+                self._flow.add_message(MessageType.NOTIFICATION, 'Backup failed' , messages.ARCHIVE_FAILED_MOUNT + from_name, messages.time())
+
+                return
+            
+            session = db.session
+            # get backup object 
+            task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id).one()
+            file = task.backup.backupfile
             # check if file is there 0: is there
-            result = m.command('ls -ltr ' +  sid + '/' + task.backup.backupfile)
+            result = command.command('ls -ltr ' + fromds + '/' + file)
+
             if len(result) == 0:
                 log.error('File does not exists')
                 cpb = task.backup
@@ -122,38 +198,48 @@ class Mover:
                 self.delete_reference(session, cpb.id)
                 session.delete(cpb)
                 session.commit()
+                
+                self.update_pct(TaskType.ARCHIVE, task_id, 1, 1, 0.20, 'ARCHIVE_FAILED_NOTFOUND', messages.ARCHIVE_FAILED_NOTFOUND + task.backup.backupfile, taskid)
 
-                self.update_pct(task, 0.10, 0, 0.20, 'failed_notfound', session)
+                session.close()
+
                 return
 
+            session.close()
             # move file
-            result = m.sudo_command('mv ' + sid + '/' + task.backup.backupfile + ' ' + tid + '/' + task.backup.backupfile, self._server[2])
+            result = command.sudo_command('mv ' + fromds + '/' + file + ' ' + tods + '/' + file, self._server[2])
 
             # check if done
             if len(result) == 4:
                 # this is an error
-                self.update_pct(task, 0.10, 0, 0.20, 'failed_error', session)
+                self.update_pct(TaskType.ARCHIVE, task_id, 1, 1, 0.20, 'ARCHIVE_FAILED_ERROR', messages.ARCHIVE_FAILED_ERROR, taskid)
+
                 return
 
             # cleanup original task and backup
+            session = db.session
+            # get backup object 
+            task = session.query(ArchiveTask).filter(ArchiveTask.id == task_id).one()
+
             cpb = task.backup
             task.backup = None
             self.delete_reference(session, cpb.id)
             session.delete(cpb)
             session.commit()
 
-            self.update_pct(task, 0.10, 0, 0.20, 'done', session)
+            session.close()
+
+            self.update_pct(task, 0.10, 0, 0.20, 'ARCHIVE_DONE', session)
 
         else:
-            self.update_pct(task, 0.10, 0, 0.20, 'failed_noserver', session)
+            self.update_pct(task, 0.10, 0, 0.20, 'ARCHIVE_FAILED_NOSERVER', session)
 
-        session.close()
-        print 'Archiving done'
+        
 
 
     def test_host(self, server, username, password):
         """
-        testing if a host can be connected.
+        OBSOLETE: testing if a host can be connected.
         """
         test = Bridge(server, username, password)
         result = test.command('echo ...')
@@ -167,7 +253,7 @@ class Mover:
 
     def test_datastore(self, server, username, password):
         """
-        Testing if a datastore can be connected.
+        OBSOLETE: Testing if a datastore can be connected.
         """
 
         try:

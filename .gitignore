@@ -265,6 +265,7 @@ deploy
 
 # exclude environment
 qnd/env/
+qnd/env3/
 
 # exclude database
 qnd/db.sqlite

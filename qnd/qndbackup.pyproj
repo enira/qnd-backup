@@ -83,6 +83,7 @@
     <Compile Include="xen\flow.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="xen\flow\__init__.py" />
     <Compile Include="xen\mover.py">
       <SubType>Code</SubType>
     </Compile>
@@ -120,6 +121,7 @@
     <Folder Include="xapi\" />
     <Folder Include="xapi\" />
     <Folder Include="xen\" />
+    <Folder Include="xen\flow\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

@@ -335,7 +335,6 @@ class XenBackup:
         ds_password = datastore.password
         ds_host = datastore.host
 
-
         # close database session again
         session.close()
 

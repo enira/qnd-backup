@@ -21,7 +21,7 @@ VERSION = '4'
 
 class CustomModelView(ModelView):
     def __init__(self, model, session, name=None, category=None, endpoint=None, url=None, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
         super(CustomModelView, self).__init__(model, session, name=name, category=category, endpoint=endpoint, url=url)
@@ -99,7 +99,7 @@ def check_version(app, admin):
         # alpha-1 & alpha-2: unsupported by this version. 
         if int(dbversion.value) < 3:
             log.error('Database version 1 & 2 are deprecated, no upgrade possible!')
-            print 'Database version 1 & 2 are deprecated, no upgrade possible!'
+            print('Database version 1 & 2 are deprecated, no upgrade possible!')
             exit()
 
     if admin != None:

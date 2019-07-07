@@ -3,8 +3,8 @@ import sys
 import paramiko
 import configparser
 
-from bridge import Bridge
-from xenbridge import XenBridge
+from xen.bridge import Bridge
+from xen.xenbridge import XenBridge
 
 from database import db
 from database.models import BackupTask, ArchiveTask, RestoreTask, Backup, Datastore, Pool, Host

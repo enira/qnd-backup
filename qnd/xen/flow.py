@@ -11,8 +11,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from database.models import Pool, Host, BackupTask, ArchiveTask, RestoreTask, Datastore, Schedule, Archive, Backup
 from database import db
 
-from mover import Mover
-from xenbackup import XenBackup
+from xen.mover import Mover
+from xen.xenbackup import XenBackup
 
 from xen.types import MessageType
 
@@ -167,14 +167,14 @@ class Flow(object):
         """
         session = db.session
         schedule = session.query(Schedule).filter(Schedule.id == schedule_id).one()
-        print str(datetime.datetime.now()) + '>>' + str(schedule.id)
+        print(str(datetime.datetime.now()) + '>>' + str(schedule.id))
 
         task = BackupTask(status='BACKUP_PENDING', pct1=0, pct2=0, pool_id=schedule.pool.id, datastore_id=schedule.datastore.id, uuid=schedule.uuid)
         try:
             session.add(task)
             session.commit()
         except Exception as e:
-            print e
+            print(e)
         session.close()
 
     def initialize_scheduler(self):
@@ -238,7 +238,7 @@ class Flow(object):
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
         except:
-            print 'Error editing schedule'
+            print('Error editing schedule')
 
         session.close()
                 
@@ -258,7 +258,7 @@ class Flow(object):
                                     day_of_week=schedule.week,
                                     id=str(schedule.id))
         except:
-            print 'Error adding schedule'
+            print('Error adding schedule')
 
         session.close()
 
@@ -381,7 +381,7 @@ class Flow(object):
                 session.commit()
 
                 self.edit_message(task["message_id"], dbtask.status, str(int(round(dbtask.pct() * 100,0))) , None)
-            except Exception, e:
+            except Exception as e:
                 # if the task is invalid
                 if e.details[0] == 'HANDLE_INVALID':
                     self._tasks.remove(task)
@@ -442,7 +442,6 @@ class Flow(object):
         session.close()
         
 
-
     def cleanup(self):
         """
         Cleanup task
@@ -498,7 +497,7 @@ class Flow(object):
 
                     # if we need to archive
                     if length > archive.retention:
-                        print 'Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine
+                        print('Retention policy of : ' + str(archive.retention) + ' exceeded for uuid: ' + machine)
 
                         toarchive = self._internal_get_archive(machine, machines, session)
 
@@ -510,7 +509,8 @@ class Flow(object):
             session.close()
 
         except Exception as e :
-            print 'Uh oh, exception: ' + str(e)
+            print('Uh oh, exception: ' + str(e))
+
 
     def test_host(self, server, username, password):
         """

@@ -4,7 +4,7 @@ import configparser
 import logging.config
 log = logging.getLogger(__name__)
 
-from bridge import Bridge
+from xen.bridge import Bridge
 
 from xen.types import MessageType, TaskType
 
@@ -33,7 +33,7 @@ class Mover:
                 config.read('config.cfg')
                 self._server=[config['mover']['hostname'], config['mover']['username'], config['mover']['password']]
             else:
-                print 'No mover found, archiving not possible.'
+                print('No mover found, archiving not possible.')
                 exit()
 
 
@@ -87,7 +87,7 @@ class Mover:
         """
         Archive a VM.
         """
-        print 'Archiving'
+        print('Archiving')
 
         session = db.session
         # get backup object 

@@ -355,7 +355,7 @@
 			
 				<!-- -->
 			
-			<div class="row" id="restore_intro">
+			<div class="row" id="restore_intro" style="display:none">
         <div class="col-xs-12" >
 		<div class="box">
             <div class="box-header with-border">
@@ -541,6 +541,8 @@
 							text: pool[i].name
 						}));
 				}
+				
+				$("#restore_intro").css('display', 'block');
 			}
 			else {
 				// No restores for a pool show message

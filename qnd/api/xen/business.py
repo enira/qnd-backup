@@ -186,7 +186,7 @@ def create_backup_task(data):
         db.session.add(task)
         db.session.commit()
     except Exception as e:
-        print e
+        print(e)
 
 # Tasks
 def create_restore_task(data):
@@ -210,7 +210,7 @@ def create_restore_task(data):
         db.session.add(task)
         db.session.commit()
     except Exception as e:
-        print e
+        print(e)
 
 
 def delete_backup_task(task_id):

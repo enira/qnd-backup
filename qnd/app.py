@@ -1,5 +1,3 @@
-
-
 import os
 from flask import Flask, Blueprint, request, send_from_directory, redirect
 from flask_admin import Admin

@@ -1,5 +1,5 @@
 from xapi import XenAPI
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import logging.config
 log = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class XenBridge:
             session.xenapi.login_with_password(self.username, self.password)
             
             self.master = True
-        except Exception, e:
+        except Exception as e:
             if hasattr(e, 'details') and e.details[0] == 'HOST_IS_SLAVE':
                 # Redirect to cluster master
                 url = urlparse(self.url).scheme + '://' + e.details[1]
@@ -44,7 +44,7 @@ class XenBridge:
 
                     session = XenAPI.Session(url, ignore_ssl=True)
                     session.login_with_password(self.username, self.password)
-                except Exception, e:
+                except Exception as e:
                     raise e
             else:
                 raise e

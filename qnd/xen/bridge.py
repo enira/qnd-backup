@@ -79,7 +79,7 @@ class Bridge:
                 result.append(line)
             return result
         except Exception as e:
-            print e
+            print(e)
 
     def command(self, cmd):
         """
@@ -96,7 +96,7 @@ class Bridge:
 
             return result
         except Exception as e:
-            print e
+            print(e)
 
     def command_single(self, cmd):
         """
@@ -113,7 +113,7 @@ class Bridge:
             return result
 
         except Exception as e:
-            print e
+            print(e)
 
     def command_array(self, cmd):
         """
@@ -147,7 +147,7 @@ class Bridge:
             return result
 
         except Exception as e:
-            print e
+            print(e)
     
 
     def _internal_parse_params(self, lines):

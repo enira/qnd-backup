@@ -55,8 +55,8 @@
 # --------------------------------------------------------------------
 
 import gettext
-import xmlrpclib
-import httplib
+import six.moves.xmlrpc_client as xmlrpclib
+import six.moves.http_client as httplib
 import socket
 import sys
 
@@ -72,9 +72,10 @@ class Failure(Exception):
     def __str__(self):
         try:
             return str(self.details)
-        except Exception, exn:
-            print >>sys.stderr, exn
-            return "Xen-API failure: %s" % str(self.details)
+        except Exception as exn:
+            msg = "Xen-API failure: %s" % exn
+            sys.stderr.write(msg)
+            return msg
 
     def _details_map(self):
         return dict([(str(i), self.details[i])
@@ -91,7 +92,7 @@ class UDSHTTPConnection(httplib.HTTPConnection):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(path)
 
-class UDSHTTP(httplib.HTTP):
+class UDSHTTP(httplib.HTTPConnection):
     _connection_class = UDSHTTPConnection
 
 class UDSTransport(xmlrpclib.Transport):
@@ -128,7 +129,8 @@ class Session(xmlrpclib.ServerProxy):
                  allow_none=1, ignore_ssl=False):
 
         # Fix for CA-172901 (+ Python 2.4 compatibility)
-        if not (sys.version_info[0] <= 2 and sys.version_info[1] < 7) \
+        # Fix for context=ctx ( < Python 2.7.9 compatibility)
+        if not (sys.version_info[0] <= 2 and sys.version_info[1] <= 7 and sys.version_info[2] <= 9 ) \
                 and ignore_ssl:
             import ssl
             ctx = ssl._create_unverified_context()
@@ -179,7 +181,7 @@ class Session(xmlrpclib.ServerProxy):
             self.last_login_method = method
             self.last_login_params = params
             self.API_version = self._get_api_version()
-        except socket.error, e:
+        except socket.error as e:
             if e.errno == socket.errno.ETIMEDOUT:
                 raise xmlrpclib.Fault(504, 'The connection timed out')
             else:

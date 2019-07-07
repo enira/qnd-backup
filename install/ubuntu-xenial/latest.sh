@@ -42,14 +42,14 @@ systemctl enable nginx
 chown -R qnd:qnd /opt/qndbackup/qnd/
 
 # create a log folder for the service 
-mkdir -p /var/log/qnd/
-chown qnd:qnd /var/log/qnd/
-mv /opt/qndbackup/qnd-backup-master/install/ubuntu-xenial/qnd.service /etc/systemd/system/qnd.service
+mkdir -p /var/log/qndbackup/
+chown qnd:qnd /var/log/qndbackup/
+mv /opt/qndbackup/qnd-backup-master/install/ubuntu-xenial/qndbackup.service /etc/systemd/system/qndbackup.service
 
 # reset the database
 python /opt/qndbackup/qnd/reset_db.py
 
-systemctl start qnd
-systemctl enable qnd
+systemctl start qndbackup
+systemctl enable qndbackup
 
 rm -rf /opt/qndbackup/qnd-backup-master

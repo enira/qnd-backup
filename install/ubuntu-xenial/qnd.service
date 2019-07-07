@@ -1,9 +1,0 @@
-[Unit]
-Description=Quick 'n Dirty  Xen Backup - Service
-After=network.target
-
-[Service]
-User=qnd
-Group=qnd
-WorkingDirectory=/opt/qndbackup/qnd
-ExecStart=/usr/local/bin/gunicorn --workers 1 --bind 127.0.0.1:8080 --error-logfile /var/log/qnd/error.log --log-file /var/log/qnd/qnd.log --access-logfile /var/log/qnd/access.log --log-level info app:app
